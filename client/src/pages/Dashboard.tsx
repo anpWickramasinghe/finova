@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import Test from '../components/test';
 
 const Dashboard = () => {
     const auth = useContext(AuthContext);
@@ -15,6 +16,7 @@ const Dashboard = () => {
             >
                 Logout
             </button>
+            <Test />
         </div>
     );
 };
