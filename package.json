@@ -1,0 +1,21 @@
+{
+  "name": "finova",
+  "version": "1.0.0",
+  "description": "```                  ┌───────────────────────────┐                  │        Frontend Layer      │                  │───────────────────────────│                  │  Employee Portal (Web/App) │                  │  Manager Portal (Web)      │                  │  Admin Portal (Web)        │                  └─────────────┬─────────────┘                                │ HTTPS (JWT)                                ▼ ┌──────────────────────────────────────────────────────┐ │                   API Gateway / Backend               │ │──────────────────────────────────────────────────────│ │  Auth & Security Layer                                │ │  ├─ Authentication (JWT, Refresh Tokens)              │ │  ├─ Role-Based Access Control (RBAC)                   │ │  ├─ Permission Validation                              │ │                                                       │ │  Application Services                                  │ │  ├─ Employee Service                                   │ │  │    • View salary                                    │ │  │    • Submit requests                                │ │  │    • View payslips                                  │ │  ├─ Manager Service                                    │ │  │    • Approve payments                               │ │  │    • Team reports                                   │ │  │    • Budget review                                  │ │  ├─ Admin Service                                      │ │  │    • User & role management                         │ │  │    • System configuration                           │ │  │    • Financial rules                                │ │  ├─ Finance Core Service                               │ │  │    • Payroll calculations                           │ │  │    • Transactions                                   │ │  │    • Accounting logic                                │ │  ├─ Reporting Service                                  │ │  │    • Financial reports                               │ │  │    • Audit exports                                   │ │  └─ Audit & Logging Service                            │ │       • Activity logs                                  │ │       • Compliance tracking                            │ └─────────────┬───────────────────────┬────────────────┘               │                       │               ▼                       ▼ ┌──────────────────────┐   ┌──────────────────────────┐ │   Primary Database   │   │   Audit / Log Database    │ │──────────────────────│   │──────────────────────────│ │ PostgreSQL / MSSQL   │   │ MongoDB / Elasticsearch  │ │ • Users              │   │ • Access logs             │ │ • Roles              │   │ • Change history          │ │ • Permissions        │   │ • Financial events        │ │ • Payroll            │   └──────────────────────────┘ │ • Transactions       │ └──────────────────────┘ ```",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nethmina1028/finova.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/nethmina1028/finova/issues"
+  },
+  "homepage": "https://github.com/nethmina1028/finova#readme"
+}
