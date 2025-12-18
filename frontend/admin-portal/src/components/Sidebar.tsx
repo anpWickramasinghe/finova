@@ -22,18 +22,18 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     return (
         <aside
             className={cn(
-                "fixed left-0 top-16 bottom-0 border-r bg-background transition-all duration-300 z-40",
+                "fixed left-0 top-16 bottom-0 border-r bg-primary transition-all duration-300 z-40",
                 collapsed ? "w-16" : "w-64"
             )}
         >
-            <nav className="p-4 space-y-2">
+            <nav className="p-4 space-y-3">
                 {navItems.map((item) => (
                     <Button
                         key={item.label}
                         variant={item.active ? "secondary" : "ghost"}
                         className={cn(
-                            "w-full justify-start",
-                            collapsed ? "px-2 justify-center" : "px-4"
+                            "w-full justify-start mt-2",
+                            collapsed ? "px-2 justify-center " : "px-4 text-md "
                         )}
                     >
                         <item.icon className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-2")} />
