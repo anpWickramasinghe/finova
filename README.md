@@ -76,6 +76,9 @@ To run the entire application (Backend, Admin Portal, and Manager Portal) concur
 
 1.  **Install Dependencies**:
     Ensure you have installed dependencies in the root, backend, and frontend directories.
+    ```
+    npm setup
+    ```
 
 2.  **Run the Application**:
     From the root directory, run:
@@ -90,5 +93,5 @@ To run the entire application (Backend, Admin Portal, and Manager Portal) concur
 | Service | Port | URL |
 | :--- | :--- | :--- |
 | **Backend** | `5000` | `http://localhost:5000` |
-| **Admin Portal** | `5174` | `http://localhost:5174` |
-| **Manager Portal** | `5175` | `http://localhost:5175` |
+| **Admin Portal** | `5175` | `http://localhost:5175` |
+| **Manager Portal** | `5176` | `http://localhost:5176` |
