@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "cd backend && npm install && cd ../frontend/admin-portal && npm install && cd ../manager-portal && npm install",
     "server": "cd backend && npx nodemon server.js",
-    "admin": "cd frontend/admin-portal && npm run dev -- --port 5174",
-    "manager": "cd frontend/manager-portal && npm run dev -- --port 5175",
+    "admin": "cd frontend/admin-portal && npm run dev -- --port 5175",
+    "manager": "cd frontend/manager-portal && npm run dev -- --port 5176",
     "start": "concurrently \"npm run server\" \"npm run admin\" \"npm run manager\""
   },
   "repositoryfrontend/admin-portal/.gitignore": {
