@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 // import Icon from 'components/AppIcon';
 
@@ -37,7 +36,7 @@ const NotFound = () => {
             {/* <Icon name="Home" size={20} color="white" /> */}
             <span>Go to Dashboard</span>
           </button>
-          
+
           <button
             onClick={handleGoBack}
             className="flex items-center justify-center w-full px-6 py-3 space-x-2 font-medium border rounded-lg bg-surface border-border text-text-primary hover:bg-background nav-transition"
