@@ -67,3 +67,28 @@
 - **Audit logging mandatory** for compliance
 
 This architecture scales easily into microservices by splitting each service behind the API Gateway if needed.
+
+---
+
+## Setup and Execution
+
+To run the entire application (Backend, Admin Portal, and Manager Portal) concurrently, follow these steps:
+
+1.  **Install Dependencies**:
+    Ensure you have installed dependencies in the root, backend, and frontend directories.
+
+2.  **Run the Application**:
+    From the root directory, run:
+    ```bash
+    npm start
+    ```
+
+    This command will start all services in parallel.
+
+### Service Ports
+
+| Service | Port | URL |
+| :--- | :--- | :--- |
+| **Backend** | `5000` | `http://localhost:5000` |
+| **Admin Portal** | `5174` | `http://localhost:5174` |
+| **Manager Portal** | `5175` | `http://localhost:5175` |
