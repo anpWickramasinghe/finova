@@ -76,7 +76,7 @@ To run the entire application (Backend, Admin Portal, and Manager Portal) concur
 
 1.  **Install Dependencies**:
     Ensure you have installed dependencies in the root, backend, and frontend directories.
-    ```
+    ```bash
     npm setup
     ```
 

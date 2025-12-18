@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+
 import React, { useContext } from 'react';
 
 const PrivateRoute = ({ children }: { children: React.ReactElement }) => {
