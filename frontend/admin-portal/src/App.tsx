@@ -16,13 +16,13 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
           <Route
             path="/dashboard"
             element={
-              <PrivateRoute>
+              // <PrivateRoute>
                 <Dashboard />
-              </PrivateRoute>
+              // </PrivateRoute>
             }
           />
           <Route path="/" element={<Navigate to="/dashboard" />} />
