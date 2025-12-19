@@ -1,7 +1,8 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users, FileText, Settings, PieChart, CreditCard } from "lucide-react";
+import { LayoutDashboard, Receipt, Building2, FileText, Calculator, Users, Globe } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 interface SidebarProps {
     collapsed: boolean;
@@ -10,35 +11,131 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
-    const navItems = [
-        { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true },
-        { icon: Users, label: "Clients", href: "/clients" },
-        { icon: FileText, label: "Invoices", href: "/invoices" },
-        { icon: CreditCard, label: "Expenses", href: "/expenses" },
-        { icon: PieChart, label: "Reports", href: "/reports" },
-        { icon: Settings, label: "Settings", href: "/settings" },
+    const location = useLocation();
+
+    const iconMap: { [key: string]: React.ElementType } = {
+        LayoutDashboard,
+        Receipt,
+        Building2,
+        FileText,
+        Calculator,
+        Users,
+        Globe
+    };
+
+    const navigationItems = [
+        {
+            section: 'overview',
+            label: 'Overview',
+            items: [
+                {
+                    label: 'Dashboard',
+                    path: '/dashboard',
+                    icon: 'LayoutDashboard',
+                    roles: ['partner', 'staff', 'freelancer', 'client'],
+                    tooltip: 'Financial overview and insights'
+                }
+            ]
+        },
+        {
+            section: 'transactions',
+            label: 'Transactions',
+            items: [
+                {
+                    label: 'Transaction Management',
+                    path: '/transactions-management',
+                    icon: 'Receipt',
+                    roles: ['partner', 'staff', 'freelancer'],
+                    tooltip: 'Manage financial transactions'
+                },
+                {
+                    label: 'Bank Reconciliation',
+                    path: '/bank-reconciliation',
+                    icon: 'Building2',
+                    roles: ['partner', 'staff', 'freelancer'],
+                    tooltip: 'Reconcile bank statements'
+                }
+            ]
+        },
+        {
+            section: 'reports',
+            label: 'Reports & Compliance',
+            items: [
+                {
+                    label: 'Financial Reports',
+                    path: '/financial-reports',
+                    icon: 'FileText',
+                    roles: ['partner', 'staff', 'freelancer'],
+                    tooltip: 'Generate financial statements'
+                },
+                {
+                    label: 'Tax Compliance Center',
+                    path: '/tax-compliance-center',
+                    icon: 'Calculator',
+                    roles: ['partner', 'staff'],
+                    tooltip: 'Tax filing and compliance'
+                }
+            ]
+        },
+        {
+            section: 'administration',
+            label: 'Administration',
+            items: [
+                {
+                    label: 'User Management',
+                    path: '/user-management',
+                    icon: 'Users',
+                    roles: ['partner'],
+                    tooltip: 'Manage system users'
+                },
+                {
+                    label: 'Client Portal',
+                    path: '/client-portal',
+                    icon: 'Globe',
+                    roles: ['partner', 'staff', 'client'],
+                    tooltip: 'Client access and communication'
+                }
+            ]
+        }
     ];
 
     return (
         <aside
             className={cn(
-                "fixed left-0 top-16 bottom-0 border-r bg-primary transition-all duration-300 z-40",
+                "fixed left-0 top-16 bottom-0 border-r bg-primary transition-all duration-300 z-40 overflow-y-auto",
                 collapsed ? "w-16" : "w-64"
             )}
         >
-            <nav className="p-4 space-y-3">
-                {navItems.map((item) => (
-                    <Button
-                        key={item.label}
-                        variant={item.active ? "secondary" : "ghost"}
-                        className={cn(
-                            "w-full justify-start mt-2",
-                            collapsed ? "px-2 justify-center " : "px-4 text-md "
+            <nav className="p-4 space-y-6">
+                {navigationItems.map((section) => (
+                    <div key={section.section} className="space-y-2">
+                        {!collapsed && (
+                            <h3 className="text-xs font-semibold text-primary-foreground/70 uppercase tracking-wider px-4 mb-2">
+                                {section.label}
+                            </h3>
                         )}
-                    >
-                        <item.icon className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-2")} />
-                        {!collapsed && <span>{item.label}</span>}
-                    </Button>
+                        {section.items.map((item) => {
+                            const Icon = iconMap[item.icon];
+                            const isActive = location.pathname === item.path;
+
+                            return (
+                                <Button
+                                    key={item.path}
+                                    variant={isActive ? "secondary" : "ghost"}
+                                    className={cn(
+                                        "w-full justify-start",
+                                        collapsed ? "px-2 justify-center" : "px-4"
+                                    )}
+                                    asChild
+                                >
+                                    <Link to={item.path}>
+                                        {Icon && <Icon className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-2")} />}
+                                        {!collapsed && <span>{item.label}</span>}
+                                    </Link>
+                                </Button>
+                            );
+                        })}
+                    </div>
                 ))}
             </nav>
         </aside>
