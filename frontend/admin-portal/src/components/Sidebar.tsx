@@ -107,10 +107,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
             )}
         >
             <nav className="p-4 space-y-6">
+                
                 {navigationItems.map((section) => (
                     <div key={section.section} className="space-y-2">
                         {!collapsed && (
-                            <h3 className="text-xs font-semibold text-primary-foreground/70 uppercase tracking-wider px-4 mb-2">
+                            <h3 className="px-4 mb-2 text-xs font-semibold tracking-wider uppercase text-primary-foreground/70">
                                 {section.label}
                             </h3>
                         )}

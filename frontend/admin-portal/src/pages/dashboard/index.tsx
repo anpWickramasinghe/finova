@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import Header from '@/components/Header';
-import Sidebar from '@/components/Sidebar';
 import { LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Calendar, Download, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,12 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 // Components
-import KPICard from './components/KPICard';
-import RecentActivity from './components/RecentActivity';
-import PendingTasks from './components/PendingTasks';
+import KPICard from '../../components/dashboard/KPICard';
+import RecentActivity from '../../components/dashboard/RecentActivity';
+import PendingTasks from '../../components/dashboard/PendingTasks';
 
 const Dashboard = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [userRole] = useState('staff'); // Mock user role
 
   // Mock user data
@@ -94,10 +91,6 @@ const Dashboard = () => {
     { date: '2024-01-29', inflow: 58000, outflow: 45000 }
   ];
 
-  const handleSidebarToggle = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
   // Role-based content filtering
   const getRoleBasedKPIs = () => {
     switch (userRole) {
@@ -115,169 +108,150 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header
-        user={mockUser}
-        onMenuToggle={handleSidebarToggle}
-        sidebarCollapsed={sidebarCollapsed}
-      />
-
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggle={handleSidebarToggle}
-        userRole={userRole}
-      />
-
-      <main className={`
-        pt-16 transition-all duration-300
-        ${sidebarCollapsed ? 'ml-16' : 'ml-64'}
-      `}>
-        <div className="p-6 mx-auto space-y-8 max-w-7xl">
-          {/* Page Header */}
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-              <p className="text-muted-foreground">
-                Welcome back, {mockUser.name}. Here's your financial overview for today.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center px-3 py-1 text-sm border rounded-md bg-background text-muted-foreground">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>Last updated: {new Date().toLocaleDateString()}</span>
-              </div>
-              <Button>
-                <Download className="w-4 h-4 mr-2" />
-                Export Report
-              </Button>
-            </div>
-          </div>
-
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {getRoleBasedKPIs().map((kpi) => (
-              <KPICard key={kpi.id} data={kpi} />
-            ))}
-          </div>
-
-          {/* Charts Section */}
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {/* Revenue Trends */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Revenue Trends</CardTitle>
-                  <CardDescription>Monthly revenue, expenses, and profit overview</CardDescription>
-                </div>
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={revenueData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
-                      <XAxis dataKey="month" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value: number) => `$${value}`} />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={2} name="Revenue" />
-                      <Line type="monotone" dataKey="expenses" stroke="#f59e0b" strokeWidth={2} name="Expenses" />
-                      <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={2} name="Profit" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Expense Breakdown */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Expense Breakdown</CardTitle>
-                  <CardDescription>Current month expense categories</CardDescription>
-                </div>
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={expenseData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="amount"
-                      >
-                        {expenseData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value: number | undefined) => [`$${(value || 0).toLocaleString()}`, 'Amount']} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Cash Flow Chart */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Cash Flow Analysis</CardTitle>
-                <CardDescription>Weekly cash inflow vs outflow trends</CardDescription>
-              </div>
-              <Select defaultValue="30days">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select period" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="30days">Last 30 days</SelectItem>
-                  <SelectItem value="90days">Last 90 days</SelectItem>
-                  <SelectItem value="6months">Last 6 months</SelectItem>
-                </SelectContent>
-              </Select>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={cashFlowData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
-                    <XAxis dataKey="date" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value: number) => `$${value}`} />
-                    <Tooltip />
-                    <Legend />
-                    <Area type="monotone" dataKey="inflow" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.2} name="Cash Inflow" />
-                    <Area type="monotone" dataKey="outflow" stackId="2" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} name="Cash Outflow" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Bottom Section */}
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-            {/* Recent Activity */}
-            <div className="xl:col-span-2">
-              <RecentActivity userRole={userRole} />
-            </div>
-
-            {/* Right Sidebar */}
-            <div className="space-y-4">
-           
-              <PendingTasks userRole={userRole} />
-            </div>
-          </div>
+    <div className="p-6 mx-auto space-y-8 max-w-7xl">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back, {mockUser.name}. Here's your financial overview for today.
+          </p>
         </div>
-      </main>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center px-3 py-1 text-sm border rounded-md bg-background text-muted-foreground">
+            <Calendar className="w-4 h-4 mr-2" />
+            <span>Last updated: {new Date().toLocaleDateString()}</span>
+          </div>
+          <Button>
+            <Download className="w-4 h-4 mr-2" />
+            Export Report
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {getRoleBasedKPIs().map((kpi) => (
+          <KPICard key={kpi.id} data={kpi} />
+        ))}
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        {/* Revenue Trends */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Revenue Trends</CardTitle>
+              <CardDescription>Monthly revenue, expenses, and profit overview</CardDescription>
+            </div>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                  <XAxis dataKey="month" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value: number) => `$${value}`} />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={2} name="Revenue" />
+                  <Line type="monotone" dataKey="expenses" stroke="#f59e0b" strokeWidth={2} name="Expenses" />
+                  <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={2} name="Profit" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Expense Breakdown */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Expense Breakdown</CardTitle>
+              <CardDescription>Current month expense categories</CardDescription>
+            </div>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={expenseData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="amount"
+                  >
+                    {expenseData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number | undefined) => [`$${(value || 0).toLocaleString()}`, 'Amount']} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Cash Flow Chart */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Cash Flow Analysis</CardTitle>
+            <CardDescription>Weekly cash inflow vs outflow trends</CardDescription>
+          </div>
+          <Select defaultValue="30days">
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="30days">Last 30 days</SelectItem>
+              <SelectItem value="90days">Last 90 days</SelectItem>
+              <SelectItem value="6months">Last 6 months</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={cashFlowData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                <XAxis dataKey="date" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value: number) => `$${value}`} />
+                <Tooltip />
+                <Legend />
+                <Area type="monotone" dataKey="inflow" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.2} name="Cash Inflow" />
+                <Area type="monotone" dataKey="outflow" stackId="2" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} name="Cash Outflow" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Bottom Section */}
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        {/* Recent Activity */}
+        <div className="xl:col-span-2">
+          <RecentActivity userRole={userRole} />
+        </div>
+
+        {/* Right Sidebar */}
+        <div className="space-y-4">
+
+          <PendingTasks userRole={userRole} />
+        </div>
+      </div>
     </div>
   );
 };

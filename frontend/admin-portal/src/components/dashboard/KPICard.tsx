@@ -48,7 +48,7 @@ const KPICard: React.FC<KPICardProps> = ({ data }) => {
             </CardHeader>
             <CardContent>
                 <div className="text-2xl font-bold">{data.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="mt-1 text-xs text-muted-foreground">
                     <span className={cn("font-medium", isPositive ? "text-green-600" : "text-red-600")}>
                         {data.change}
                     </span>

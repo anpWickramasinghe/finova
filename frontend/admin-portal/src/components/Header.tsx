@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ user, onMenuToggle }) => {
                 <div className="text-xl font-bold">Finova</div>
             </div>
 
-            <div className="items-center flex-1 hidden max-w-md gap-4 mx-4  md:flex">
+            <div className="items-center flex-1 hidden max-w-md gap-4 mx-4 md:flex">
                 <div className="relative w-full">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
