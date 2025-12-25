@@ -28,51 +28,51 @@ export const Fonts = Platform.select({
 
 export const lightColors = {
   // Base colors
-  background: '#FFFFFF',
-  foreground: '#000000',
+  background: '#ffffff',
+  foreground: '#090909',
 
   // Card colors
-  card: '#F2F2F7',
-  cardForeground: '#000000',
+  card: '#ffffff',
+  cardForeground: '#090909',
 
   // Popover colors
-  popover: '#F2F2F7',
-  popoverForeground: '#000000',
+  popover: '#ffffff',
+  popoverForeground: '#090909',
 
   // Primary colors
-  primary: '#18181b',
-  primaryForeground: '#FFFFFF',
+  primary: '#2a3c97',
+  primaryForeground: '#f9f9f9',
 
   // Secondary colors
-  secondary: '#F2F2F7',
-  secondaryForeground: '#18181b',
+  secondary: '#f5f5f5',
+  secondaryForeground: '#161616',
 
   // Muted colors
-  muted: '#78788033',
-  mutedForeground: '#71717a',
+  muted: '#f5f5f5',
+  mutedForeground: '#737373',
 
   // Accent colors
-  accent: '#F2F2F7',
-  accentForeground: '#18181b',
+  accent: '#f5f5f5',
+  accentForeground: '#161616',
 
   // Destructive colors
-  destructive: '#ef4444',
-  destructiveForeground: '#FFFFFF',
+  destructive: '#ee4444',
+  destructiveForeground: '#f9f9f9',
 
   // Border and input
-  border: '#C6C6C8',
-  input: '#e4e4e7',
-  ring: '#a1a1aa',
+  border: '#e4e4e4',
+  input: '#e4e4e4',
+  ring: '#090909',
 
   // Text colors
-  text: '#000000',
-  textMuted: '#71717a',
+  text: '#090909',
+  textMuted: '#737373',
 
   // Legacy support for existing components
-  tint: '#18181b',
-  icon: '#71717a',
-  tabIconDefault: '#71717a',
-  tabIconSelected: '#18181b',
+  tint: '#2a3c97',
+  icon: '#737373',
+  tabIconDefault: '#737373',
+  tabIconSelected: '#2a3c97',
 
   // Default buttons, links, Send button, selected tabs
   blue: '#007AFF',
@@ -104,51 +104,51 @@ export const lightColors = {
 
 export const darkColors = {
   // Base colors
-  background: '#000000',
-  foreground: '#FFFFFF',
+  background: '#090909',
+  foreground: '#f9f9f9',
 
   // Card colors
-  card: '#1C1C1E',
-  cardForeground: '#FFFFFF',
+  card: '#090909',
+  cardForeground: '#f9f9f9',
 
   // Popover colors
-  popover: '#18181b',
-  popoverForeground: '#FFFFFF',
+  popover: '#090909',
+  popoverForeground: '#f9f9f9',
 
   // Primary colors
-  primary: '#e4e4e7',
-  primaryForeground: '#18181b',
+  primary: '#f9f9f9',
+  primaryForeground: '#161616',
 
   // Secondary colors
-  secondary: '#1C1C1E',
-  secondaryForeground: '#FFFFFF',
+  secondary: '#252525',
+  secondaryForeground: '#f9f9f9',
 
   // Muted colors
-  muted: '#78788033',
-  mutedForeground: '#a1a1aa',
+  muted: '#252525',
+  mutedForeground: '#a2a2a2',
 
   // Accent colors
-  accent: '#1C1C1E',
-  accentForeground: '#FFFFFF',
+  accent: '#252525',
+  accentForeground: '#f9f9f9',
 
   // Destructive colors
-  destructive: '#dc2626',
-  destructiveForeground: '#FFFFFF',
+  destructive: '#7f1d1d',
+  destructiveForeground: '#f9f9f9',
 
-  // Border and input - using alpha values for better blending
-  border: '#38383A',
-  input: 'rgba(255, 255, 255, 0.15)',
-  ring: '#71717a',
+  // Border and input
+  border: '#252525',
+  input: '#252525',
+  ring: '#d3d3d3',
 
   // Text colors
-  text: '#FFFFFF',
-  textMuted: '#a1a1aa',
+  text: '#f9f9f9',
+  textMuted: '#a2a2a2',
 
   // Legacy support for existing components
-  tint: '#FFFFFF',
-  icon: '#a1a1aa',
-  tabIconDefault: '#a1a1aa',
-  tabIconSelected: '#FFFFFF',
+  tint: '#f9f9f9',
+  icon: '#a2a2a2',
+  tabIconDefault: '#a2a2a2',
+  tabIconSelected: '#f9f9f9',
 
   // Default buttons, links, Send button, selected tabs
   blue: '#0A84FF',
