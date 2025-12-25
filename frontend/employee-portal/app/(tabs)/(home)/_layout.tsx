@@ -12,6 +12,7 @@ export default function HomeLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: false,
         headerLargeTitle: true,
         headerLargeTitleShadowVisible: false,
         headerTransparent: true,

@@ -14,7 +14,7 @@ export default function WebTabsLayout() {
         tabBarActiveTintColor: primary,
       }}
     >
-      {/* <Tabs.Screen
+      <Tabs.Screen
         name='index'
         options={{
           title: 'Home',
@@ -42,7 +42,7 @@ export default function WebTabsLayout() {
             <Icon name={Search} size={24} color={color} />
           ),
         }}
-      /> */}
+      />
     </Tabs>
   );
 }
