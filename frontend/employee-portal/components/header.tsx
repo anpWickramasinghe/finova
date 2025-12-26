@@ -13,11 +13,12 @@ interface HeaderProps {
 }
 
 export default function Header({
-    userName = 'Rajesh Mehta',
+    userName = 'Nethmina !',
     greeting = 'Good Morning',
     onNotificationPress,
     onMenuPress,
 }: HeaderProps) {
+    
     const primary = useColor('primary');
     const insets = useSafeAreaInsets();
 
