@@ -1,8 +1,11 @@
+import { ScrollView } from 'react-native';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { View } from '@/components/ui/view';
 import { useColor } from '@/hooks/useColor';
 import Header from '@/components/header';
+import LeavesChart from '@/components/home/LeavesChart';
+import WorkHoursChart from '@/components/home/WorkHoursChart';
 
 export default function HomeScreen() {
     const primary = useColor('primary');
@@ -13,14 +16,13 @@ export default function HomeScreen() {
                 onNotificationPress={() => console.log('Notification pressed')}
                 onMenuPress={() => console.log('Menu pressed')}
             />
-            <View
-                style={{
-                    flex: 1,
+            <ScrollView
+                contentContainerStyle={{
                     padding: 24,
-                    justifyContent: 'center',
+                    gap: 16,
                 }}
             >
-                <Card>
+                {/* <Card>
                     <View style={{ gap: 12 }}>
                         <Text
                             variant='heading'
@@ -29,7 +31,7 @@ export default function HomeScreen() {
                                 color: primary,
                             }}
                         >
-                            Welcome to Employee Portal ha haha
+                            Welcome to Employee Portal
                         </Text>
                         <Text
                             variant='body'
@@ -41,8 +43,11 @@ export default function HomeScreen() {
                             Manage your leaves, overtime, and chat with colleagues.
                         </Text>
                     </View>
-                </Card>
-            </View>
+                </Card> */}
+
+                <LeavesChart />
+                <WorkHoursChart />
+            </ScrollView>
         </View>
     );
 }
