@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 interface HeaderProps {
     userName?: string;
     greeting?: string;
+    title?: string;
     onNotificationPress?: () => void;
     onMenuPress?: () => void;
 }
@@ -15,10 +16,11 @@ interface HeaderProps {
 export default function Header({
     userName = 'Nethmina !',
     greeting = 'Good Morning',
+    title,
     onNotificationPress,
     onMenuPress,
 }: HeaderProps) {
-    
+
     const primary = useColor('primary');
     const insets = useSafeAreaInsets();
 
@@ -34,8 +36,14 @@ export default function Header({
         >
             <View style={styles.content}>
                 <View style={styles.textContainer}>
-                    <Text style={styles.greeting}>{greeting}</Text>
-                    <Text style={styles.userName}>{userName}</Text>
+                    {title ? (
+                        <Text style={styles.title}>{title}</Text>
+                    ) : (
+                        <>
+                            <Text style={styles.greeting}>{greeting}</Text>
+                            <Text style={styles.userName}>{userName}</Text>
+                        </>
+                    )}
                 </View>
                 <View style={styles.iconContainer}>
                     <TouchableOpacity onPress={onNotificationPress} style={styles.iconButton}>
@@ -77,6 +85,11 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: '600',
     },
+    title: {
+        color: 'white',
+        fontSize: 20,
+        fontWeight: '600',
+    },
     iconContainer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -92,8 +105,8 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#FF9F0A', 
+        backgroundColor: '#FF9F0A',
         borderWidth: 1.5,
-        borderColor: '#2a3c97', 
+        borderColor: '#2a3c97',
     },
 });
