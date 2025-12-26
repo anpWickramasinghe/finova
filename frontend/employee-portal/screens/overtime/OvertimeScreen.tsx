@@ -4,6 +4,7 @@ import Header from '@/components/header';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import MonthlyOvertimeChart from '@/components/overtime/MonthlyOvertimeChart';
+import { TabsDisabled } from '@/components/demo/tabs/tabs-disabled';
 
 export default function OvertimeScreen() {
     const primary = useColor('primary');
@@ -18,6 +19,8 @@ export default function OvertimeScreen() {
                 }}
             >
                 <MonthlyOvertimeChart />
+                <TabsDisabled />
+
             </ScrollView>
         </View>
     );

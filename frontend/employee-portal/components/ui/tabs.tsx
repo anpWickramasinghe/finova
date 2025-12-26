@@ -61,6 +61,8 @@ interface TabsTriggerProps {
   disabled?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  activeStyle?: ViewStyle;
+  activeTextStyle?: TextStyle;
 }
 
 interface TabsContentProps {
@@ -374,7 +376,7 @@ export function TabsList({ children, style }: TabsListProps) {
     <View
       style={[
         {
-          padding: 6,
+          padding: 4,
           backgroundColor,
           borderRadius: orientation === 'horizontal' ? CORNERS : BORDER_RADIUS,
         },
@@ -402,6 +404,8 @@ export function TabsTrigger({
   disabled = false,
   style,
   textStyle,
+  activeStyle,
+  activeTextStyle,
 }: TabsTriggerProps) {
   const { activeTab, setActiveTab, orientation, registerTab, unregisterTab } =
     useTabsContext();
@@ -435,14 +439,16 @@ export function TabsTrigger({
     flex: orientation === 'horizontal' ? 1 : undefined,
     marginBottom: orientation === 'vertical' ? 4 : 0,
     ...style,
+    ...(isActive ? activeStyle : {}),
   };
 
   const triggerTextStyle: TextStyle = {
     fontSize: FONT_SIZE,
-    fontWeight: '500',
+    fontWeight: '400',
     color: isActive ? primaryColor : mutedForegroundColor,
     textAlign: 'center',
     ...textStyle,
+    ...(isActive ? activeTextStyle : {}),
   };
 
   return (
