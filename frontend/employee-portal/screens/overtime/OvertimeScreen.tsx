@@ -1,9 +1,9 @@
-import { Card } from '@/components/ui/card';
-import { Text } from '@/components/ui/text';
 import { View } from '@/components/ui/view';
 import { useColor } from '@/hooks/useColor';
 import Header from '@/components/header';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView } from 'react-native-gesture-handler';
+import MonthlyOvertimeChart from '@/components/overtime/MonthlyOvertimeChart';
 
 export default function OvertimeScreen() {
     const primary = useColor('primary');
@@ -11,38 +11,14 @@ export default function OvertimeScreen() {
     return (
         <View style={{ flex: 1 }}>
             <Header title="Overtime" />
-            <SafeAreaView style={{ flex: 1 }} edges={['bottom', 'left', 'right']}>
-                <View
-                    style={{
-                        flex: 1,
-                        padding: 24,
-                        justifyContent: 'center',
-                    }}
-                >
-                    <Card>
-                        <View style={{ gap: 12 }}>
-                            <Text
-                                variant='heading'
-                                style={{
-                                    textAlign: 'center',
-                                    color: primary,
-                                }}
-                            >
-                                Overtime Tracking
-                            </Text>
-                            <Text
-                                variant='body'
-                                style={{
-                                    textAlign: 'center',
-                                    opacity: 0.7,
-                                }}
-                            >
-                                Track and manage your overtime hours.
-                            </Text>
-                        </View>
-                    </Card>
-                </View>
-            </SafeAreaView>
+            <ScrollView
+                contentContainerStyle={{
+                    padding: 24,
+                    gap: 16,
+                }}
+            >
+                <MonthlyOvertimeChart />
+            </ScrollView>
         </View>
     );
 }
