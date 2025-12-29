@@ -18,14 +18,14 @@ export default function LeaveScreen() {
     const cardColor = useColor("card");
 
     const leaveTypes = [
-        {
-            title: "All Leaves",
-            count: 24,
-            status: "Ongoing",
-            icon: Calendar,
-            color: "#3b82f6", // blue-500
-            bgColor: "#eff6ff", // blue-50
-        },
+        // {
+        //     title: "All Leaves",
+        //     count: 24,
+        //     status: "Ongoing",
+        //     icon: Calendar,
+        //     color: "#3b82f6", // blue-500
+        //     bgColor: "#eff6ff", // blue-50
+        // },
         {
             title: "Annual Leaves",
             count: 12,
