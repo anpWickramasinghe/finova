@@ -8,7 +8,6 @@
     "setup": "cd backend && npm install && cd ../frontend/admin-portal && npm install && cd ../manager-portal && npm install",
     "admin": "cd frontend/admin-portal && npm run dev -- --port 5175",
     "manager": "cd frontend/manager-portal && npm run dev -- --port 5176",
-    "employee": "cd frontend/employee-portal && npx expo start -- --port 8081",
     "start": "concurrently \"npm run server\" \"npm run admin\" \"npm run manager\" \"npm run employee\""
   },
   "repositoryfrontend/admin-portal/.gitignore": {
