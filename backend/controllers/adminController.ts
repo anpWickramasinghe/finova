@@ -1,7 +1,8 @@
+import { Request, Response } from 'express';
 import { auth } from '../auth.js';
 import crypto from 'crypto';
 
-export const createUser = async (req, res) => {
+export const createUser = async (req: Request, res: Response) => {
     try {
         const { email, role, firstName, lastName, companyId } = req.body;
 
@@ -31,7 +32,7 @@ export const createUser = async (req, res) => {
             tempPassword // Return this so Admin can share it
         });
 
-    } catch (error) {
+    } catch (error: any) {
         // better-auth throws APIError
         res.status(500).json({ message: error.message || 'An error occurred' });
     }

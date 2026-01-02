@@ -18,7 +18,7 @@ async function testLogin() {
         } else {
             console.log("❌ Login failed: No response returned.");
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error("❌ Login failed:", error.message || error);
         if (error.body) {
             console.error("Error details:", error.body);

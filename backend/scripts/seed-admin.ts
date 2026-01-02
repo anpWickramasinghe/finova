@@ -23,7 +23,7 @@ const seedAdmin = async () => {
             console.log('Email:', adminEmail);
             console.log('Password:', adminPassword);
         }
-    } catch (error) {
+    } catch (error: any) {
         console.log('Admin might already exist or error:', error.message);
     }
 

@@ -23,9 +23,9 @@ async function run() {
         const cookie = adminLoginRes.headers.get('set-cookie');
         console.log('Admin logged in. Cookie:', cookie ? 'Received' : 'Missing');
 
-        const headers = {
+        const headers: Record<string, string> = {
             'Content-Type': 'application/json',
-            'Cookie': cookie
+            'Cookie': cookie || ''
         };
 
         // 2. Create Manager User
@@ -80,7 +80,7 @@ async function run() {
             // Let's try to call `createUser` again (even if role is wrong, middleware might run first?).
             // `requireAuth` runs first.
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Cookie': managerCookie },
+            headers: { 'Content-Type': 'application/json', 'Cookie': managerCookie || '' },
             body: JSON.stringify({})
         });
 
@@ -99,7 +99,7 @@ async function run() {
         const newPassword = 'NewStrongPassword123!';
         const changeRes = await fetch(`${BASE_URL}/auth/change-password`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Cookie': managerCookie },
+            headers: { 'Content-Type': 'application/json', 'Cookie': managerCookie || '' },
             body: JSON.stringify({
                 currentPassword: tempPassword,
                 newPassword: newPassword,
@@ -137,7 +137,7 @@ async function run() {
         console.log('\n7. Verifying Flag Cleared...');
         const checkRes = await fetch(`${BASE_URL}/admin/users`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Cookie': newManagerCookie },
+            headers: { 'Content-Type': 'application/json', 'Cookie': newManagerCookie || '' },
             body: JSON.stringify({})
         });
 

@@ -1,8 +1,14 @@
+import { Request, Response, NextFunction } from 'express';
 import { auth } from '../auth.js';
 import { fromNodeHeaders } from 'better-auth/node';
 
+interface AuthRequest extends Request {
+    user?: any;
+    session?: any;
+}
+
 // Protect middleware using Better Auth
-export const requireAuth = async (req, res, next) => {
+export const requireAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const session = await auth.api.getSession({
             headers: fromNodeHeaders(req.headers)
@@ -21,8 +27,8 @@ export const requireAuth = async (req, res, next) => {
     }
 };
 
-export const requireRole = (roles) => {
-    return (req, res, next) => {
+export const requireRole = (roles: string[]) => {
+    return (req: AuthRequest, res: Response, next: NextFunction) => {
         if (!req.user || !roles.includes(req.user.role)) {
             return res.status(403).json({ message: 'Forbidden: Insufficient role' });
         }
@@ -30,7 +36,7 @@ export const requireRole = (roles) => {
     };
 };
 
-export const checkPasswordChangeRequired = (req, res, next) => {
+export const checkPasswordChangeRequired = (req: AuthRequest, res: Response, next: NextFunction) => {
     if (req.user && req.user.requiresPasswordChange) {
         return res.status(403).json({
             message: 'Password change required',
