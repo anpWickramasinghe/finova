@@ -40,6 +40,7 @@ export default function Login() {
             if (response && response.token) {
                 const userData = {
                     _id: response.user.id,
+                    name: response.user.name,
                     email: response.user.email,
                     role: response.user.role,
                     token: response.token
