@@ -23,17 +23,17 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                // <PrivateRoute>
+                 <PrivateRoute>
                 <Dashboard />
-                // </PrivateRoute>
+                 </PrivateRoute>
               }
             />
             <Route
               path="/transactions-management"
               element={
-                // <PrivateRoute>
+                <PrivateRoute>
                 <Transactions />
-                // </PrivateRoute>
+                </PrivateRoute>
               }
             />
             <Route path="/" element={<Navigate to="/dashboard" />} />
