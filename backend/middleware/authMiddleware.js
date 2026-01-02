@@ -1,33 +1,41 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import { auth } from '../auth.js';
+import { fromNodeHeaders } from 'better-auth/node';
 
-const protect = async (req, res, next) => {
-    let token;
+// Protect middleware using Better Auth
+export const requireAuth = async (req, res, next) => {
+    try {
+        const session = await auth.api.getSession({
+            headers: fromNodeHeaders(req.headers)
+        });
 
-    if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith('Bearer')
-    ) {
-        try {
-            // Get token from header
-            token = req.headers.authorization.split(' ')[1];
-
-            // Verify token
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-            // Get user from the token
-            req.user = await User.findById(decoded.id).select('-password');
-
-            next();
-        } catch (error) {
-            console.error(error);
-            res.status(401).json({ message: 'Not authorized' });
+        if (!session) {
+            return res.status(401).json({ message: 'Not authorized' });
         }
-    }
 
-    if (!token) {
-        res.status(401).json({ message: 'Not authorized, no token' });
+        req.user = session.user;
+        req.session = session.session;
+        next();
+    } catch (e) {
+        console.error("Auth Middleware Error:", e);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 };
 
-module.exports = { protect };
+export const requireRole = (roles) => {
+    return (req, res, next) => {
+        if (!req.user || !roles.includes(req.user.role)) {
+            return res.status(403).json({ message: 'Forbidden: Insufficient role' });
+        }
+        next();
+    };
+};
+
+export const checkPasswordChangeRequired = (req, res, next) => {
+    if (req.user && req.user.requiresPasswordChange) {
+        return res.status(403).json({
+            message: 'Password change required',
+            code: 'PASSWORD_CHANGE_REQUIRED'
+        });
+    }
+    next();
+};
