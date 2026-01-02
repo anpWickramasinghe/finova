@@ -12,11 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import axios from "axios";
+import { authService } from "@/services/authService";
 
 export default function Login() {
     const navigate = useNavigate();
-    const { login, user } = useAuth(); 
+    const { login, user } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -35,20 +35,17 @@ export default function Login() {
         setIsLoading(true);
 
         try {
-            const response = await axios.post("http://localhost:5000/api/auth/sign-in/email", {
-                email,
-                password,
-            });
+            const response = await authService.login(email, password);
 
-            if (response.data && response.data.token) {
+            if (response && response.token) {
                 const userData = {
-                    _id: response.data.user.id,
-                    email: response.data.user.email,
-                    role: response.data.user.role,
-                    token: response.data.token
+                    _id: response.user.id,
+                    email: response.user.email,
+                    role: response.user.role,
+                    token: response.token
                 };
                 login(userData);
-                
+
             } else {
                 setError("Invalid response from server");
             }
@@ -488,7 +485,7 @@ export default function Login() {
                         </Card>
                     </motion.div>
 
-                    
+
                 </motion.div>
             </div>
         </div>
