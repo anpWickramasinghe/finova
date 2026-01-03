@@ -13,7 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, Calendar, Shield, Clock } from "lucide-react";
+import {
+    Shield
+} from "lucide-react";
 
 import type { User } from '../../pages/user-management/types';
 
@@ -106,25 +108,65 @@ const UserDetailPanel: React.FC<UserDetailPanelProps> = ({
                                 onChange={e => setFormData({ ...formData, branch: e.target.value })}
                             />
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="nic">NIC</Label>
+                            <Input
+                                id="nic"
+                                value={formData.nic || ''}
+                                onChange={e => setFormData({ ...formData, nic: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="epfNo">EPF No</Label>
+                            <Input
+                                id="epfNo"
+                                value={formData.epfNo || ''}
+                                onChange={e => setFormData({ ...formData, epfNo: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="address">Address</Label>
+                            <Input
+                                id="address"
+                                value={formData.address || ''}
+                                onChange={e => setFormData({ ...formData, address: e.target.value })}
+                            />
+                        </div>
                     </div>
                 ) : (
                     <>
                         <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-sm">
-                                <Mail className="w-4 h-4 text-muted-foreground" />
-                                <span>{user.email}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
-                                <Phone className="w-4 h-4 text-muted-foreground" />
-                                <span>{user.phone}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
-                                <Calendar className="w-4 h-4 text-muted-foreground" />
-                                <span>Joined {new Date(user.joinDate).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
-                                <Clock className="w-4 h-4 text-muted-foreground" />
-                                <span>Last active {new Date(user.lastActivity).toLocaleDateString()}</span>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p className="text-muted-foreground">Email</p>
+                                    <p className="font-medium">{user.email}</p>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground">Phone</p>
+                                    <p className="font-medium">{user.phone}</p>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground">Join Date</p>
+                                    <p className="font-medium">{new Date(user.joinDate).toLocaleDateString()}</p>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground">Status</p>
+                                    <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>
+                                        {user.status}
+                                    </Badge>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground">NIC</p>
+                                    <p className="font-medium">{user.nic || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-muted-foreground">EPF No</p>
+                                    <p className="font-medium">{user.epfNo || 'N/A'}</p>
+                                </div>
+                                <div className="col-span-2">
+                                    <p className="text-muted-foreground">Address</p>
+                                    <p className="font-medium">{user.address || 'N/A'}</p>
+                                </div>
                             </div>
                         </div>
 

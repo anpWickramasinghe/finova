@@ -35,38 +35,38 @@ const UserManagement = () => {
       status: "Active",
       lastActivity: new Date(Date.now() - 300000),
       avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-      phone: "+1 (555) 123-4567",
-      branch: "Headquarters",
-      joinDate: new Date("2022-01-15"),
+      phone: '+1 (555) 123-4567',
+      branch: 'Headquarters',
+      nic: '123456789V',
+      address: '123 Main St, New York, NY 10001',
+      epfNo: 'EPF001',
+      joinDate: new Date('2024-01-15'),
       loginHistory: [
-        { date: new Date(Date.now() - 300000), ip: "192.168.1.100", device: "Chrome on Windows" },
-        { date: new Date(Date.now() - 86400000), ip: "192.168.1.100", device: "Chrome on Windows" }
+        { date: new Date('2024-03-10T09:00:00'), ip: '192.168.1.1', device: 'Chrome / Windows' },
+        { date: new Date('2024-03-09T14:30:00'), ip: '192.168.1.1', device: 'Chrome / Windows' }
       ],
       activityLog: [
-        { action: "Updated client permissions", timestamp: new Date(Date.now() - 1800000) },
-        { action: "Generated financial report", timestamp: new Date(Date.now() - 3600000) }
+        { action: 'Updated system settings', timestamp: new Date('2024-03-10T10:15:00') },
+        { action: 'Created new user role', timestamp: new Date('2024-03-09T15:45:00') }
       ]
     },
     {
       id: 2,
-      name: "Michael Chen",
-      email: "michael.chen@company.com",
-      role: "Manager",
-      permissions: ["Transaction Management", "Financial Reports", "Bank Reconciliation"],
-      status: "Active",
-      lastActivity: new Date(Date.now() - 1800000),
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-      phone: "+1 (555) 234-5678",
-      branch: "New York",
-      joinDate: new Date("2022-03-20"),
-      loginHistory: [
-        { date: new Date(Date.now() - 1800000), ip: "192.168.1.101", device: "Firefox on Mac" },
-        { date: new Date(Date.now() - 172800000), ip: "192.168.1.101", device: "Firefox on Mac" }
-      ],
-      activityLog: [
-        { action: "Reconciled bank transactions", timestamp: new Date(Date.now() - 7200000) },
-        { action: "Updated transaction categories", timestamp: new Date(Date.now() - 10800000) }
-      ]
+      name: 'Sarah Johnson',
+      email: 'sarah.j@finova.com',
+      role: 'Manager',
+      permissions: ['Transaction Management', 'Financial Reports'],
+      status: 'Active',
+      lastActivity: new Date('2024-03-10T11:45:00'),
+      avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
+      phone: '+1 (555) 987-6543',
+      branch: 'New York',
+      nic: '987654321V',
+      address: '456 Park Ave, New York, NY 10022',
+      epfNo: 'EPF002',
+      joinDate: new Date('2024-02-01'),
+      loginHistory: [],
+      activityLog: []
     },
     {
       id: 3,
@@ -180,9 +180,12 @@ const UserManagement = () => {
       permissions: userData.permissions || [],
       status: userData.status || 'Active',
       lastActivity: new Date(),
-      avatar: `https://randomuser.me/api/portraits/${(userData as any).gender || 'men'}/${users.length + 1}.jpg`,
+      avatar: (userData as any).avatar || `https://randomuser.me/api/portraits/${(userData as any).gender || 'men'}/${users.length + 1}.jpg`,
       phone: userData.phone || '',
       branch: userData.branch || '',
+      nic: userData.nic || '',
+      address: userData.address || '',
+      epfNo: userData.epfNo || '',
       joinDate: new Date(),
       loginHistory: [],
       activityLog: []

@@ -31,6 +31,10 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
         phone: '',
         role: 'Labour',
         branch: '',
+        nic: '',
+        address: '',
+        epfNo: '',
+        avatar: '',
         permissions: [] as string[],
         status: 'Active',
         sendInvite: true
@@ -103,6 +107,18 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
             newErrors.branch = 'Branch is required';
         }
 
+        if (!formData.nic.trim()) {
+            newErrors.nic = 'NIC is required';
+        }
+
+        if (!formData.address.trim()) {
+            newErrors.address = 'Address is required';
+        }
+
+        if (!formData.epfNo.trim()) {
+            newErrors.epfNo = 'EPF No is required';
+        }
+
         if (formData.permissions.length === 0) {
             newErrors.permissions = 'At least one permission must be selected';
         }
@@ -127,9 +143,39 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
-                    {/* Basic Information */}
+                    {/* Photo Upload */}
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="relative">
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-50 flex items-center justify-center">
+                                {formData.avatar ? (
+                                    <img src={formData.avatar} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-gray-400 text-xs">No Photo</span>
+                                )}
+                            </div>
+                            <Input
+                                id="avatar"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        const url = URL.createObjectURL(file);
+                                        handleInputChange('avatar', url);
+                                    }
+                                }}
+                            />
+                            <Label htmlFor="avatar" className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-1 rounded-full cursor-pointer hover:bg-primary/90">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-camera"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 0 0 0 2-2V9a2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
+                            </Label>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Upload Profile Photo</p>
+                    </div>
+
+                    {/* Personal Details */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Basic Information</h3>
+                        <h3 className="text-lg font-medium border-b pb-2">Personal Details</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Full Name *</Label>
@@ -141,6 +187,18 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
                                     placeholder="Enter full name"
                                 />
                                 {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="nic">NIC *</Label>
+                                <Input
+                                    id="nic"
+                                    value={formData.nic}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('nic', e.target.value)}
+                                    className={errors.nic ? 'border-red-500' : ''}
+                                    placeholder="Enter NIC"
+                                />
+                                {errors.nic && <p className="text-sm text-red-500">{errors.nic}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -169,6 +227,24 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
                                 {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
                             </div>
 
+                            <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="address">Address *</Label>
+                                <Input
+                                    id="address"
+                                    value={formData.address}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('address', e.target.value)}
+                                    className={errors.address ? 'border-red-500' : ''}
+                                    placeholder="Enter Address"
+                                />
+                                {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Employment Details */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-medium border-b pb-2">Employment Details</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="branch">Branch *</Label>
                                 <Input
@@ -180,13 +256,19 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
                                 />
                                 {errors.branch && <p className="text-sm text-red-500">{errors.branch}</p>}
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Role and Status */}
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Role & Status</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="epfNo">EPF No *</Label>
+                                <Input
+                                    id="epfNo"
+                                    value={formData.epfNo}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('epfNo', e.target.value)}
+                                    className={errors.epfNo ? 'border-red-500' : ''}
+                                    placeholder="Enter EPF No"
+                                />
+                                {errors.epfNo && <p className="text-sm text-red-500">{errors.epfNo}</p>}
+                            </div>
+
                             <div className="space-y-2">
                                 <Label htmlFor="role">Role *</Label>
                                 <Select
@@ -225,7 +307,7 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
 
                     {/* Permissions */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Permissions</h3>
+                        <h3 className="text-lg font-medium border-b pb-2">Permissions</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {availablePermissions.map((permission) => (
                                 <div key={permission} className="flex items-center space-x-2 p-2 border rounded-md hover:bg-accent cursor-pointer" onClick={() => handlePermissionToggle(permission)}>
@@ -243,7 +325,6 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
 
                     {/* Additional Options */}
                     <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Additional Options</h3>
                         <div className="flex items-center space-x-2 p-2 border rounded-md hover:bg-accent cursor-pointer" onClick={() => handleInputChange('sendInvite', !formData.sendInvite)}>
                             <Checkbox
                                 id="sendInvite"

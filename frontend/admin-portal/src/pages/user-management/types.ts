@@ -9,6 +9,9 @@ export interface User {
     avatar: string;
     phone: string;
     branch: string;
+    nic?: string;
+    address?: string;
+    epfNo?: string;
     joinDate: Date;
     loginHistory: { date: Date; ip: string; device: string }[];
     activityLog: { action: string; timestamp: Date }[];
