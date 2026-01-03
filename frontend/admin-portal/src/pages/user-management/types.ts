@@ -8,7 +8,7 @@ export interface User {
     lastActivity: Date;
     avatar: string;
     phone: string;
-    department: string;
+    branch: string;
     joinDate: Date;
     loginHistory: { date: Date; ip: string; device: string }[];
     activityLog: { action: string; timestamp: Date }[];

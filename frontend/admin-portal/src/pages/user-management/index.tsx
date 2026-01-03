@@ -29,13 +29,13 @@ const UserManagement = () => {
       id: 1,
       name: "Sarah Johnson",
       email: "sarah.johnson@company.com",
-      role: "Partner",
+      role: "Admin",
       permissions: ["Full Access", "User Management", "Financial Reports", "Tax Compliance"],
       status: "Active",
       lastActivity: new Date(Date.now() - 300000),
       avatar: "https://randomuser.me/api/portraits/women/1.jpg",
       phone: "+1 (555) 123-4567",
-      department: "Management",
+      branch: "Headquarters",
       joinDate: new Date("2022-01-15"),
       loginHistory: [
         { date: new Date(Date.now() - 300000), ip: "192.168.1.100", device: "Chrome on Windows" },
@@ -50,13 +50,13 @@ const UserManagement = () => {
       id: 2,
       name: "Michael Chen",
       email: "michael.chen@company.com",
-      role: "Staff",
+      role: "Manager",
       permissions: ["Transaction Management", "Financial Reports", "Bank Reconciliation"],
       status: "Active",
       lastActivity: new Date(Date.now() - 1800000),
       avatar: "https://randomuser.me/api/portraits/men/2.jpg",
       phone: "+1 (555) 234-5678",
-      department: "Accounting",
+      branch: "New York",
       joinDate: new Date("2022-03-20"),
       loginHistory: [
         { date: new Date(Date.now() - 1800000), ip: "192.168.1.101", device: "Firefox on Mac" },
@@ -71,13 +71,13 @@ const UserManagement = () => {
       id: 3,
       name: "Emily Rodriguez",
       email: "emily.rodriguez@freelance.com",
-      role: "Freelancer",
-      permissions: ["Transaction Management", "Financial Reports"],
+      role: "Labour",
+      permissions: ["View Reports"],
       status: "Active",
       lastActivity: new Date(Date.now() - 3600000),
       avatar: "https://randomuser.me/api/portraits/women/3.jpg",
       phone: "+1 (555) 345-6789",
-      department: "External",
+      branch: "London",
       joinDate: new Date("2023-06-10"),
       loginHistory: [
         { date: new Date(Date.now() - 3600000), ip: "203.0.113.45", device: "Safari on iPhone" },
@@ -92,13 +92,13 @@ const UserManagement = () => {
       id: 4,
       name: "David Thompson",
       email: "david.thompson@client.com",
-      role: "Client",
-      permissions: ["Client Portal", "View Reports"],
+      role: "Security",
+      permissions: ["View Reports"],
       status: "Inactive",
       lastActivity: new Date(Date.now() - 604800000),
       avatar: "https://randomuser.me/api/portraits/men/4.jpg",
       phone: "+1 (555) 456-7890",
-      department: "Client",
+      branch: "Tokyo",
       joinDate: new Date("2023-01-05"),
       loginHistory: [
         { date: new Date(Date.now() - 604800000), ip: "198.51.100.23", device: "Chrome on Android" },
@@ -113,13 +113,13 @@ const UserManagement = () => {
       id: 5,
       name: "Lisa Wang",
       email: "lisa.wang@company.com",
-      role: "Staff",
+      role: "Manager",
       permissions: ["Transaction Management", "Bank Reconciliation"],
       status: "Active",
       lastActivity: new Date(Date.now() - 7200000),
       avatar: "https://randomuser.me/api/portraits/women/5.jpg",
       phone: "+1 (555) 567-8901",
-      department: "Accounting",
+      branch: "Singapore",
       joinDate: new Date("2022-08-12"),
       loginHistory: [
         { date: new Date(Date.now() - 7200000), ip: "192.168.1.102", device: "Edge on Windows" },
@@ -135,7 +135,7 @@ const UserManagement = () => {
   const currentUser = {
     name: "Sarah Johnson",
     email: "sarah.johnson@company.com",
-    role: "Partner",
+    role: "Admin",
     avatar: "https://randomuser.me/api/portraits/women/1.jpg"
   };
 
@@ -174,13 +174,13 @@ const UserManagement = () => {
       id: users.length + 1,
       name: userData.name || '',
       email: userData.email || '',
-      role: userData.role || 'Staff',
+      role: userData.role || 'Labour',
       permissions: userData.permissions || [],
       status: userData.status || 'Active',
       lastActivity: new Date(),
       avatar: `https://randomuser.me/api/portraits/${(userData as any).gender || 'men'}/${users.length + 1}.jpg`,
       phone: userData.phone || '',
-      department: userData.department || '',
+      branch: userData.branch || '',
       joinDate: new Date(),
       loginHistory: [],
       activityLog: []
@@ -279,8 +279,8 @@ const UserManagement = () => {
               <div className="p-4 border rounded-lg bg-surface border-border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-text-secondary">Partners</p>
-                    <p className="text-2xl font-bold text-accent">{users.filter(u => u.role === 'Partner').length}</p>
+                    <p className="text-sm text-text-secondary">Admins</p>
+                    <p className="text-2xl font-bold text-accent">{users.filter(u => u.role === 'Admin').length}</p>
                   </div>
                   <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent-100">
                     <Crown size={20} className="text-accent" />
@@ -348,6 +348,7 @@ const UserManagement = () => {
       Modals
       {showAddUserModal && (
         <AddUserModal
+          isOpen={showAddUserModal}
           onClose={() => setShowAddUserModal(false)}
           onAddUser={handleAddUser}
         />
