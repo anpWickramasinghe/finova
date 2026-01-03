@@ -3,6 +3,7 @@ import { AuthProvider, AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/dashboard';
 import Transactions from './pages/transactions';
+import UserManagement from './pages/user-management';
 import Layout from './components/Layout';
 
 import React, { useContext } from 'react';
@@ -20,6 +21,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route element={<Layout />}>
+
             <Route
               path="/dashboard"
               element={
@@ -36,6 +38,17 @@ function App() {
                 </PrivateRoute>
               }
             />
+            
+            <Route
+            path="/user-management"
+            element={
+              <PrivateRoute>
+              <UserManagement />
+               
+              </PrivateRoute>
+            }
+            />
+          
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Route>
         </Routes>
