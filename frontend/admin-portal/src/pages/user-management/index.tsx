@@ -20,6 +20,7 @@ const UserManagement = () => {
     search: '',
     role: 'all',
     permission: 'all',
+    branch: 'all',
     status: 'all'
   });
 
@@ -145,8 +146,9 @@ const UserManagement = () => {
       user.email.toLowerCase().includes(filters.search.toLowerCase());
     const matchesRole = filters.role === 'all' || user.role === filters.role;
     const matchesStatus = filters.status === 'all' || user.status === filters.status;
+    const matchesBranch = filters.branch === 'all' || user.branch === filters.branch;
 
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesRole && matchesStatus && matchesBranch;
   });
 
   const handleUserSelect = (userId: number) => {
@@ -345,7 +347,7 @@ const UserManagement = () => {
         </div>
       </main>
 
-      Modals
+      {/* Modals */}
       {showAddUserModal && (
         <AddUserModal
           isOpen={showAddUserModal}

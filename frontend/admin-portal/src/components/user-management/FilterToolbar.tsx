@@ -14,6 +14,7 @@ interface FilterToolbarProps {
         search: string;
         role: string;
         status: string;
+        branch: string;
         permission: string;
     };
     onFiltersChange: (filters: any) => void;
@@ -37,6 +38,10 @@ const FilterToolbar: React.FC<FilterToolbarProps> = ({
         onFiltersChange({ ...filters, status: value });
     };
 
+    const handleBranchChange = (value: string) => {
+        onFiltersChange({ ...filters, branch: value });
+    };
+
     return (
         <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-1 gap-4">
@@ -55,10 +60,10 @@ const FilterToolbar: React.FC<FilterToolbarProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Roles</SelectItem>
-                        <SelectItem value="Partner">Partner</SelectItem>
-                        <SelectItem value="Staff">Staff</SelectItem>
-                        <SelectItem value="Freelancer">Freelancer</SelectItem>
-                        <SelectItem value="Client">Client</SelectItem>
+                        <SelectItem value="Admin">Admin</SelectItem>
+                        <SelectItem value="Manager">Manager</SelectItem>
+                        <SelectItem value="Labour">Labour</SelectItem>
+                        <SelectItem value="Security">Security</SelectItem>
                     </SelectContent>
                 </Select>
                 <Select value={filters.status} onValueChange={handleStatusChange}>
@@ -69,6 +74,20 @@ const FilterToolbar: React.FC<FilterToolbarProps> = ({
                         <SelectItem value="all">All Status</SelectItem>
                         <SelectItem value="Active">Active</SelectItem>
                         <SelectItem value="Inactive">Inactive</SelectItem>
+                    </SelectContent>
+                </Select>
+
+                  <Select value={filters.branch} onValueChange={handleBranchChange}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Filter by Branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Branch</SelectItem>
+                        <SelectItem value="Headquarters">Headquarters</SelectItem>
+                        <SelectItem value="New York">New York</SelectItem>
+                        <SelectItem value="London">London</SelectItem>
+                        <SelectItem value="Tokyo">Tokyo</SelectItem>
+                        <SelectItem value="Singapore">Singapore</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
