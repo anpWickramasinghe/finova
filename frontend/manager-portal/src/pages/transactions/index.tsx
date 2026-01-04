@@ -1,9 +1,9 @@
-import React from 'react'
+
 
 const Transactions = () => {
   return (
     <div>
-        Transactions Management Page
+      Transactions Management Page
     </div>
   )
 }
