@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createUser } from '../../services/userService';
 import {
     Dialog,
     DialogContent,
@@ -24,6 +25,26 @@ interface AddUserModalProps {
     isOpen: boolean;
 }
 
+const availablePermissions = [
+    'Full Access',
+    'User Management',
+    'Transaction Management',
+    'Financial Reports',
+    'Bank Reconciliation',
+    'Tax Compliance',
+    'Client Portal',
+    'View Reports',
+    'Export Data',
+    'Audit Logs'
+];
+
+const rolePermissions: Record<string, string[]> = {
+    'Admin': ['Full Access', 'User Management', 'Transaction Management', 'Financial Reports', 'Bank Reconciliation', 'Tax Compliance', 'Client Portal', 'View Reports', 'Export Data', 'Audit Logs'],
+    'Manager': ['Transaction Management', 'Financial Reports', 'Bank Reconciliation', 'Tax Compliance', 'View Reports', 'Export Data'],
+    'Labour': ['View Reports'],
+    'Security': ['View Reports']
+};
+
 const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
     const [formData, setFormData] = useState({
         name: '',
@@ -42,26 +63,6 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    const availablePermissions = [
-        'Full Access',
-        'User Management',
-        'Transaction Management',
-        'Financial Reports',
-        'Bank Reconciliation',
-        'Tax Compliance',
-        'Client Portal',
-        'View Reports',
-        'Export Data',
-        'Audit Logs'
-    ];
-
-    const rolePermissions: Record<string, string[]> = {
-        'Admin': ['Full Access', 'User Management', 'Transaction Management', 'Financial Reports', 'Bank Reconciliation', 'Tax Compliance', 'Client Portal', 'View Reports', 'Export Data', 'Audit Logs'],
-        'Manager': ['Transaction Management', 'Financial Reports', 'Bank Reconciliation', 'Tax Compliance', 'View Reports', 'Export Data'],
-        'Labour': ['View Reports'],
-        'Security': ['View Reports']
-    };
-
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
@@ -75,15 +76,25 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
             role,
             permissions: rolePermissions[role] || []
         }));
+        if (errors.role) {
+            setErrors(prev => ({ ...prev, role: '' }));
+        }
     };
 
     const handlePermissionToggle = (permission: string) => {
-        setFormData(prev => ({
-            ...prev,
-            permissions: prev.permissions.includes(permission)
+        setFormData(prev => {
+            const newPermissions = prev.permissions.includes(permission)
                 ? prev.permissions.filter(p => p !== permission)
-                : [...prev.permissions, permission]
-        }));
+                : [...prev.permissions, permission];
+
+            return {
+                ...prev,
+                permissions: newPermissions
+            };
+        });
+        if (errors.permissions) {
+            setErrors(prev => ({ ...prev, permissions: '' }));
+        }
     };
 
     const validateForm = () => {
@@ -127,11 +138,34 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (validateForm()) {
-            onAddUser(formData);
-            onClose();
+            setIsLoading(true);
+            try {
+                const payload = {
+                    ...formData,
+                    permissions: JSON.stringify(formData.permissions)
+                };
+                const newUser = await createUser(payload);
+
+                // Parse permissions back to array for frontend state
+                const userForState = {
+                    ...newUser.user,
+                    permissions: typeof newUser.user.permissions === 'string'
+                        ? JSON.parse(newUser.user.permissions)
+                        : newUser.user.permissions
+                };
+
+                onAddUser(userForState);
+                onClose();
+            } catch (error: any) {
+                setErrors(prev => ({ ...prev, submit: error.message || 'Failed to create user' }));
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -143,6 +177,11 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
+                    {errors.submit && (
+                        <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
+                            {errors.submit}
+                        </div>
+                    )}
                     {/* Photo Upload */}
                     <div className="flex flex-col items-center justify-center space-y-4">
                         <div className="relative">
@@ -310,14 +349,18 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
                         <h3 className="text-lg font-medium border-b pb-2">Permissions</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {availablePermissions.map((permission) => (
-                                <div key={permission} className="flex items-center space-x-2 p-2 border rounded-md hover:bg-accent cursor-pointer" onClick={() => handlePermissionToggle(permission)}>
+                                <Label
+                                    key={permission}
+                                    className="flex items-center space-x-2 p-2 border rounded-md hover:bg-accent cursor-pointer"
+                                    htmlFor={`perm-${permission}`}
+                                >
                                     <Checkbox
                                         id={`perm-${permission}`}
                                         checked={formData.permissions.includes(permission)}
                                         onCheckedChange={() => handlePermissionToggle(permission)}
                                     />
-                                    <Label htmlFor={`perm-${permission}`} className="cursor-pointer">{permission}</Label>
-                                </div>
+                                    <span className="cursor-pointer">{permission}</span>
+                                </Label>
                             ))}
                         </div>
                         {errors.permissions && <p className="text-sm text-red-500">{errors.permissions}</p>}
@@ -325,29 +368,29 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
 
                     {/* Additional Options */}
                     <div className="space-y-4">
-                        <div className="flex items-center space-x-2 p-2 border rounded-md hover:bg-accent cursor-pointer" onClick={() => handleInputChange('sendInvite', !formData.sendInvite)}>
+                        <Label className="flex items-center space-x-2 p-2 border rounded-md hover:bg-accent cursor-pointer" htmlFor="sendInvite">
                             <Checkbox
                                 id="sendInvite"
                                 checked={formData.sendInvite}
                                 onCheckedChange={(checked) => handleInputChange('sendInvite', checked)}
                             />
                             <div className="grid gap-1.5 leading-none">
-                                <Label htmlFor="sendInvite" className="cursor-pointer">
+                                <span className="cursor-pointer font-medium">
                                     Send invitation email
-                                </Label>
+                                </span>
                                 <p className="text-sm text-muted-foreground">
                                     User will receive an email with login instructions
                                 </p>
                             </div>
-                        </div>
+                        </Label>
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={onClose}>
+                        <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
                             Cancel
                         </Button>
-                        <Button type="submit">
-                            Add User
+                        <Button type="submit" disabled={isLoading} >
+                            {isLoading ? 'Adding...' : 'Add User'}
                         </Button>
                     </DialogFooter>
                 </form>

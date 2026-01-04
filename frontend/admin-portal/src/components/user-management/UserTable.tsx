@@ -25,8 +25,8 @@ import type { User } from '../../pages/user-management/types';
 
 interface UserTableProps {
     users: User[];
-    selectedUsers: number[];
-    onUserSelect: (userId: number) => void;
+    selectedUsers: (number | string)[];
+    onUserSelect: (userId: number | string) => void;
     onSelectAll: () => void;
     onUserClick: (user: User) => void;
     selectedUser: User | null;

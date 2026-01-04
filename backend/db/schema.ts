@@ -11,6 +11,13 @@ export const user = pgTable("user", {
     role: text("role"),
     companyId: text("companyId"),
     requiresPasswordChange: boolean("requiresPasswordChange").default(false),
+    phone: text("phone"),
+    branch: text("branch"),
+    nic: text("nic"),
+    address: text("address"),
+    epfNo: text("epfNo"),
+    status: text("status").default('Active'),
+    permissions: text("permissions"), // Storing as JSON string
 });
 
 export const session = pgTable("session", {

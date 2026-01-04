@@ -12,7 +12,7 @@ import type { User } from './types';
 
 const UserManagement = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<(number | string)[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showAuditLogModal, setShowAuditLogModal] = useState(false);
@@ -151,7 +151,7 @@ const UserManagement = () => {
     return matchesSearch && matchesRole && matchesStatus && matchesBranch;
   });
 
-  const handleUserSelect = (userId: number) => {
+  const handleUserSelect = (userId: number | string) => {
     setSelectedUsers(prev =>
       prev.includes(userId)
         ? prev.filter(id => id !== userId)
@@ -171,26 +171,45 @@ const UserManagement = () => {
     setSelectedUser(user);
   };
 
-  const handleAddUser = (userData: Partial<User>) => {
-    const newUser: User = {
-      id: users.length + 1,
-      name: userData.name || '',
-      email: userData.email || '',
-      role: userData.role || 'Labour',
-      permissions: userData.permissions || [],
-      status: userData.status || 'Active',
-      lastActivity: new Date(),
-      avatar: (userData as any).avatar || `https://randomuser.me/api/portraits/${(userData as any).gender || 'men'}/${users.length + 1}.jpg`,
-      phone: userData.phone || '',
-      branch: userData.branch || '',
-      nic: userData.nic || '',
-      address: userData.address || '',
-      epfNo: userData.epfNo || '',
-      joinDate: new Date(),
-      loginHistory: [],
-      activityLog: []
-    };
-    setUsers(prev => [...prev, newUser]);
+  const handleAddUser = (userData: User | Partial<User>) => {
+    // If it's a full user object (from backend), use it directly
+    if ('id' in userData) {
+      const newUser: User = {
+        ...userData as any,
+        // Ensure dates are Date objects
+        lastActivity: userData.lastActivity ? new Date(userData.lastActivity) : new Date(),
+        joinDate: userData.joinDate ? new Date(userData.joinDate) : new Date(),
+        // Ensure arrays exist
+        loginHistory: userData.loginHistory || [],
+        activityLog: userData.activityLog || [],
+        // Ensure other required fields have defaults if missing
+        status: userData.status || 'Active',
+        role: userData.role || 'Labour',
+        permissions: userData.permissions || []
+      };
+      setUsers(prev => [...prev, newUser]);
+    } else {
+      // Fallback for mock/partial data (shouldn't happen with real API)
+      const newUser: User = {
+        id: users.length + 1,
+        name: userData.name || '',
+        email: userData.email || '',
+        role: userData.role || 'Labour',
+        permissions: userData.permissions || [],
+        status: userData.status || 'Active',
+        lastActivity: new Date(),
+        avatar: (userData as any).avatar || `https://randomuser.me/api/portraits/${(userData as any).gender || 'men'}/${users.length + 1}.jpg`,
+        phone: userData.phone || '',
+        branch: userData.branch || '',
+        nic: userData.nic || '',
+        address: userData.address || '',
+        epfNo: userData.epfNo || '',
+        joinDate: new Date(),
+        loginHistory: [],
+        activityLog: []
+      };
+      setUsers(prev => [...prev, newUser]);
+    }
     setShowAddUserModal(false);
   };
 

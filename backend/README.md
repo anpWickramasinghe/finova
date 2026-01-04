@@ -85,7 +85,7 @@ Authentication is handled by **Better Auth** mounted at `/api/auth`.
 ### Admin
 - **Create User:** `POST /api/admin/users`
     - Requires Authentication and `admin` role.
-    - Body: `{ email, password, name, role }`
+    - Body: `{ email, password, name, role ,etc }`
 
 ## Authentication Flow
 

@@ -4,7 +4,7 @@ import crypto from 'crypto';
 
 export const createUser = async (req: Request, res: Response) => {
     try {
-        const { email, role, firstName, lastName, companyId } = req.body;
+        const { email, role, name, companyId } = req.body;
 
         // Generate strong temporary password
         const tempPassword = crypto.randomBytes(8).toString('hex') + 'A1!'; // Ensure complexity
@@ -15,10 +15,11 @@ export const createUser = async (req: Request, res: Response) => {
             body: {
                 email,
                 password: tempPassword,
-                name: `${firstName} ${lastName}`,
+                name,
                 role,
                 companyId,
-                requiresPasswordChange: true
+                requiresPasswordChange: true,
+                ...req.body // Pass other fields like phone, branch, etc. directly
             }
         });
 

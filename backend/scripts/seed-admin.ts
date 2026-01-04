@@ -14,7 +14,14 @@ const seedAdmin = async () => {
                 name: 'Super Admin',
                 role: 'admin',
                 companyId: 'company_1',
-                requiresPasswordChange: false
+                requiresPasswordChange: false,
+                phone: '+1234567890', 
+                branch: 'Head Office',
+                nic: '123456789V',
+                address: '123 Main St, City',
+                epfNo: 'EPF123456',
+                 status: 'Active',
+                permissions:'default'   
             }
         });
 
