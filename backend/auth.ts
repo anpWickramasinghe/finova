@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "./config/db.js";
 import { user } from "./db/schema.js";
 import { eq } from "drizzle-orm";
+import { bearer } from "better-auth/plugins";
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
@@ -12,6 +13,9 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true
     },
+    plugins: [
+        bearer()
+    ],
     user: {
         additionalFields: {
             role: {
@@ -26,7 +30,36 @@ export const auth = betterAuth({
             requiresPasswordChange: {
                 type: "boolean",
                 defaultValue: false
-            }
+            },
+            phone: { 
+                type: "string", 
+                required: false 
+            },
+            branch: { 
+                type: "string", 
+                required: false 
+            },
+            nic: { 
+                type: "string", 
+                required: false 
+            },
+            address: { 
+                type: "string", 
+                required: false 
+            },
+            epfNo: { 
+                type: "string", 
+                required: false 
+            },
+            status: { 
+                type: "string", 
+                required: false, 
+                defaultValue: "Active" 
+            },
+            permissions: { 
+                type: "string", 
+                required: false 
+            } // Storing as JSON string
         }
     },
     // hooks: {
