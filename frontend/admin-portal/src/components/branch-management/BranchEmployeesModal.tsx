@@ -13,22 +13,23 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 import { branchService } from '../../services/branchService';
 
 interface BranchEmployeesModalProps {
     isOpen: boolean;
     onClose: () => void;
+    branchId: string | number | null;
     branchName: string;
-    branchId: string | number;
 }
 
 const BranchEmployeesModal: React.FC<BranchEmployeesModalProps> = ({
     isOpen,
     onClose,
-    branchName,
     branchId,
+    branchName,
 }) => {
     const [employees, setEmployees] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -42,10 +43,10 @@ const BranchEmployeesModal: React.FC<BranchEmployeesModalProps> = ({
     const fetchEmployees = async () => {
         try {
             setIsLoading(true);
-            const data = await branchService.getBranchEmployees(branchId);
+            const data = await branchService.getBranchEmployees(branchId!);
             setEmployees(data);
         } catch (error) {
-            console.error('Failed to fetch employees:', error);
+            console.error('Failed to fetch branch employees:', error);
         } finally {
             setIsLoading(false);
         }
@@ -53,52 +54,61 @@ const BranchEmployeesModal: React.FC<BranchEmployeesModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl">
+            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Employees - {branchName}</DialogTitle>
+                    <DialogTitle>Employees at {branchName}</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4 border rounded-md">
-                    {isLoading ? (
-                        <div className="p-4 text-center text-muted-foreground">Loading employees...</div>
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Employee</TableHead>
-                                    <TableHead>Role</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {employees.map((employee) => (
-                                    <TableRow key={employee.id}>
-                                        <TableCell className="flex items-center gap-3">
-                                            <Avatar className="w-8 h-8">
+
+                {isLoading ? (
+                    <div className="flex justify-center py-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : employees.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                        No employees found in this branch.
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Employee</TableHead>
+                                <TableHead>Role</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Phone</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {employees.map((employee) => (
+                                <TableRow key={employee.id}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar>
                                                 <AvatarImage src={employee.avatar} alt={employee.name} />
-                                                <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
+                                                <AvatarFallback>{employee.name?.charAt(0)}</AvatarFallback>
                                             </Avatar>
-                                            <span className="font-medium">{employee.name}</span>
-                                        </TableCell>
-                                        <TableCell>{employee.role}</TableCell>
-                                        <TableCell className="text-muted-foreground">{employee.email}</TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant={employee.status === 'Active' ? 'default' : 'secondary'}
-                                                className={
-                                                    employee.status === 'Active' ? 'bg-green-500 hover:bg-green-600' :
-                                                        employee.status === 'On Leave' ? 'bg-yellow-500 hover:bg-yellow-600' : ''
-                                                }
-                                            >
-                                                {employee.status}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    )}
-                </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{employee.name}</span>
+                                                <span className="text-xs text-muted-foreground">{employee.email}</span>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline">{employee.role}</Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant={employee.status === 'Active' ? 'default' : 'secondary'}
+                                            className={employee.status === 'Active' ? 'bg-green-500' : ''}
+                                        >
+                                            {employee.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>{employee.phone || 'N/A'}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
             </DialogContent>
         </Dialog>
     );

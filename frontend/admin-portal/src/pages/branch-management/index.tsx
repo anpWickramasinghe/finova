@@ -8,6 +8,7 @@ import FilterToolbar from '../../components/branch-management/FilterToolbar';
 import BulkActions from '../../components/branch-management/BulkActions';
 import AddBranchModal from '../../components/branch-management/AddBranchModal';
 import AuditLogModal from '../../components/branch-management/AuditLogModal';
+import BranchEmployeesModal from '../../components/branch-management/BranchEmployeesModal';
 import type { Branch } from './types';
 import { branchService } from '../../services/branchService';
 
@@ -17,6 +18,8 @@ const BranchManagement = () => {
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [showAddBranchModal, setShowAddBranchModal] = useState(false);
     const [showAuditLogModal, setShowAuditLogModal] = useState(false);
+    const [showEmployeesModal, setShowEmployeesModal] = useState(false);
+    const [viewingBranch, setViewingBranch] = useState<Branch | null>(null);
     const [branches, setBranches] = useState<Branch[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState({
@@ -100,6 +103,11 @@ const BranchManagement = () => {
         console.log(`Performing ${action} on branches:`, selectedBranches);
         // Implement bulk actions here
         setSelectedBranches([]);
+    };
+
+    const handleViewEmployees = (branch: Branch) => {
+        setViewingBranch(branch);
+        setShowEmployeesModal(true);
     };
 
     const toggleSidebar = () => {
@@ -227,6 +235,7 @@ const BranchManagement = () => {
                                 onSelectAll={handleSelectAll}
                                 onBranchClick={handleBranchClick}
                                 selectedBranch={selectedBranch}
+                                onViewEmployees={handleViewEmployees}
                             />
                         </div>
 
@@ -254,6 +263,15 @@ const BranchManagement = () => {
                 <AuditLogModal
                     onClose={() => setShowAuditLogModal(false)}
                     branches={branches}
+                />
+            )}
+
+            {showEmployeesModal && viewingBranch && (
+                <BranchEmployeesModal
+                    isOpen={showEmployeesModal}
+                    onClose={() => setShowEmployeesModal(false)}
+                    branchId={viewingBranch.id}
+                    branchName={viewingBranch.name}
                 />
             )}
         </div>

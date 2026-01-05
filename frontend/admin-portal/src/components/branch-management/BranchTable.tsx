@@ -28,6 +28,7 @@ interface BranchTableProps {
     onSelectAll: () => void;
     onBranchClick: (branch: Branch) => void;
     selectedBranch: Branch | null;
+    onViewEmployees: (branch: Branch) => void;
 }
 
 const BranchTable: React.FC<BranchTableProps> = ({
@@ -37,6 +38,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
     onSelectAll,
     onBranchClick,
     selectedBranch,
+    onViewEmployees,
 }) => {
     const allSelected = branches.length > 0 && selectedBranches.length === branches.length;
 
@@ -97,7 +99,10 @@ const BranchTable: React.FC<BranchTableProps> = ({
                                             Copy Contact
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => onViewEmployees(branch)}>
+                                            <Users className="mr-2 h-4 w-4" /> View Employees
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => onBranchClick(branch)}>
                                             <Edit className="mr-2 h-4 w-4" /> Edit Branch
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />

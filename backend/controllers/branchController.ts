@@ -3,10 +3,26 @@ import { db } from '../config/db.js';
 import { branch, user } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+import { sql } from 'drizzle-orm';
 
 export const getAllBranches = async (req: Request, res: Response) => {
     try {
-        const branches = await db.select().from(branch);
+        // Get branches with employee count
+        const branches = await db.select({
+            id: branch.id,
+            name: branch.name,
+            manager: branch.manager,
+            contactNumber: branch.contactNumber,
+            revenue: branch.revenue,
+            lastAudit: branch.lastAudit,
+            createdAt: branch.createdAt,
+            updatedAt: branch.updatedAt,
+            employeeCount: sql<number>`count(${user.id})`.mapWith(Number)
+        })
+            .from(branch)
+            .leftJoin(user, eq(branch.id, user.branchId))
+            .groupBy(branch.id);
+
         res.json(branches);
     } catch (error) {
         console.error('Error fetching branches:', error);
@@ -66,17 +82,9 @@ export const deleteBranch = async (req: Request, res: Response) => {
 export const getBranchEmployees = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        // First get the branch name to match with user's branch field
-        // Note: In a real app, we should use IDs, but the user schema uses 'branch' name string
-        const branchData = await db.select().from(branch).where(eq(branch.id, id));
 
-        if (!branchData.length) {
-            return res.status(404).json({ message: 'Branch not found' });
-        }
-
-        const branchName = branchData[0].name;
-
-        const employees = await db.select().from(user).where(eq(user.branchId, branchName));
+        // Get employees where branchId matches the requested branch ID
+        const employees = await db.select().from(user).where(eq(user.branchId, id));
         res.json(employees);
     } catch (error) {
         console.error('Error fetching branch employees:', error);
