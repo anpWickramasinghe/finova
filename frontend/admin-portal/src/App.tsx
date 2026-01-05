@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/dashboard';
 import Transactions from './pages/transactions';
 import UserManagement from './pages/user-management';
+import BranchManagement from './pages/branch-management';
 import Layout from './components/Layout';
 
 import React, { useContext } from 'react';
@@ -44,6 +45,16 @@ function App() {
             element={
               <PrivateRoute>
               <UserManagement />
+               
+              </PrivateRoute>
+            }
+            />
+
+            <Route
+            path="/branch-management"
+            element={
+              <PrivateRoute>
+              <BranchManagement />
                
               </PrivateRoute>
             }

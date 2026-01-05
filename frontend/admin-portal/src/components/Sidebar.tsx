@@ -95,6 +95,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     icon: 'Users',
                     roles: ['partner'],
                     tooltip: 'Manage system users'
+                },{
+                    label:'Branch Management',
+                    path:'/branch-management',
+                    icon:'Building2',
+                    roles:['partner','staff','freelancer'],
+                    tooltip:'Manage branch'
+
                 },
                 {
                     label: 'Client Portal',
