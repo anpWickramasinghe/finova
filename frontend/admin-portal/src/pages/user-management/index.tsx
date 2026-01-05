@@ -10,6 +10,7 @@ import AddUserModal from '../../components/user-management/AddUserModal';
 import AuditLogModal from '../../components/user-management/AuditLogModal';
 import type { User } from './types';
 import { branchService } from '../../services/branchService';
+import { getUsers } from '../../services/userService';
 
 const UserManagement = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -29,7 +30,28 @@ const UserManagement = () => {
 
   useEffect(() => {
     fetchBranches();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const data = await getUsers();
+      // Transform data if necessary to match User type
+      const formattedUsers = data.map((user: any) => ({
+        ...user,
+        // Ensure dates are Date objects
+        lastActivity: user.updatedAt ? new Date(user.updatedAt) : new Date(),
+        joinDate: user.createdAt ? new Date(user.createdAt) : new Date(),
+        // Ensure arrays exist
+        loginHistory: [],
+        activityLog: [],
+        permissions: user.permissions ? JSON.parse(user.permissions) : []
+      }));
+      setUsers(formattedUsers);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    }
+  };
 
   const fetchBranches = async () => {
     try {
@@ -41,113 +63,7 @@ const UserManagement = () => {
   };
 
   // Mock user data
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      email: "sarah.johnson@company.com",
-      role: "Admin",
-      permissions: ["Full Access", "User Management", "Financial Reports", "Tax Compliance"],
-      status: "Active",
-      lastActivity: new Date(Date.now() - 300000),
-      avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-      phone: '+1 (555) 123-4567',
-      branchId: '1', // Mock ID
-      nic: '123456789V',
-      address: '123 Main St, New York, NY 10001',
-      epfNo: 'EPF001',
-      joinDate: new Date('2024-01-15'),
-      loginHistory: [
-        { date: new Date('2024-03-10T09:00:00'), ip: '192.168.1.1', device: 'Chrome / Windows' },
-        { date: new Date('2024-03-09T14:30:00'), ip: '192.168.1.1', device: 'Chrome / Windows' }
-      ],
-      activityLog: [
-        { action: 'Updated system settings', timestamp: new Date('2024-03-10T10:15:00') },
-        { action: 'Created new user role', timestamp: new Date('2024-03-09T15:45:00') }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      email: 'sarah.j@finova.com',
-      role: 'Manager',
-      permissions: ['Transaction Management', 'Financial Reports'],
-      status: 'Active',
-      lastActivity: new Date('2024-03-10T11:45:00'),
-      avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
-      phone: '+1 (555) 987-6543',
-      branchId: '2',
-      nic: '987654321V',
-      address: '456 Park Ave, New York, NY 10022',
-      epfNo: 'EPF002',
-      joinDate: new Date('2024-02-01'),
-      loginHistory: [],
-      activityLog: []
-    },
-    {
-      id: 3,
-      name: "Emily Rodriguez",
-      email: "emily.rodriguez@freelance.com",
-      role: "Labour",
-      permissions: ["View Reports"],
-      status: "Active",
-      lastActivity: new Date(Date.now() - 3600000),
-      avatar: "https://randomuser.me/api/portraits/women/3.jpg",
-      phone: "+1 (555) 345-6789",
-      branchId: "3",
-      joinDate: new Date("2023-06-10"),
-      loginHistory: [
-        { date: new Date(Date.now() - 3600000), ip: "203.0.113.45", device: "Safari on iPhone" },
-        { date: new Date(Date.now() - 259200000), ip: "203.0.113.45", device: "Safari on iPhone" }
-      ],
-      activityLog: [
-        { action: "Exported client report", timestamp: new Date(Date.now() - 14400000) },
-        { action: "Updated transaction records", timestamp: new Date(Date.now() - 18000000) }
-      ]
-    },
-    {
-      id: 4,
-      name: "David Thompson",
-      email: "david.thompson@client.com",
-      role: "Security",
-      permissions: ["View Reports"],
-      status: "Inactive",
-      lastActivity: new Date(Date.now() - 604800000),
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-      phone: "+1 (555) 456-7890",
-      branchId: "4",
-      joinDate: new Date("2023-01-05"),
-      loginHistory: [
-        { date: new Date(Date.now() - 604800000), ip: "198.51.100.23", device: "Chrome on Android" },
-        { date: new Date(Date.now() - 1209600000), ip: "198.51.100.23", device: "Chrome on Android" }
-      ],
-      activityLog: [
-        { action: "Downloaded financial statement", timestamp: new Date(Date.now() - 604800000) },
-        { action: "Viewed dashboard", timestamp: new Date(Date.now() - 1209600000) }
-      ]
-    },
-    {
-      id: 5,
-      name: "Lisa Wang",
-      email: "lisa.wang@company.com",
-      role: "Manager",
-      permissions: ["Transaction Management", "Bank Reconciliation"],
-      status: "Active",
-      lastActivity: new Date(Date.now() - 7200000),
-      avatar: "https://randomuser.me/api/portraits/women/5.jpg",
-      phone: "+1 (555) 567-8901",
-      branchId: "5",
-      joinDate: new Date("2022-08-12"),
-      loginHistory: [
-        { date: new Date(Date.now() - 7200000), ip: "192.168.1.102", device: "Edge on Windows" },
-        { date: new Date(Date.now() - 93600000), ip: "192.168.1.102", device: "Edge on Windows" }
-      ],
-      activityLog: [
-        { action: "Completed bank reconciliation", timestamp: new Date(Date.now() - 21600000) },
-        { action: "Processed bulk transactions", timestamp: new Date(Date.now() - 25200000) }
-      ]
-    }
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
 
   const currentUser = {
     name: "Sarah Johnson",

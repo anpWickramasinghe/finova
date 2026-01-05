@@ -18,3 +18,14 @@ export const createUser = async (userData: any) => {
         throw error.response?.data || error.message;
     }
 };
+
+export const getUsers = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/admin/users`, {
+            headers: getAuthHeader()
+        });
+        return response.data;
+    } catch (error: any) {
+        throw error.response?.data || error.message;
+    }
+};
