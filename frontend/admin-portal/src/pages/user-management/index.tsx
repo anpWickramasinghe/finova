@@ -10,7 +10,7 @@ import AddUserModal from '../../components/user-management/AddUserModal';
 import AuditLogModal from '../../components/user-management/AuditLogModal';
 import type { User } from './types';
 import { branchService } from '../../services/branchService';
-import { getUsers } from '../../services/userService';
+import { getUsers, updateUser, deleteUser } from '../../services/userService';
 
 const UserManagement = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -149,11 +149,42 @@ const UserManagement = () => {
     setShowAddUserModal(false);
   };
 
-  const handleUpdateUser = (updatedUser: User) => {
-    setUsers(prev => prev.map(user =>
-      user.id === updatedUser.id ? updatedUser : user
-    ));
-    setSelectedUser(updatedUser);
+  const handleUpdateUser = async (updatedUser: User) => {
+    try {
+      // Call backend API
+      const result = await updateUser(updatedUser);
+
+      // Transform result to match User type
+      const formattedResult = {
+        ...result,
+        permissions: typeof result.permissions === 'string' ? JSON.parse(result.permissions) : result.permissions,
+        lastActivity: result.updatedAt ? new Date(result.updatedAt) : new Date(),
+        joinDate: result.createdAt ? new Date(result.createdAt) : new Date(),
+      };
+
+      // Update local state
+      setUsers(prev => prev.map(user =>
+        user.id === updatedUser.id ? { ...user, ...formattedResult } : user
+      ));
+      setSelectedUser({ ...updatedUser, ...formattedResult });
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      // Optionally show error toast/notification here
+    }
+  };
+
+  const handleDeleteUser = async (userId: number | string) => {
+    if (confirm('Are you sure you want to delete this user?')) {
+      try {
+        await deleteUser(userId);
+        setUsers(prev => prev.filter(user => user.id !== userId));
+        if (selectedUser?.id === userId) {
+          setSelectedUser(null);
+        }
+      } catch (error) {
+        console.error('Failed to delete user:', error);
+      }
+    }
   };
 
   const handleBulkAction = (action: string) => {
@@ -298,6 +329,7 @@ const UserManagement = () => {
                 onUserClick={handleUserClick}
                 selectedUser={selectedUser}
                 branches={branches}
+                onDeleteUser={handleDeleteUser}
               />
             </div>
 

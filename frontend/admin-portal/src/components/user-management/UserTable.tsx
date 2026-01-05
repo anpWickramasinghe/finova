@@ -31,6 +31,7 @@ interface UserTableProps {
     onUserClick: (user: User) => void;
     selectedUser: User | null;
     branches?: any[];
+    onDeleteUser: (userId: number | string) => void;
 }
 
 const UserTable: React.FC<UserTableProps> = ({
@@ -41,6 +42,7 @@ const UserTable: React.FC<UserTableProps> = ({
     onUserClick,
     selectedUser,
     branches = [],
+    onDeleteUser,
 }) => {
     const allSelected = users.length > 0 && selectedUsers.length === users.length;
 
@@ -121,24 +123,31 @@ const UserTable: React.FC<UserTableProps> = ({
                                             Copy Email
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => onUserClick(user)}>
                                             <Edit className="mr-2 h-4 w-4" /> Edit User
                                         </DropdownMenuItem>
                                         <DropdownMenuItem>
                                             <Shield className="mr-2 h-4 w-4" /> Permissions
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-red-600">
+                                        <DropdownMenuItem
+                                            className="text-red-600"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onDeleteUser(user.id);
+                                            }}
+                                        >
                                             <Trash2 className="mr-2 h-4 w-4" /> Delete
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </div>
+                    ))
+                    }
+                </TableBody >
+            </Table >
+        </div >
     );
 };
 

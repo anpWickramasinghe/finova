@@ -29,3 +29,25 @@ export const getUsers = async () => {
         throw error.response?.data || error.message;
     }
 };
+
+export const updateUser = async (user: any) => {
+    try {
+        const response = await axios.put(`${API_URL}/admin/users/${user.id}`, user, {
+            headers: getAuthHeader()
+        });
+        return response.data;
+    } catch (error: any) {
+        throw error.response?.data || error.message;
+    }
+};
+
+export const deleteUser = async (userId: string | number) => {
+    try {
+        const response = await axios.delete(`${API_URL}/admin/users/${userId}`, {
+            headers: getAuthHeader()
+        });
+        return response.data;
+    } catch (error: any) {
+        throw error.response?.data || error.message;
+    }
+};
