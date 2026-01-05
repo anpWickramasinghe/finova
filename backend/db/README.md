@@ -9,6 +9,7 @@ The database consists of the following main tables:
 - **session**: Manages user sessions.
 - **account**: Handles OAuth accounts and linkage to users.
 - **verification**: Stores verification tokens for email/phone verification.
+- **branch**: Stores branch information.
 
 ## Entity Relationship Diagram
 
@@ -16,6 +17,7 @@ The database consists of the following main tables:
 erDiagram
     user ||--o{ session : "has"
     user ||--o{ account : "has"
+    branch ||--o{ user : "has"
 
     user {
         text id PK
@@ -29,7 +31,7 @@ erDiagram
         text companyId
         boolean requiresPasswordChange
         text phone
-        text branch
+        text branchId FK
         text nic
         text address
         text epfNo
@@ -69,6 +71,18 @@ erDiagram
         text identifier
         text value
         timestamp expiresAt
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    branch {
+        text id PK
+        text name
+        text manager
+        text contactNumber
+        text employeeCount
+        text revenue
+        timestamp lastAudit
         timestamp createdAt
         timestamp updatedAt
     }
