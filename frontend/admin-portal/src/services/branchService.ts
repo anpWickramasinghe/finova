@@ -1,0 +1,46 @@
+import axios from 'axios';
+import type { Branch } from '../pages/branch-management/types';
+
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+const getAuthHeader = () => {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+export const branchService = {
+    getAllBranches: async (): Promise<Branch[]> => {
+        const response = await axios.get(`${API_URL}/branches`, {
+            headers: getAuthHeader()
+        });
+        return response.data;
+    },
+
+    createBranch: async (branchData: Partial<Branch>): Promise<Branch> => {
+        const response = await axios.post(`${API_URL}/branches`, branchData, {
+            headers: getAuthHeader()
+        });
+        return response.data;
+    },
+
+    updateBranch: async (id: string | number, branchData: Partial<Branch>): Promise<Branch> => {
+        const response = await axios.put(`${API_URL}/branches/${id}`, branchData, {
+            headers: getAuthHeader()
+        });
+        return response.data;
+    },
+
+    deleteBranch: async (id: string | number): Promise<void> => {
+        await axios.delete(`${API_URL}/branches/${id}`, {
+            headers: getAuthHeader()
+        });
+    },
+
+    getBranchEmployees: async (id: string | number): Promise<any[]> => {
+        const response = await axios.get(`${API_URL}/branches/${id}/employees`, {
+            headers: getAuthHeader()
+        });
+        return response.data;
+    }
+};

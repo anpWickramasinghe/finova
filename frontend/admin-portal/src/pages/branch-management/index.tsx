@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { Building2, Plus, FileText, Users, TrendingUp } from 'lucide-react';
@@ -9,6 +9,7 @@ import BulkActions from '../../components/branch-management/BulkActions';
 import AddBranchModal from '../../components/branch-management/AddBranchModal';
 import AuditLogModal from '../../components/branch-management/AuditLogModal';
 import type { Branch } from './types';
+import { branchService } from '../../services/branchService';
 
 const BranchManagement = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -16,60 +17,27 @@ const BranchManagement = () => {
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [showAddBranchModal, setShowAddBranchModal] = useState(false);
     const [showAuditLogModal, setShowAuditLogModal] = useState(false);
+    const [branches, setBranches] = useState<Branch[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState({
         search: '',
     });
 
-    // Mock branch data
-    const [branches, setBranches] = useState<Branch[]>([
-        {
-            id: 1,
-            name: "Headquarters",
-            manager: "Sarah Johnson",
-            contactNumber: "+1 (555) 123-4567",
-            employeeCount: 150,
-            revenue: 5000000,
-            lastAudit: new Date('2024-03-01'),
-            auditLog: [
-                { action: 'Updated operational hours', timestamp: new Date('2024-03-10T10:15:00'), user: 'Admin' },
-                { action: 'Added new department', timestamp: new Date('2024-02-15T09:30:00'), user: 'Manager' }
-            ]
-        },
-        {
-            id: 2,
-            name: "London Branch",
-            manager: "James Smith",
-            contactNumber: "+44 20 7123 4567",
-            employeeCount: 45,
-            revenue: 2100000,
-            lastAudit: new Date('2024-02-28'),
-            auditLog: [
-                { action: 'Staff reorganization', timestamp: new Date('2024-03-05T14:20:00'), user: 'Admin' }
-            ]
-        },
-        {
-            id: 3,
-            name: "Tokyo Office",
-            manager: "Kenji Tanaka",
-            contactNumber: "+81 3 1234 5678",
-            employeeCount: 30,
-            revenue: 1800000,
-            lastAudit: new Date('2024-03-05'),
-            auditLog: []
-        },
-        {
-            id: 4,
-            name: "Singapore Hub",
-            manager: "Wei Chen",
-            contactNumber: "+65 6789 0123",
-            employeeCount: 25,
-            revenue: 1500000,
-            lastAudit: new Date('2024-01-15'),
-            auditLog: [
-                { action: 'System maintenance', timestamp: new Date('2024-03-12T08:00:00'), user: 'IT Support' }
-            ]
+    useEffect(() => {
+        fetchBranches();
+    }, []);
+
+    const fetchBranches = async () => {
+        try {
+            setIsLoading(true);
+            const data = await branchService.getAllBranches();
+            setBranches(data);
+        } catch (error) {
+            console.error('Failed to fetch branches:', error);
+        } finally {
+            setIsLoading(false);
         }
-    ]);
+    };
 
     const currentUser = {
         name: "Sarah Johnson",
@@ -106,24 +74,26 @@ const BranchManagement = () => {
         setSelectedBranch(branch);
     };
 
-    const handleAddBranch = (branchData: any) => {
-        const newBranch: Branch = {
-            id: branches.length + 1,
-            ...branchData,
-            employeeCount: 0,
-            revenue: 0,
-            lastAudit: new Date(),
-            auditLog: []
-        };
-        setBranches(prev => [...prev, newBranch]);
-        setShowAddBranchModal(false);
+    const handleAddBranch = async (branchData: any) => {
+        try {
+            const newBranch = await branchService.createBranch(branchData);
+            setBranches(prev => [...prev, newBranch]);
+            setShowAddBranchModal(false);
+        } catch (error) {
+            console.error('Failed to create branch:', error);
+        }
     };
 
-    const handleUpdateBranch = (updatedBranch: Branch) => {
-        setBranches(prev => prev.map(branch =>
-            branch.id === updatedBranch.id ? updatedBranch : branch
-        ));
-        setSelectedBranch(updatedBranch);
+    const handleUpdateBranch = async (updatedBranch: Branch) => {
+        try {
+            const result = await branchService.updateBranch(updatedBranch.id, updatedBranch);
+            setBranches(prev => prev.map(branch =>
+                branch.id === result.id ? result : branch
+            ));
+            setSelectedBranch(result);
+        } catch (error) {
+            console.error('Failed to update branch:', error);
+        }
     };
 
     const handleBulkAction = (action: string) => {
@@ -159,6 +129,7 @@ const BranchManagement = () => {
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold font-heading text-text-primary">Branch Management</h1>
                                 <p className="text-text-secondary">Manage your organization's branches and locations</p>
+                                {isLoading && <p className="text-sm text-muted-foreground mt-1">Loading branches...</p>}
                             </div>
 
                             <div className="flex flex-col gap-3 mt-4 sm:flex-row lg:mt-0">

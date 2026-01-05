@@ -173,6 +173,7 @@ const BranchDetailPanel: React.FC<BranchDetailPanelProps> = ({
                 isOpen={showEmployeesModal}
                 onClose={() => setShowEmployeesModal(false)}
                 branchName={branch.name}
+                branchId={branch.id}
             />
         </Card>
     );
