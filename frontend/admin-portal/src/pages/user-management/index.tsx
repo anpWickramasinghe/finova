@@ -306,6 +306,7 @@ const UserManagement = () => {
               <UserDetailPanel
                 user={selectedUser}
                 onUpdateUser={handleUpdateUser}
+                branches={branches}
               />
             </div>
           </div>

@@ -16,17 +16,26 @@ import { Badge } from "@/components/ui/badge";
 import {
     Shield
 } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 import type { User } from '../../pages/user-management/types';
 
 interface UserDetailPanelProps {
     user: User | null;
     onUpdateUser: (user: User) => void;
+    branches?: any[];
 }
 
 const UserDetailPanel: React.FC<UserDetailPanelProps> = ({
     user,
     onUpdateUser,
+    branches = [],
 }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Partial<User>>({});
@@ -101,12 +110,54 @@ const UserDetailPanel: React.FC<UserDetailPanelProps> = ({
                             />
                         </div>
                         <div className="space-y-2">
+                            <Label htmlFor="role">Role</Label>
+                            <Select
+                                value={formData.role}
+                                onValueChange={(value) => setFormData({ ...formData, role: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Admin">Admin</SelectItem>
+                                    <SelectItem value="Manager">Manager</SelectItem>
+                                    <SelectItem value="Employee">Employee</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="status">Status</Label>
+                            <Select
+                                value={formData.status}
+                                onValueChange={(value) => setFormData({ ...formData, status: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Active">Active</SelectItem>
+                                    <SelectItem value="Inactive">Inactive</SelectItem>
+                                    <SelectItem value="Suspended">Suspended</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
                             <Label htmlFor="branch">Branch</Label>
-                            <Input
-                                id="branch"
-                                value={formData.branchId || ''}
-                                onChange={e => setFormData({ ...formData, branchId: e.target.value })}
-                            />
+                            <Select
+                                value={formData.branchId ? String(formData.branchId) : undefined}
+                                onValueChange={(value) => setFormData({ ...formData, branchId: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select branch" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {branches.map((branch) => (
+                                        <SelectItem key={branch.id} value={String(branch.id)}>
+                                            {branch.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="nic">NIC</Label>
