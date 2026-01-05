@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createUser } from '../../services/userService';
+import { branchService } from '../../services/branchService';
 import {
     Dialog,
     DialogContent,
@@ -51,7 +52,7 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
         email: '',
         phone: '',
         role: 'Labour',
-        branch: '',
+        branchId: '',
         nic: '',
         address: '',
         epfNo: '',
@@ -60,6 +61,23 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
         status: 'Active',
         sendInvite: true
     });
+
+    const [branches, setBranches] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchBranches();
+        }
+    }, [isOpen]);
+
+    const fetchBranches = async () => {
+        try {
+            const data = await branchService.getAllBranches();
+            setBranches(data);
+        } catch (error) {
+            console.error('Failed to fetch branches:', error);
+        }
+    };
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -114,8 +132,8 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
             newErrors.phone = 'Phone number is required';
         }
 
-        if (!formData.branch.trim()) {
-            newErrors.branch = 'Branch is required';
+        if (!formData.branchId.trim()) {
+            newErrors.branchId = 'Branch is required';
         }
 
         if (!formData.nic.trim()) {
@@ -286,14 +304,22 @@ const AddUserModal = ({ onClose, onAddUser, isOpen }: AddUserModalProps) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="branch">Branch *</Label>
-                                <Input
-                                    id="branch"
-                                    value={formData.branch}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('branch', e.target.value)}
-                                    className={errors.branch ? 'border-red-500' : ''}
-                                    placeholder="Enter branch"
-                                />
-                                {errors.branch && <p className="text-sm text-red-500">{errors.branch}</p>}
+                                <Select
+                                    value={formData.branchId}
+                                    onValueChange={(value) => handleInputChange('branchId', value)}
+                                >
+                                    <SelectTrigger className={errors.branchId ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder="Select branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {branches.map((branch) => (
+                                            <SelectItem key={branch.id} value={String(branch.id)}>
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.branchId && <p className="text-sm text-red-500">{errors.branchId}</p>}
                             </div>
 
                             <div className="space-y-2">

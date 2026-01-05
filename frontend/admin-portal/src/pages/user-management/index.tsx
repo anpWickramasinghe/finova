@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { FileText, UserPlus, Users, UserCheck, Crown, Wifi } from 'lucide-react';
@@ -9,6 +9,7 @@ import BulkActions from '../../components/user-management/BulkActions';
 import AddUserModal from '../../components/user-management/AddUserModal';
 import AuditLogModal from '../../components/user-management/AuditLogModal';
 import type { User } from './types';
+import { branchService } from '../../services/branchService';
 
 const UserManagement = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -24,6 +25,21 @@ const UserManagement = () => {
     status: 'all'
   });
 
+  const [branches, setBranches] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchBranches();
+  }, []);
+
+  const fetchBranches = async () => {
+    try {
+      const data = await branchService.getAllBranches();
+      setBranches(data);
+    } catch (error) {
+      console.error('Failed to fetch branches:', error);
+    }
+  };
+
   // Mock user data
   const [users, setUsers] = useState<User[]>([
     {
@@ -36,7 +52,7 @@ const UserManagement = () => {
       lastActivity: new Date(Date.now() - 300000),
       avatar: "https://randomuser.me/api/portraits/women/1.jpg",
       phone: '+1 (555) 123-4567',
-      branch: 'Headquarters',
+      branchId: '1', // Mock ID
       nic: '123456789V',
       address: '123 Main St, New York, NY 10001',
       epfNo: 'EPF001',
@@ -60,7 +76,7 @@ const UserManagement = () => {
       lastActivity: new Date('2024-03-10T11:45:00'),
       avatar: 'https://randomuser.me/api/portraits/women/2.jpg',
       phone: '+1 (555) 987-6543',
-      branch: 'New York',
+      branchId: '2',
       nic: '987654321V',
       address: '456 Park Ave, New York, NY 10022',
       epfNo: 'EPF002',
@@ -78,7 +94,7 @@ const UserManagement = () => {
       lastActivity: new Date(Date.now() - 3600000),
       avatar: "https://randomuser.me/api/portraits/women/3.jpg",
       phone: "+1 (555) 345-6789",
-      branch: "London",
+      branchId: "3",
       joinDate: new Date("2023-06-10"),
       loginHistory: [
         { date: new Date(Date.now() - 3600000), ip: "203.0.113.45", device: "Safari on iPhone" },
@@ -99,7 +115,7 @@ const UserManagement = () => {
       lastActivity: new Date(Date.now() - 604800000),
       avatar: "https://randomuser.me/api/portraits/men/4.jpg",
       phone: "+1 (555) 456-7890",
-      branch: "Tokyo",
+      branchId: "4",
       joinDate: new Date("2023-01-05"),
       loginHistory: [
         { date: new Date(Date.now() - 604800000), ip: "198.51.100.23", device: "Chrome on Android" },
@@ -120,7 +136,7 @@ const UserManagement = () => {
       lastActivity: new Date(Date.now() - 7200000),
       avatar: "https://randomuser.me/api/portraits/women/5.jpg",
       phone: "+1 (555) 567-8901",
-      branch: "Singapore",
+      branchId: "5",
       joinDate: new Date("2022-08-12"),
       loginHistory: [
         { date: new Date(Date.now() - 7200000), ip: "192.168.1.102", device: "Edge on Windows" },
@@ -146,7 +162,7 @@ const UserManagement = () => {
       user.email.toLowerCase().includes(filters.search.toLowerCase());
     const matchesRole = filters.role === 'all' || user.role === filters.role;
     const matchesStatus = filters.status === 'all' || user.status === filters.status;
-    const matchesBranch = filters.branch === 'all' || user.branch === filters.branch;
+    const matchesBranch = filters.branch === 'all' || String(user.branchId) === filters.branch;
 
     return matchesSearch && matchesRole && matchesStatus && matchesBranch;
   });
@@ -200,7 +216,7 @@ const UserManagement = () => {
         lastActivity: new Date(),
         avatar: (userData as any).avatar || `https://randomuser.me/api/portraits/${(userData as any).gender || 'men'}/${users.length + 1}.jpg`,
         phone: userData.phone || '',
-        branch: userData.branch || '',
+        branchId: userData.branchId || '',
         nic: userData.nic || '',
         address: userData.address || '',
         epfNo: userData.epfNo || '',
@@ -355,6 +371,7 @@ const UserManagement = () => {
                 onSelectAll={handleSelectAll}
                 onUserClick={handleUserClick}
                 selectedUser={selectedUser}
+                branches={branches}
               />
             </div>
 

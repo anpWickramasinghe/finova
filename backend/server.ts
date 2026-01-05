@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import adminRoutes from './routes/adminRoutes.js';
+import branchRoutes from './routes/branchRoutes.js';
 import { auth } from './auth.js';
 import { toNodeHandler } from 'better-auth/node';
 
@@ -18,6 +19,7 @@ app.all('/api/auth/*splat', toNodeHandler(auth));
 app.use(express.json());
 
 app.use('/api/admin', adminRoutes);
+app.use('/api/branches', branchRoutes);
 
 app.get('/', (req, res) => {
   res.send('Finova API is running');

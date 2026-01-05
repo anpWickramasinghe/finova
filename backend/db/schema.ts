@@ -12,7 +12,7 @@ export const user = pgTable("user", {
     companyId: text("companyId"),
     requiresPasswordChange: boolean("requiresPasswordChange").default(false),
     phone: text("phone"),
-    branch: text("branch"),
+    branchId: text("branchId"),
     nic: text("nic"),
     address: text("address"),
     epfNo: text("epfNo"),
@@ -54,4 +54,16 @@ export const verification = pgTable("verification", {
     expiresAt: timestamp("expiresAt").notNull(),
     createdAt: timestamp("createdAt"),
     updatedAt: timestamp("updatedAt"),
+});
+
+export const branch = pgTable("branch", {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    manager: text("manager"),
+    contactNumber: text("contactNumber"),
+    employeeCount: text("employeeCount").default('0'), // Keeping as text for simplicity or change to integer
+    revenue: text("revenue").default('0'), // Keeping as text/numeric
+    lastAudit: timestamp("lastAudit"),
+    createdAt: timestamp("createdAt").defaultNow(),
+    updatedAt: timestamp("updatedAt").defaultNow(),
 });

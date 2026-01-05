@@ -31,34 +31,34 @@ export const auth = betterAuth({
                 type: "boolean",
                 defaultValue: false
             },
-            phone: { 
-                type: "string", 
-                required: false 
+            phone: {
+                type: "string",
+                required: false
             },
-            branch: { 
-                type: "string", 
-                required: false 
+            branchId: {
+                type: "string",
+                required: false
             },
-            nic: { 
-                type: "string", 
-                required: false 
+            nic: {
+                type: "string",
+                required: false
             },
-            address: { 
-                type: "string", 
-                required: false 
+            address: {
+                type: "string",
+                required: false
             },
-            epfNo: { 
-                type: "string", 
-                required: false 
+            epfNo: {
+                type: "string",
+                required: false
             },
-            status: { 
-                type: "string", 
-                required: false, 
-                defaultValue: "Active" 
+            status: {
+                type: "string",
+                required: false,
+                defaultValue: "Active"
             },
-            permissions: { 
-                type: "string", 
-                required: false 
+            permissions: {
+                type: "string",
+                required: false
             } // Storing as JSON string
         }
     },

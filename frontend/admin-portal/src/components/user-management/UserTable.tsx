@@ -30,6 +30,7 @@ interface UserTableProps {
     onSelectAll: () => void;
     onUserClick: (user: User) => void;
     selectedUser: User | null;
+    branches?: any[];
 }
 
 const UserTable: React.FC<UserTableProps> = ({
@@ -39,6 +40,7 @@ const UserTable: React.FC<UserTableProps> = ({
     onSelectAll,
     onUserClick,
     selectedUser,
+    branches = [],
 }) => {
     const allSelected = users.length > 0 && selectedUsers.length === users.length;
 
@@ -55,6 +57,7 @@ const UserTable: React.FC<UserTableProps> = ({
                         </TableHead>
                         <TableHead>User</TableHead>
                         <TableHead>Role</TableHead>
+                        <TableHead>Branch</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Last Activity</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -89,6 +92,9 @@ const UserTable: React.FC<UserTableProps> = ({
                                 <Badge variant="outline" className="capitalize">
                                     {user.role}
                                 </Badge>
+                            </TableCell>
+                            <TableCell>
+                                {branches.find(b => String(b.id) === String(user.branchId))?.name || 'N/A'}
                             </TableCell>
                             <TableCell>
                                 <Badge

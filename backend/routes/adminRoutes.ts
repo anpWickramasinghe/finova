@@ -4,6 +4,6 @@ import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/users', requireAuth, requireRole(['admin']), createUser);
+router.post('/users', requireAuth, requireRole(['Admin']), createUser);
 
 export default router;

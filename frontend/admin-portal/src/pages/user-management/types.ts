@@ -8,7 +8,7 @@ export interface User {
     lastActivity: Date;
     avatar: string;
     phone: string;
-    branch: string;
+    branchId: string;
     nic?: string;
     address?: string;
     epfNo?: string;
