@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { auth } from '../auth.js';
 import crypto from 'crypto';
+import { db } from '../config/db.js';
+import { user } from '../db/schema.js';
 
 export const createUser = async (req: Request, res: Response) => {
     try {
@@ -36,5 +38,14 @@ export const createUser = async (req: Request, res: Response) => {
     } catch (error: any) {
         // better-auth throws APIError
         res.status(500).json({ message: error.message || 'An error occurred' });
+    }
+};
+
+export const getUsers = async (req: Request, res: Response) => {
+    try {
+        const users = await db.select().from(user);
+        res.status(200).json(users);
+    } catch (error: any) {
+        res.status(500).json({ message: error.message || 'Failed to fetch users' });
     }
 };
