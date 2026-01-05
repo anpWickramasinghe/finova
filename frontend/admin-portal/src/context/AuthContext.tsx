@@ -1,5 +1,5 @@
-import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
-import axios from 'axios';
+import { createContext, useState, useEffect, useContext, useCallback, type ReactNode } from 'react';
+import axios, { type AxiosResponse, type AxiosError } from 'axios';
 
 interface User {
     _id: string;
@@ -34,11 +34,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
     }, []);
 
+    const logout = useCallback(() => {
+        setUser(null);
+        localStorage.removeItem('user');
+        delete axios.defaults.headers.common['Authorization'];
+    }, []);
+
     // Axios interceptor to handle 401s (token expiration)
     useEffect(() => {
         const interceptor = axios.interceptors.response.use(
-            (response: any) => response,
-            (error: any) => {
+            (response: AxiosResponse) => response,
+            (error: AxiosError) => {
                 if (error.response?.status === 401) {
                     logout();
                 }
@@ -49,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return () => {
             axios.interceptors.response.eject(interceptor);
         };
-    }, []);
+    }, [logout]);
 
     const login = (userData: User) => {
         setUser(userData);
@@ -57,12 +63,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (userData.token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
         }
-    };
-
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem('user');
-        delete axios.defaults.headers.common['Authorization'];
     };
 
     return (
