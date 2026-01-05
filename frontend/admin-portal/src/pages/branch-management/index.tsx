@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
-import { Building2, Plus, FileText, Users, TrendingUp } from 'lucide-react';
+import { Building2, Plus, FileText, Users, TrendingUp, Loader2 } from 'lucide-react';
 import BranchTable from '../../components/branch-management/BranchTable';
 import BranchDetailPanel from '../../components/branch-management/BranchDetailPanel';
 import FilterToolbar from '../../components/branch-management/FilterToolbar';
@@ -129,7 +129,12 @@ const BranchManagement = () => {
                             <div>
                                 <h1 className="mb-2 text-3xl font-bold font-heading text-text-primary">Branch Management</h1>
                                 <p className="text-text-secondary">Manage your organization's branches and locations</p>
-                                {isLoading && <p className="text-sm text-muted-foreground mt-1">Loading branches...</p>}
+                                {isLoading && (
+                                    <div className="flex items-center mt-1 text-sm text-muted-foreground">
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Loading branches...
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex flex-col gap-3 mt-4 sm:flex-row lg:mt-0">

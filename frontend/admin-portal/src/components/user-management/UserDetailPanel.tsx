@@ -69,7 +69,7 @@ const UserDetailPanel: React.FC<UserDetailPanelProps> = ({
                         <AvatarFallback className="text-2xl">{user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <CardTitle className="text-xl mb-1">{user.name}</CardTitle>
-                    <CardDescription>{user.role} • {user.branch}</CardDescription>
+                    <CardDescription>{user.role} • {user.branchId}</CardDescription>
                 </div>
             </CardHeader>
             <Separator />
@@ -104,8 +104,8 @@ const UserDetailPanel: React.FC<UserDetailPanelProps> = ({
                             <Label htmlFor="branch">Branch</Label>
                             <Input
                                 id="branch"
-                                value={formData.branch || ''}
-                                onChange={e => setFormData({ ...formData, branch: e.target.value })}
+                                value={formData.branchId || ''}
+                                onChange={e => setFormData({ ...formData, branchId: e.target.value })}
                             />
                         </div>
                         <div className="space-y-2">

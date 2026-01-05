@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
-import { FileText, UserPlus, Users, UserCheck, Crown, Wifi } from 'lucide-react';
+import { FileText, UserPlus, Users, UserCheck, Crown, Wifi, Loader2 } from 'lucide-react';
 import UserTable from '../../components/user-management/UserTable';
 import UserDetailPanel from '../../components/user-management/UserDetailPanel';
 import FilterToolbar from '../../components/user-management/FilterToolbar';
@@ -27,6 +27,7 @@ const UserManagement = () => {
   });
 
   const [branches, setBranches] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchBranches();
@@ -35,6 +36,7 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
+      setIsLoading(true);
       const data = await getUsers();
       // Transform data if necessary to match User type
       const formattedUsers = data.map((user: any) => ({
@@ -50,6 +52,8 @@ const UserManagement = () => {
       setUsers(formattedUsers);
     } catch (error) {
       console.error('Failed to fetch users:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -185,6 +189,12 @@ const UserManagement = () => {
               <div>
                 <h1 className="mb-2 text-3xl font-bold font-heading text-text-primary">User Management</h1>
                 <p className="text-text-secondary">Manage team members, roles, and permissions across your organization</p>
+                {isLoading && (
+                  <div className="flex items-center mt-2 text-sm text-muted-foreground">
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Loading users...
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col gap-3 mt-4 sm:flex-row lg:mt-0">
