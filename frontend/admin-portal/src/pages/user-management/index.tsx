@@ -306,6 +306,7 @@ const UserManagement = () => {
             filters={filters}
             onFiltersChange={setFilters}
             userCount={filteredUsers.length}
+            branches={branches}
           />
 
           {/* Bulk Actions */}

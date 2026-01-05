@@ -19,12 +19,14 @@ interface FilterToolbarProps {
     };
     onFiltersChange: (filters: any) => void;
     userCount: number;
+    branches?: any[];
 }
 
 const FilterToolbar: React.FC<FilterToolbarProps> = ({
     filters,
     onFiltersChange,
     userCount,
+    branches = [],
 }) => {
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onFiltersChange({ ...filters, search: e.target.value });
@@ -77,17 +79,17 @@ const FilterToolbar: React.FC<FilterToolbarProps> = ({
                     </SelectContent>
                 </Select>
 
-                  <Select value={filters.branch} onValueChange={handleBranchChange}>
+                <Select value={filters.branch} onValueChange={handleBranchChange}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Filter by Branch" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Branch</SelectItem>
-                        <SelectItem value="Headquarters">Headquarters</SelectItem>
-                        <SelectItem value="New York">New York</SelectItem>
-                        <SelectItem value="London">London</SelectItem>
-                        <SelectItem value="Tokyo">Tokyo</SelectItem>
-                        <SelectItem value="Singapore">Singapore</SelectItem>
+                        {branches.map((branch) => (
+                            <SelectItem key={branch.id} value={String(branch.id)}>
+                                {branch.name}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
             </div>
