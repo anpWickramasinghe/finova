@@ -1,0 +1,1 @@
+(cd frontend/admin-portal && npm run build) && (cd frontend/manager-portal && npm run build)

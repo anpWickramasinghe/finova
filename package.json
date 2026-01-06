@@ -8,7 +8,8 @@
     "setup": "cd backend && npm install && cd ../frontend/admin-portal && npm install && cd ../manager-portal && npm install",
     "admin": "cd frontend/admin-portal && npm run dev -- --port 5175",
     "manager": "cd frontend/manager-portal && npm run dev -- --port 5176",
-    "start": "concurrently \"npm run server\" \"npm run admin\" \"npm run manager\" \"npm run employee\""
+    "start": "concurrently \"npm run server\" \"npm run admin\" \"npm run manager\" \"npm run employee\"",
+    "prepare": "husky"
   },
   "repositoryfrontend/admin-portal/.gitignore": {
     "type": "git",
@@ -23,6 +24,7 @@
   },
   "homepage": "https://github.com/nethmina1028/finova#readme",
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7"
   }
 }
