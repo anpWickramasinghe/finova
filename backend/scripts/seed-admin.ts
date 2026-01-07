@@ -8,12 +8,20 @@ const seedAdmin = async () => {
         const adminPassword = 'AdminPassword123!';
 
         // Fetch a branch ID
-        const branches = await db.select().from(branch).limit(1);
-        const branchId = branches.length > 0 ? branches[0].id : null;
+        let branches = await db.select().from(branch).limit(1);
+        let branchId = branches.length > 0 ? branches[0].id : null;
 
         if (!branchId) {
-            console.log('No branches found. Please run seed script first.');
-            process.exit(1);
+            console.log('No branches found. Creating default branch...');
+            const newBranch = await db.insert(branch).values({
+                id: 'branch_1',
+                name: 'Head Office',
+                contactNumber: '+94112345678',
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }).returning();
+            branchId = newBranch[0].id;
+            console.log('Default branch created:', branchId);
         }
 
         console.log('Creating Admin user...');
