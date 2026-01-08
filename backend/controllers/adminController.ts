@@ -46,7 +46,15 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
-        const users = await db.select().from(user);
+        const { role } = req.query;
+        let query = db.select().from(user);
+
+        if (role) {
+            // @ts-ignore - Drizzle type inference might complain about dynamic where, but this is valid
+            query = query.where(eq(user.role, role as string));
+        }
+
+        const users = await query;
         res.status(200).json(users);
     } catch (error: any) {
         res.status(500).json({ message: error.message || 'Failed to fetch users' });

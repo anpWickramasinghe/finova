@@ -9,6 +9,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { getUsers } from '../../services/userService';
 
 interface AddBranchModalProps {
     onClose: () => void;
@@ -22,6 +30,22 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
         manager: '',
         contactNumber: '',
     });
+
+    const [managers, setManagers] = useState<any[]>([]);
+
+    React.useEffect(() => {
+        const fetchManagers = async () => {
+            try {
+                const data = await getUsers('Manager');
+                setManagers(data);
+            } catch (error) {
+                console.error("Failed to fetch managers", error);
+            }
+        };
+        if (isOpen) {
+            fetchManagers();
+        }
+    }, [isOpen]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -100,13 +124,21 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
 
                             <div className="space-y-2">
                                 <Label htmlFor="manager">Manager *</Label>
-                                <Input
-                                    id="manager"
+                                <Select
+                                    onValueChange={(value) => handleInputChange('manager', value)}
                                     value={formData.manager}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('manager', e.target.value)}
-                                    className={errors.manager ? 'border-red-500' : ''}
-                                    placeholder="Enter manager name"
-                                />
+                                >
+                                    <SelectTrigger className={errors.manager ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder="Select a manager" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {managers.map((manager) => (
+                                            <SelectItem key={manager.id} value={manager.name}>
+                                                {manager.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 {errors.manager && <p className="text-sm text-red-500">{errors.manager}</p>}
                             </div>
 

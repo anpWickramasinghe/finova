@@ -19,10 +19,11 @@ export const createUser = async (userData: any) => {
     }
 };
 
-export const getUsers = async () => {
+export const getUsers = async (role?: string) => {
     try {
         const response = await axios.get(`${API_URL}/admin/users`, {
-            headers: getAuthHeader()
+            headers: getAuthHeader(),
+            params: role ? { role } : {}
         });
         return response.data;
     } catch (error: any) {
