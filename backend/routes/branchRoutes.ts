@@ -4,11 +4,14 @@ import {
     createBranch,
     updateBranch,
     deleteBranch,
-    getBranchEmployees
+    getBranchEmployees,
+    loginBranch
 } from '../controllers/branchController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+
+router.post('/login', loginBranch);
 
 // Apply auth middleware to all routes
 router.use(requireAuth);

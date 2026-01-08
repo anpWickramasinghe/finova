@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { auth } from '../auth.js';
 import { fromNodeHeaders } from 'better-auth/node';
+import jwt from 'jsonwebtoken';
 
 interface AuthRequest extends Request {
     user?: any;
@@ -15,6 +16,18 @@ export const requireAuth = async (req: AuthRequest, res: Response, next: NextFun
         });
 
         if (!session) {
+            // Check for custom JWT (for branches)
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                const token = authHeader.split(' ')[1];
+                try {
+                    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+                    req.user = decoded;
+                    return next();
+                } catch (err) {
+                    // Token invalid, fall through to 401
+                }
+            }
             return res.status(401).json({ message: 'Not authorized' });
         }
 

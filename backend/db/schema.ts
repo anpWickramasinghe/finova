@@ -17,7 +17,7 @@ export const user = pgTable("user", {
     address: text("address"),
     epfNo: text("epfNo"),
     status: text("status").default('Active'),
-    permissions: text("permissions"), // Storing as JSON string
+    permissions: text("permissions"), 
 });
 
 export const session = pgTable("session", {
@@ -63,8 +63,8 @@ export const branch = pgTable("branch", {
     password: text("password"),
     manager: text("manager"),
     contactNumber: text("contactNumber"),
-    employeeCount: text("employeeCount").default('0'), // Keeping as text for simplicity or change to integer
-    revenue: text("revenue").default('0'), // Keeping as text/numeric
+    employeeCount: text("employeeCount").default('0'), 
+    revenue: text("revenue").default('0'), 
     lastAudit: timestamp("lastAudit"),
     createdAt: timestamp("createdAt").defaultNow(),
     updatedAt: timestamp("updatedAt").defaultNow(),

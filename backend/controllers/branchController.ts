@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export const getAllBranches = async (req: Request, res: Response) => {
     try {
@@ -119,5 +120,51 @@ export const getBranchEmployees = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error fetching branch employees:', error);
         res.status(500).json({ message: 'Failed to fetch branch employees' });
+    }
+};
+
+export const loginBranch = async (req: Request, res: Response) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
+
+        const branches = await db.select().from(branch).where(eq(branch.email, email));
+        const foundBranch = branches[0];
+
+        if (!foundBranch || !foundBranch.password) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        const isMatch = await bcrypt.compare(password, foundBranch.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        const token = jwt.sign(
+            {
+                id: foundBranch.id,
+                role: 'branch',
+                name: foundBranch.name,
+                email: foundBranch.email
+            },
+            process.env.JWT_SECRET!,
+            { expiresIn: '24h' }
+        );
+
+        res.json({
+            token,
+            user: { // Returning as 'user' to match frontend expectation or 'branch' if I change frontend
+                id: foundBranch.id,
+                name: foundBranch.name,
+                email: foundBranch.email,
+                role: 'branch'
+            }
+        });
+    } catch (error) {
+        console.error('Error logging in branch:', error);
+        res.status(500).json({ message: 'Login failed' });
     }
 };
