@@ -59,6 +59,8 @@ export const verification = pgTable("verification", {
 export const branch = pgTable("branch", {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    email: text("email"),
+    password: text("password"),
     manager: text("manager"),
     contactNumber: text("contactNumber"),
     employeeCount: text("employeeCount").default('0'), // Keeping as text for simplicity or change to integer

@@ -26,40 +26,40 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                 <PrivateRoute>
-                <Dashboard />
-                 </PrivateRoute>
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
               }
             />
             <Route
               path="/transactions-management"
               element={
                 <PrivateRoute>
-                <Transactions />
+                  <Transactions />
                 </PrivateRoute>
               }
             />
-            
+
             <Route
-            path="/user-management"
-            element={
-              <PrivateRoute>
-              <UserManagement />
-               
-              </PrivateRoute>
-            }
+              path="/user-management"
+              element={
+                <PrivateRoute>
+                  <UserManagement />
+
+                </PrivateRoute>
+              }
             />
 
             <Route
-            path="/branch-management"
-            element={
-              <PrivateRoute>
-              <BranchManagement />
-               
-              </PrivateRoute>
-            }
+              path="/branch-management"
+              element={
+                <PrivateRoute>
+                  <BranchManagement />
+
+                </PrivateRoute>
+              }
             />
-          
+
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Route>
         </Routes>

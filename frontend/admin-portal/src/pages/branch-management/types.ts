@@ -1,6 +1,7 @@
 export interface Branch {
     id: number | string;
     name: string;
+    email?: string;
     manager: string;
     contactNumber: string;
     employeeCount: number;

@@ -4,6 +4,7 @@ import { branch, user } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { sql } from 'drizzle-orm';
+import bcrypt from 'bcryptjs';
 
 export const getAllBranches = async (req: Request, res: Response) => {
     try {
@@ -11,6 +12,7 @@ export const getAllBranches = async (req: Request, res: Response) => {
         const branches = await db.select({
             id: branch.id,
             name: branch.name,
+            email: branch.email,
             manager: branch.manager,
             contactNumber: branch.contactNumber,
             revenue: branch.revenue,
@@ -32,10 +34,18 @@ export const getAllBranches = async (req: Request, res: Response) => {
 
 export const createBranch = async (req: Request, res: Response) => {
     try {
-        const { name, manager, contactNumber } = req.body;
+        const { name, email, password, manager, contactNumber } = req.body;
+
+        let hashedPassword = null;
+        if (password) {
+            hashedPassword = await bcrypt.hash(password, 10);
+        }
+
         const newBranch = {
             id: uuidv4(),
             name,
+            email,
+            password: hashedPassword,
             manager,
             contactNumber,
             employeeCount: '0',
@@ -54,10 +64,22 @@ export const createBranch = async (req: Request, res: Response) => {
 export const updateBranch = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, manager, contactNumber } = req.body;
+        const { name, email, password, manager, contactNumber } = req.body;
+
+        const updateData: any = {
+            name,
+            email,
+            manager,
+            contactNumber,
+            updatedAt: new Date()
+        };
+
+        if (password) {
+            updateData.password = await bcrypt.hash(password, 10);
+        }
 
         await db.update(branch)
-            .set({ name, manager, contactNumber, updatedAt: new Date() })
+            .set(updateData)
             .where(eq(branch.id, id));
 
         const updatedBranch = await db.select().from(branch).where(eq(branch.id, id));

@@ -27,6 +27,8 @@ interface AddBranchModalProps {
 const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) => {
     const [formData, setFormData] = useState({
         name: '',
+        email: '',
+        password: '',
         manager: '',
         contactNumber: '',
     });
@@ -63,6 +65,18 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
             newErrors.name = 'Branch Name is required';
         }
 
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email is required';
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            newErrors.email = 'Email is invalid';
+        }
+
+        if (!formData.password.trim()) {
+            newErrors.password = 'Password is required';
+        } else if (formData.password.length < 6) {
+            newErrors.password = 'Password must be at least 6 characters';
+        }
+
         // Manager is optional now
 
         if (!formData.contactNumber.trim()) {
@@ -80,10 +94,10 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
         if (validateForm()) {
             setIsLoading(true);
             try {
-                
+
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
-                
+
                 const branchData = {
                     ...formData,
                     manager: formData.manager === 'none' ? null : formData.manager
@@ -125,6 +139,32 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
                                     placeholder="Enter branch name"
                                 />
                                 {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email *</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('email', e.target.value)}
+                                    className={errors.email ? 'border-red-500' : ''}
+                                    placeholder="Enter branch email"
+                                />
+                                {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password *</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('password', e.target.value)}
+                                    className={errors.password ? 'border-red-500' : ''}
+                                    placeholder="Enter password"
+                                />
+                                {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
                             </div>
 
                             <div className="space-y-2">
