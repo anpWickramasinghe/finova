@@ -29,6 +29,7 @@ interface BranchTableProps {
     onBranchClick: (branch: Branch) => void;
     selectedBranch: Branch | null;
     onViewEmployees: (branch: Branch) => void;
+    onDeleteBranch: (branchId: number | string) => void;
 }
 
 const BranchTable: React.FC<BranchTableProps> = ({
@@ -39,6 +40,7 @@ const BranchTable: React.FC<BranchTableProps> = ({
     onBranchClick,
     selectedBranch,
     onViewEmployees,
+    onDeleteBranch,
 }) => {
     const allSelected = branches.length > 0 && selectedBranches.length === branches.length;
 
@@ -106,7 +108,10 @@ const BranchTable: React.FC<BranchTableProps> = ({
                                             <Edit className="mr-2 h-4 w-4" /> Edit Branch
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-red-600">
+                                        <DropdownMenuItem
+                                            className="text-red-600"
+                                            onClick={() => onDeleteBranch(branch.id)}
+                                        >
                                             <Trash2 className="mr-2 h-4 w-4" /> Delete
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>

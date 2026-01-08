@@ -71,7 +71,15 @@ export const updateBranch = async (req: Request, res: Response) => {
 export const deleteBranch = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+
+        // Unassign users from this branch first
+        await db.update(user)
+            .set({ branchId: null })
+            .where(eq(user.branchId, id));
+
+        // Delete the branch
         await db.delete(branch).where(eq(branch.id, id));
+
         res.json({ message: 'Branch deleted successfully' });
     } catch (error) {
         console.error('Error deleting branch:', error);

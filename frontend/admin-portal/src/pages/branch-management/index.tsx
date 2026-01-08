@@ -99,6 +99,20 @@ const BranchManagement = () => {
         }
     };
 
+    const handleDeleteBranch = async (branchId: number | string) => {
+        if (window.confirm('Are you sure you want to delete this branch? This action cannot be undone.')) {
+            try {
+                await branchService.deleteBranch(branchId);
+                setBranches(prev => prev.filter(branch => branch.id !== branchId));
+                if (selectedBranch?.id === branchId) {
+                    setSelectedBranch(null);
+                }
+            } catch (error) {
+                console.error('Failed to delete branch:', error);
+            }
+        }
+    };
+
     const handleBulkAction = (action: string) => {
         console.log(`Performing ${action} on branches:`, selectedBranches);
         // Implement bulk actions here
@@ -236,6 +250,7 @@ const BranchManagement = () => {
                                 onBranchClick={handleBranchClick}
                                 selectedBranch={selectedBranch}
                                 onViewEmployees={handleViewEmployees}
+                                onDeleteBranch={handleDeleteBranch}
                             />
                         </div>
 
