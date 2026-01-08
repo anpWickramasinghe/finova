@@ -63,9 +63,7 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
             newErrors.name = 'Branch Name is required';
         }
 
-        if (!formData.manager.trim()) {
-            newErrors.manager = 'Manager is required';
-        }
+        // Manager is optional now
 
         if (!formData.contactNumber.trim()) {
             newErrors.contactNumber = 'Contact Number is required';
@@ -82,9 +80,16 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
         if (validateForm()) {
             setIsLoading(true);
             try {
-                // Simulate API call
+                
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                onAddBranch(formData);
+
+                
+                const branchData = {
+                    ...formData,
+                    manager: formData.manager === 'none' ? null : formData.manager
+                };
+
+                onAddBranch(branchData);
                 onClose();
             } catch (error: any) {
                 setErrors(prev => ({ ...prev, submit: error.message || 'Failed to create branch' }));
@@ -132,6 +137,7 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
                                         <SelectValue placeholder="Select a manager" />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value="none">None</SelectItem>
                                         {managers.map((manager) => (
                                             <SelectItem key={manager.id} value={manager.name}>
                                                 {manager.name}
