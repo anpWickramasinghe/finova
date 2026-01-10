@@ -156,7 +156,7 @@ export const loginBranch = async (req: Request, res: Response) => {
 
         res.json({
             token,
-            user: { // Returning as 'user' to match frontend expectation or 'branch' if I change frontend
+            user: { 
                 id: foundBranch.id,
                 name: foundBranch.name,
                 email: foundBranch.email,
