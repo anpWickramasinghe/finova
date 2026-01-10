@@ -78,6 +78,25 @@ const BranchDetailPanel: React.FC<BranchDetailPanelProps> = ({
                             />
                         </div>
                         <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                value={formData.email || ''}
+                                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password (Leave blank to keep current)</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                value={formData.password || ''}
+                                onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                placeholder="Enter new password"
+                            />
+                        </div>
+                        <div className="space-y-2">
                             <Label htmlFor="manager">Manager</Label>
                             <Input
                                 id="manager"
@@ -98,6 +117,10 @@ const BranchDetailPanel: React.FC<BranchDetailPanelProps> = ({
                     <>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p className="text-muted-foreground">Email</p>
+                                    <p className="font-medium">{branch.email}</p>
+                                </div>
                                 <div>
                                     <p className="text-muted-foreground">Manager</p>
                                     <p className="font-medium">{branch.manager}</p>

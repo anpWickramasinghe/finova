@@ -29,6 +29,7 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
         name: '',
         email: '',
         password: '',
+        confirmPassword: '',
         manager: '',
         contactNumber: '',
     });
@@ -75,6 +76,10 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
             newErrors.password = 'Password is required';
         } else if (formData.password.length < 6) {
             newErrors.password = 'Password must be at least 6 characters';
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+            newErrors.confirmPassword = 'Passwords do not match';
         }
 
         // Manager is optional now
@@ -165,6 +170,19 @@ const AddBranchModal = ({ onClose, onAddBranch, isOpen }: AddBranchModalProps) =
                                     placeholder="Enter password"
                                 />
                                 {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                                <Input
+                                    id="confirmPassword"
+                                    type="password"
+                                    value={formData.confirmPassword}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('confirmPassword', e.target.value)}
+                                    className={errors.confirmPassword ? 'border-red-500' : ''}
+                                    placeholder="Confirm password"
+                                />
+                                {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword}</p>}
                             </div>
 
                             <div className="space-y-2">
