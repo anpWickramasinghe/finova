@@ -151,7 +151,7 @@ export const loginBranch = async (req: Request, res: Response) => {
                 email: foundBranch.email
             },
             process.env.JWT_SECRET!,
-            { expiresIn: '24h' }
+            { expiresIn: '12h' }
         );
 
         res.json({
