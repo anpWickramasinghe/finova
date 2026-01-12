@@ -43,7 +43,7 @@ const BranchManagement = () => {
     };
 
     const currentUser = {
-        name: "Sarah Johnson",
+        name: "SHould be fix",
         email: "sarah.johnson@company.com",
         role: "Admin",
         avatar: "https://randomuser.me/api/portraits/women/1.jpg"
