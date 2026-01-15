@@ -59,7 +59,7 @@ export const auth = betterAuth({
             permissions: {
                 type: "string",
                 required: false
-            } // Storing as JSON string
+            } 
         }
     },
     // hooks: {

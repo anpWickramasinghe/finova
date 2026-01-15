@@ -10,6 +10,70 @@
                  └─────────────┬─────────────┘
                                │ HTTPS (JWT)
                                ▼
+
+## Conceptual Overview
+
+```mermaid
+graph TD
+    %% Actors
+    Admin((Admin))
+    Manager((Manager))
+    Employee((Employee))
+
+    %% External Systems
+    Biometric[Biometric Devices]
+    SMS[SMS Gateway]
+
+    %% Main System
+    subgraph Finova_System [Finova Intelligent Platform]
+        direction TB
+        
+        %% Modules
+        subgraph HR_Payroll [HR & Payroll Module]
+            Attendance[Attendance Tracking]
+            Leave[Leave Management]
+            Payroll[Payroll Processing]
+            EPF_ETF[EPF/ETF Calculation]
+        end
+
+        subgraph Finance_Module [Finance & Accounts Module]
+            CashFlow[Cash Flow Management]
+            PettyCash[Petty Cash Control]
+            Reports[Financial Reporting]
+            Journal[Journal Entries]
+        end
+
+        subgraph AI_Layer [AI & Intelligence Layer]
+            Predict[Predictive Analytics]
+            Anomaly[Anomaly Detection]
+            Chatbot[AI Chatbot Assistant]
+        end
+    end
+
+    %% Relationships
+    Employee -->|Marks Attendance| Biometric
+    Biometric -->|Syncs Data| Attendance
+    
+    Employee -->|Requests Leave/View Payslip| HR_Payroll
+    Employee -->|Queries| Chatbot
+
+    Manager -->|Approves Leave/Funds| HR_Payroll
+    Manager -->|Manages Petty Cash| Finance_Module
+    Manager -->|View Reports| Reports
+
+    Admin -->|System Config & Oversight| Finova_System
+    Admin -->|View Analytics| AI_Layer
+
+    %% Internal Flows
+    Attendance --> Payroll
+    Leave --> Payroll
+    Payroll -->|Payment Records| Finance_Module
+    Payroll -->|Notifications| SMS
+    
+    Finance_Module -->|Data Feed| AI_Layer
+    AI_Layer -->|Insights| Reports
+```
+
 ┌──────────────────────────────────────────────────────┐
 │                   API Gateway / Backend               │
 │──────────────────────────────────────────────────────│
