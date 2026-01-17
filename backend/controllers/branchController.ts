@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken';
 
 export const getAllBranches = async (req: Request, res: Response) => {
     try {
-        // Get branches with employee count
+        
         const branches = await db.select({
             id: branch.id,
             name: branch.name,
