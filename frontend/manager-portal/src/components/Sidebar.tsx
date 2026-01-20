@@ -1,8 +1,9 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Receipt, Building2, FileText, Calculator, Users, Globe } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { LayoutDashboard, Receipt, Building2, FileText, Calculator, Users, Globe, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 interface SidebarProps {
     collapsed: boolean;
@@ -12,6 +13,13 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { logout } = useAuth();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     const iconMap: { [key: string]: React.ElementType } = {
         LayoutDashboard,
@@ -107,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
             )}
         >
             <nav className="p-4 space-y-6">
-                
+
                 {navigationItems.map((section) => (
                     <div key={section.section} className="space-y-2">
                         {!collapsed && (
@@ -139,6 +147,20 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     </div>
                 ))}
             </nav>
+
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-primary-foreground/10 bg-primary">
+                <Button
+                    variant="ghost"
+                    className={cn(
+                        "w-full justify-start text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground",
+                        collapsed ? "px-2 justify-center" : "px-4"
+                    )}
+                    onClick={handleLogout}
+                >
+                    <LogOut className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-2")} />
+                    {!collapsed && <span>Logout</span>}
+                </Button>
+            </div>
         </aside>
     );
 };
