@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken';
 
 export const getAllBranches = async (req: Request, res: Response) => {
     try {
-        
+
         const branches = await db.select({
             id: branch.id,
             name: branch.name,
@@ -156,7 +156,7 @@ export const loginBranch = async (req: Request, res: Response) => {
 
         res.json({
             token,
-            user: { 
+            user: {
                 id: foundBranch.id,
                 name: foundBranch.name,
                 email: foundBranch.email,

@@ -2,12 +2,12 @@ import { Request, Response } from 'express';
 import { auth } from '../auth.js';
 import crypto from 'crypto';
 import { db } from '../config/db.js';
-import { user, session, account } from '../db/schema.js';
+import { user, session, account, branch } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 
 export const createUser = async (req: Request, res: Response) => {
     try {
-        const { email, role, name, companyId } = req.body;
+        const { email, role, name, companyId, branchId } = req.body;
 
         // Generate strong temporary password
         const tempPassword = crypto.randomBytes(8).toString('hex') + 'A1!'; // Ensure complexity
@@ -28,6 +28,13 @@ export const createUser = async (req: Request, res: Response) => {
 
         if (!result) {
             return res.status(400).json({ message: 'Failed to create user' });
+        }
+
+        // Sync manager to branch if role is Manager
+        if (role === 'Manager' && branchId) {
+            await db.update(branch)
+                .set({ manager: name })
+                .where(eq(branch.id, branchId));
         }
 
         res.status(201).json({
@@ -82,6 +89,13 @@ export const updateUser = async (req: Request, res: Response) => {
             })
             .where(eq(user.id, id));
 
+        // Sync manager to branch if role is Manager
+        if (role === 'Manager' && branchId) {
+            await db.update(branch)
+                .set({ manager: name })
+                .where(eq(branch.id, branchId));
+        }
+
         const updatedUser = await db.select().from(user).where(eq(user.id, id));
         res.json(updatedUser[0]);
     } catch (error: any) {
@@ -93,6 +107,18 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+
+        // Get user details before deletion to check role and branch
+        const userToDelete = await db.select().from(user).where(eq(user.id, id));
+        if (userToDelete.length > 0) {
+            const userData = userToDelete[0];
+            // If user was a Manager, clear the manager field in their branch
+            if (userData.role === 'Manager' && userData.branchId) {
+                await db.update(branch)
+                    .set({ manager: null }) // Set to null effectively unassigning
+                    .where(eq(branch.id, userData.branchId));
+            }
+        }
 
         // Delete related sessions and accounts first to avoid foreign key constraints
         await db.delete(session).where(eq(session.userId, id));
