@@ -17,7 +17,21 @@ export const user = pgTable("user", {
     address: text("address"),
     epfNo: text("epfNo"),
     status: text("status").default('Active'),
-    permissions: text("permissions"), 
+    permissions: text("permissions"),
+    biometricId: text("biometricId"),
+});
+
+export const attendance = pgTable("attendance", {
+    id: text("id").primaryKey(),
+    userId: text("userId").notNull().references(() => user.id),
+    recordDate: timestamp("recordDate").notNull(),
+    checkInTime: timestamp("checkInTime"),
+    checkOutTime: timestamp("checkOutTime"),
+    status: text("status"),
+    workHours: text("workHours"),
+    biometricId: text("biometricId"),
+    createdAt: timestamp("createdAt").defaultNow(),
+    updatedAt: timestamp("updatedAt").defaultNow(),
 });
 
 export const session = pgTable("session", {
@@ -63,8 +77,8 @@ export const branch = pgTable("branch", {
     password: text("password"),
     manager: text("manager"),
     contactNumber: text("contactNumber"),
-    employeeCount: text("employeeCount").default('0'), 
-    revenue: text("revenue").default('0'), 
+    employeeCount: text("employeeCount").default('0'),
+    revenue: text("revenue").default('0'),
     lastAudit: timestamp("lastAudit"),
     createdAt: timestamp("createdAt").defaultNow(),
     updatedAt: timestamp("updatedAt").defaultNow(),

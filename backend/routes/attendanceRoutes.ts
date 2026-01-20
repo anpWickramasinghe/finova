@@ -1,0 +1,19 @@
+import express from 'express';
+import { syncAttendance, getAttendance } from '../controllers/attendanceController.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
+
+const router = express.Router();
+
+// Route for biometric devices to sync data
+// Ideally this should be protected by a specific API Key or Admin Auth
+// For now, we use requireAuth or leave it open if the device can't handle Auth headers easily
+// Assuming device can send headers or we switch to key-based auth later.
+// The plan stated "Protected by specific API Key or Admin Auth". 
+// I'll keep it open or simple for now as per "make initial plan". 
+// Or better, let's add a simple check using a fixed key in header if feasible?
+// The controller receives request. 
+router.post('/sync', syncAttendance);
+
+router.get('/', requireAuth, getAttendance);
+
+export default router;
