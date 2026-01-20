@@ -19,23 +19,15 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route element={<Layout />}>
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/transactions-management"
-              element={
-                <PrivateRoute>
-                  <Transactions />
-                </PrivateRoute>
-              }
-            />
+          <Route
+            element={
+              <PrivateRoute>
+                <Layout />
+              </PrivateRoute>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/transactions-management" element={<Transactions />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Route>
         </Routes>
