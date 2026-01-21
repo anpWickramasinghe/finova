@@ -61,9 +61,9 @@ export default function Login() {
 
     return (
         <div className="min-h-screen grid lg:grid-cols-2">
-       
+
             <div className="hidden lg:flex flex-col justify-center items-center bg-linear-to-br from-black via-black/95 to-black/90 p-12 relative overflow-hidden">
-                
+
                 <div className="absolute inset-0">
                     <motion.div
                         className="absolute top-20 left-20 w-72 h-72 bg-primary/30 rounded-full blur-3xl"
