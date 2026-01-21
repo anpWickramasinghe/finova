@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Access the API URL from environment variables, fallback is handled if undefined but best to ensure .env is set
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://192.168.8.102:5000/api";
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const authService = {
     async login(email: string, password: string) {
