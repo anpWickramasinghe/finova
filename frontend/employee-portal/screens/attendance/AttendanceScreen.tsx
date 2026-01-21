@@ -67,7 +67,7 @@ const AttendanceScreen = () => {
                     </Text>
                 )}
                 <Text style={styles.infoText}>
-                    Attendance is automatically recorded via biometric devices.
+                    Get your attendance is automatically updated.
                 </Text>
             </View>
 
