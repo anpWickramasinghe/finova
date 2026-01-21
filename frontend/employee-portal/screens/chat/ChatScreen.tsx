@@ -4,13 +4,19 @@ import { View } from '@/components/ui/view';
 import { useColor } from '@/hooks/useColor';
 import Header from '@/components/header';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 export default function ChatScreen() {
     const primary = useColor('primary');
+    const router = useRouter();
 
     return (
         <View style={{ flex: 1 }}>
-            <Header title="Chat" />
+            <Header
+                title="Chat"
+                onNotificationPress={() => console.log('Notification pressed')}
+                onMenuPress={() => router.push('/sheet')}
+            />
             <SafeAreaView style={{ flex: 1 }} edges={['bottom', 'left', 'right']}>
                 <View
                     style={{
