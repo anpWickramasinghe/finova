@@ -30,7 +30,7 @@ const seedEmployee = async () => {
                 email: employeeEmail,
                 password: employeePassword,
                 name: 'John Doe',
-                role: 'User', // Normal user role
+                role: 'User', 
                 companyId: 'company_1',
                 requiresPasswordChange: false,
                 phone: '+1987654321',
