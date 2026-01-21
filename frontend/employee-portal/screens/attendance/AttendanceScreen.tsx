@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { getAttendanceStatus, getMyAttendance } from '../../services/attendanceService';
 import { Colors } from '../../theme/colors';
 import Header from '../../components/header';
+import { useAuth } from '../../providers/auth-context';
 
 const AttendanceScreen = () => {
+    const { user } = useAuth();
+    const router = useRouter();
     const [status, setStatus] = useState<'Not Checked In' | 'Checked In' | 'Checked Out'>('Not Checked In');
     const [lastActionTime, setLastActionTime] = useState<string | null>(null);
     const [history, setHistory] = useState<any[]>([]);
@@ -48,11 +52,7 @@ const AttendanceScreen = () => {
     };
 
     const renderHeader = () => (
-    
-        <View>
         <View style={styles.headerContainer}>
-            <Text style={styles.headerTitle}>Attendance</Text>
-
             <View style={styles.statusCard}>
                 <Text style={styles.statusLabel}>Today's Status</Text>
                 <Text style={[styles.statusValue,
@@ -73,7 +73,6 @@ const AttendanceScreen = () => {
 
             <Text style={styles.historyTitle}>Recent History</Text>
         </View>
-          </View>
     );
 
     const renderItem = ({ item }: { item: any }) => (
@@ -111,6 +110,11 @@ const AttendanceScreen = () => {
 
     return (
         <View style={styles.container}>
+            <Header
+                title="Attendance"
+                onNotificationPress={() => console.log('Notification pressed')}
+                onMenuPress={() => router.push('/sheet')}
+            />
             <FlatList
                 data={history}
                 renderItem={renderItem}
