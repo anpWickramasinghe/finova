@@ -46,7 +46,7 @@ export default function LoginScreen() {
 
     return (
         <LinearGradient
-            colors={['#000000', '#1a1a1a']}
+            colors={['#000000', Colors.light.tint]}
             style={styles.container}
         >
             <KeyboardAvoidingView
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
         color: '#333',
     },
     button: {
-        backgroundColor: Colors.light.tint, // Using primary color
+        backgroundColor: Colors.light.tint, 
         padding: 18,
         borderRadius: 12,
         alignItems: 'center',
