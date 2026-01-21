@@ -1,5 +1,5 @@
 import express from 'express';
-import { syncAttendance, getAttendance } from '../controllers/attendanceController.js';
+import { syncAttendance, getAttendance, checkIn, checkOut, getMyAttendance, getAttendanceStatus } from '../controllers/attendanceController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -15,5 +15,11 @@ const router = express.Router();
 router.post('/sync', syncAttendance);
 
 router.get('/', requireAuth, getAttendance);
+
+// Employee Portal Routes
+router.post('/check-in', requireAuth, checkIn);
+router.post('/check-out', requireAuth, checkOut);
+router.get('/my-history', requireAuth, getMyAttendance);
+router.get('/status', requireAuth, getAttendanceStatus);
 
 export default router;

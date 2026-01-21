@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 import { useColor } from '@/hooks/useColor';
-import { Chrome, Calendar, Clock, MessageCircle, Home } from 'lucide-react-native';
+import { Chrome, Clock, MessageCircle, Home, Fingerprint } from 'lucide-react-native';
 
 export default function TabsLayout() {
   const primary = useColor('primary');
@@ -37,10 +37,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name='leave'
+        name='attendance'
         options={{
-          title: 'Leave',
-          tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
+          title: 'Attendance',
+          tabBarIcon: ({ color }) => <Fingerprint size={24} color={color} />,
         }}
       />
       <Tabs.Screen

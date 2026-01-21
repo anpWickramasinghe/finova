@@ -4,7 +4,6 @@ import { Text } from '@/components/ui/text';
 import { View } from '@/components/ui/view';
 import { useColor } from '@/hooks/useColor';
 import Header from '@/components/header';
-import LeavesChart from '@/components/home/LeavesChart';
 import WorkHoursChart from '@/components/home/WorkHoursChart';
 import { useAuth } from '@/providers/auth-context';
 import { useRouter } from 'expo-router';
@@ -50,7 +49,6 @@ export default function HomeScreen() {
                     </View>
                 </Card> */}
 
-                <LeavesChart />
                 <WorkHoursChart />
             </ScrollView>
         </View>
