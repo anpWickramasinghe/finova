@@ -90,6 +90,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
             label: 'Administration',
             items: [
                 {
+                    label: 'Attendance',
+                    path: '/attendance',
+                    icon: 'Users',
+                    roles: ['partner', 'staff', 'freelancer'],
+                    tooltip: 'Attendance management'
+                },
+                {
                     label: 'User Management',
                     path: '/user-management',
                     icon: 'Users',
