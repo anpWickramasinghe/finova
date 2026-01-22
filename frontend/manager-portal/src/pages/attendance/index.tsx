@@ -6,6 +6,17 @@ const Attendance = () => {
   return (
     <div className="p-6 space-y-8 bg-gray-50/50 min-h-screen">
 
+ <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Attendance</h1>
+          <p className="text-muted-foreground">
+          Attendance overview for today.
+          </p>
+        </div>
+       
+      </div>
+
+
       {/* Top Stats Section */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3 xl:grid-cols-5">
         <div className="xl:col-span-1">
