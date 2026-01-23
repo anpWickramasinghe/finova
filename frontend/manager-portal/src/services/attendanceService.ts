@@ -41,4 +41,36 @@ export const attendanceService = {
         });
         return response.data;
     }
+
+    // // Employee Check-in
+    // checkIn: async () => {
+    //     const response = await axios.post(`${API_URL}/attendance/check-in`, {}, {
+    //         headers: getAuthHeader(),
+    //     });
+    //     return response.data;
+    // },
+
+    // // Employee Check-out
+    // checkOut: async () => {
+    //     const response = await axios.post(`${API_URL}/attendance/check-out`, {}, {
+    //         headers: getAuthHeader(),
+    //     });
+    //     return response.data;
+    // },
+
+    // // Get Logged-in User's History
+    // getMyAttendance: async () => {
+    //     const response = await axios.get<AttendanceRecord[]>(`${API_URL}/attendance/my-history`, {
+    //         headers: getAuthHeader(),
+    //     });
+    //     return response.data;
+    // },
+
+    // // Get Current Status
+    // getAttendanceStatus: async () => {
+    //     const response = await axios.get<{ status: string, lastActionTime: string | null }>(`${API_URL}/attendance/status`, {
+    //         headers: getAuthHeader(),
+    //     });
+    //     return response.data;
+    // }
 };

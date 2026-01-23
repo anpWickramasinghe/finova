@@ -19,7 +19,7 @@ const Attendance = () => {
     const fetchData = async () => {
       if (!user) return;
       // Handle id mismatch between AuthContext interface and backend response
-      const branchId = (user as any).id || user._id;
+      const branchId = user._id;
 
       try {
         const [employees, allAttendance] = await Promise.all([

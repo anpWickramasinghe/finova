@@ -105,10 +105,62 @@ export const syncAttendance = async (req: Request, res: Response) => {
 };
 
 export const getAttendance = async (req: Request, res: Response) => {
-    try {
-        const records = await db.select().from(attendance).orderBy(desc(attendance.recordDate));
-        res.status(200).json(records);
-    } catch (error) {
+    // try {
+    //     const userRole = (req as any).user?.role;
+    //     const userId = (req as any).user?.id;
+
+    //     if (userRole === 'branch') {
+    //         // If the requester is a branch manager, only show attendance for their branch employees
+    //         const records = await db.select({
+    //             id: attendance.id,
+    //             userId: attendance.userId,
+    //             recordDate: attendance.recordDate,
+    //             checkInTime: attendance.checkInTime,
+    //             checkOutTime: attendance.checkOutTime,
+    //             status: attendance.status,
+    //             workHours: attendance.workHours,
+    //             biometricId: attendance.biometricId,
+    //             createdAt: attendance.createdAt,
+    //             updatedAt: attendance.updatedAt,
+    //         })
+    //             .from(attendance)
+    //             .innerJoin(user, eq(attendance.userId, user.id))
+    //             .where(eq(user.branchId, userId))
+    //             .orderBy(desc(attendance.recordDate));
+
+    //         res.status(200).json(records);
+    //     } else {
+    //         // Admin or other roles see all (or implement other logic)
+    //         const records = await db.select().from(attendance).orderBy(desc(attendance.recordDate));
+    //         res.status(200).json(records);
+    //     }
+    // } catch (error) {
+    //     console.error('Error fetching attendance:', error);
+    //     res.status(500).json({ message: 'Internal server error' });
+    // }
+    try{
+      const userId = (req as any).user?.id;
+
+       const records = await db.select({
+                id: attendance.id,
+                userId: attendance.userId,
+                recordDate: attendance.recordDate,
+                checkInTime: attendance.checkInTime,
+                checkOutTime: attendance.checkOutTime,
+                status: attendance.status,
+                workHours: attendance.workHours,
+                biometricId: attendance.biometricId,
+                createdAt: attendance.createdAt,
+                updatedAt: attendance.updatedAt,
+            })
+                .from(attendance)
+                .innerJoin(user, eq(attendance.userId, user.id))
+                .where(eq(user.branchId, userId))
+                .orderBy(desc(attendance.recordDate));
+
+            res.status(200).json(records);
+
+    }catch(error){
         console.error('Error fetching attendance:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
