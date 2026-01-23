@@ -22,137 +22,38 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Filter, ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Mock Data
-const employees = [
-    {
-        id: "EMP-0234",
-        name: "Olivia Mason",
-        role: "Marketing",
-        subRole: "Executive Marketing",
-        date: "19 Jun 2035",
-        workModel: "Hybrid",
-        checkIn: "08:55 AM",
-        checkOut: "05:05 PM",
-        duration: "8h 10m",
-        overtime: "10m",
-        status: "On-Time",
-        avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-    },
-    {
-        id: "EMP-0178",
-        name: "Ethan Ray",
-        role: "UI Designer",
-        subRole: "Product Design",
-        date: "19 Jun 2035",
-        workModel: "Remote",
-        checkIn: "09:14 AM",
-        checkOut: "05:20 PM",
-        duration: "8h 6m",
-        overtime: "6m",
-        status: "Late",
-        avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-        id: "EMP-0312",
-        name: "Lina Armand",
-        role: "Lab Analyst",
-        subRole: "R&D",
-        date: "19 Jun 2035",
-        workModel: "On-Site",
-        checkIn: "-",
-        checkOut: "-",
-        duration: "-",
-        overtime: "-",
-        status: "On Leave",
-        avatar: "https://randomuser.me/api/portraits/women/3.jpg",
-    },
-    {
-        id: "EMP-0115",
-        name: "Jacob Yuen",
-        role: "Site Supervisor",
-        subRole: "Operations",
-        date: "19 Jun 2035",
-        workModel: "On-Site",
-        checkIn: "-",
-        checkOut: "-",
-        duration: "-",
-        overtime: "-",
-        status: "Absent",
-        avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    },
-    {
-        id: "EMP-0289",
-        name: "Mia Torres",
-        role: "HR Officer",
-        subRole: "Human Resources",
-        date: "19 Jun 2035",
-        workModel: "Hybrid",
-        checkIn: "08:59 AM",
-        checkOut: "05:10 PM",
-        duration: "8h 11m",
-        overtime: "11m",
-        status: "On-Time",
-        avatar: "https://randomuser.me/api/portraits/women/5.jpg",
-    },
-    {
-        id: "EMP-0356",
-        name: "Sara Kim",
-        role: "Customer Support",
-        subRole: "Customer Service",
-        date: "19 Jun 2035",
-        workModel: "On-Site",
-        checkIn: "09:02 AM",
-        checkOut: "05:00 PM",
-        duration: "7h 58m",
-        overtime: "-",
-        status: "Late",
-        avatar: "https://randomuser.me/api/portraits/women/6.jpg",
-    },
-    {
-        id: "EMP-0291",
-        name: "Daniel Cheung",
-        role: "Compliance Specialist",
-        subRole: "Operations",
-        date: "19 Jun 2035",
-        workModel: "Remote",
-        checkIn: "08:48 AM",
-        checkOut: "05:00 PM",
-        duration: "8h 12m",
-        overtime: "12m",
-        status: "On-Time",
-        avatar: "https://randomuser.me/api/portraits/men/7.jpg",
-    },
-    {
-        id: "EMP-0275",
-        name: "Anya Rodriguez",
-        role: "Graphic Designer",
-        subRole: "Marketing",
-        date: "19 Jun 2035",
-        workModel: "Remote",
-        checkIn: "09:10 AM",
-        checkOut: "05:15 PM",
-        duration: "8h 5m",
-        overtime: "5m",
-        status: "Late",
-        avatar: "https://randomuser.me/api/portraits/women/8.jpg",
-    },
-];
+// Mock Data removed
+// Shared Interface
+export interface EmployeeAttendance {
+    id: string;
+    name: string;
+    role: string;
+    date: string;
+    checkIn: string;
+    checkOut: string;
+    duration: string;
+    overtime: string;
+    status: string;
+    avatar: string;
+}
 
-
+interface EmployeeAttendanceTableProps {
+    data: EmployeeAttendance[];
+}
 
 const getBadgeStyle = (status: string) => {
     if (status === "On-Time") return "bg-[hsl(var(--chart-2))] hover:bg-[hsl(var(--chart-2))]/90 text-white border-0 font-normal";
     if (status === "Late") return "bg-green-100 hover:bg-green-100/90 text-green-800 border-0 font-normal";
     if (status === "On Leave") return "bg-muted hover:bg-muted/90 text-muted-foreground border-0 font-normal";
+    if (status === "Checked In") return "bg-[hsl(var(--chart-2))] hover:bg-[hsl(var(--chart-2))]/90 text-white border-0 font-normal";
+    if (status === "Present") return "bg-[hsl(var(--chart-2))] hover:bg-[hsl(var(--chart-2))]/90 text-white border-0 font-normal";
     if (status === "Absent") return "bg-primary hover:bg-primary/90 text-primary-foreground border-0 font-normal";
     return "";
 }
 
-
-
-
-const EmployeeAttendanceTable = () => {
-    const totalResults = 102;
+const EmployeeAttendanceTable = ({ data = [] }: EmployeeAttendanceTableProps) => {
+    const employees = data;
+    const totalResults = employees.length;
 
     return (
         <div className="space-y-4">
@@ -215,7 +116,6 @@ const EmployeeAttendanceTable = () => {
                                 <TableCell>
                                     <div>
                                         <div className="font-medium text-sm text-gray-900">{employee.role}</div>
-                                        <div className="text-xs text-gray-400">{employee.subRole}</div>
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-sm text-gray-600">{employee.date}</TableCell>
