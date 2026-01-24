@@ -7,6 +7,7 @@ import Layout from './components/Layout';
 
 import React, { useContext } from 'react';
 import Attendance from './pages/attendance';
+import LeaveManagementPage from './pages/leaves';
 
 const PrivateRoute = ({ children }: { children: React.ReactElement }) => {
   const auth = useContext(AuthContext);
@@ -30,6 +31,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/transactions-management" element={<Transactions />} />
             <Route path="/attendance" element={<Attendance />} />
+            <Route path="/leaves" element={<LeaveManagementPage />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Route>
         </Routes>

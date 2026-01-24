@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Receipt, Building2, FileText, Calculator, Users, Globe, LogOut } from "lucide-react";
+import { LayoutDashboard, Receipt, Building2, FileText, Calculator, Users, Globe, LogOut, CalendarClock } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
@@ -28,7 +28,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         FileText,
         Calculator,
         Users,
-        Globe
+        Globe,
+        CalendarClock
     };
 
     const navigationItems = [
@@ -109,6 +110,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     icon: 'Globe',
                     roles: ['partner', 'staff', 'client'],
                     tooltip: 'Client access and communication'
+                },
+                {
+                    label: 'Leave Management',
+                    path: '/leaves',
+                    icon: 'CalendarClock',
+                    roles: ['partner', 'staff'],
+                    tooltip: 'Manage employee leave requests'
                 }
             ]
         }
