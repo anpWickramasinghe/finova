@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AttendanceStatCard from "../../components/attendance/AttendanceStatCard";
-import AttendanceOverviewChart from "../../components/attendance/AttendanceOverviewChart";
+import AttendanceOverviewChart, { type AttendanceChartData } from "../../components/attendance/AttendanceOverviewChart";
 import EmployeeAttendanceTable, { type EmployeeAttendance } from "../../components/attendance/EmployeeAttendanceTable";
 import { attendanceService } from "../../services/attendanceService";
 import { branchService } from "../../services/branchService";
@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 const Attendance = () => {
   const { user } = useAuth();
   const [attendanceData, setAttendanceData] = useState<EmployeeAttendance[]>([]);
+  const [chartData, setChartData] = useState<AttendanceChartData[]>([]);
   const [stats, setStats] = useState({
     present: { total: 0, onTime: 0, late: 0 },
     onLeave: { total: 0, annual: 0, sick: 0, other: 0 },
@@ -18,26 +19,28 @@ const Attendance = () => {
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
-      // Handle id mismatch between AuthContext interface and backend response
       const branchId = user._id;
 
       try {
-        const [employees, allAttendance] = await Promise.all([
-          branchService.getBranchEmployees(branchId),
-          attendanceService.getAllAttendance()
-        ]);
-
-        // Filter attendance for today (Backend returns Date string or timestamp)
-        // We'll normalize to YYYY-MM-DD for comparison
         const today = new Date();
         const todayStr = today.toISOString().split('T')[0];
 
+        // Chart Data Range (Last 6 months)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setDate(1);
+        const sixMonthsAgoStr = sixMonthsAgo.toISOString().split('T')[0];
+
+        // Fetch Data in optimization parallel
+        const [employees, todaysAttendanceRecords, historicalAttendanceRecords] = await Promise.all([
+          branchService.getBranchEmployees(branchId),
+          attendanceService.getAllAttendance({ startDate: todayStr, endDate: todayStr }),
+          attendanceService.getAllAttendance({ startDate: sixMonthsAgoStr, endDate: todayStr })
+        ]);
+
+        // Process Today's Data
         const processedData: EmployeeAttendance[] = employees.map(emp => {
-          // Find attendance for this employee for today
-          const record = allAttendance.find(a => {
-            const recDate = new Date(a.recordDate).toISOString().split('T')[0];
-            return a.userId === emp.id && recDate === todayStr;
-          });
+          const record = todaysAttendanceRecords.find(a => a.userId === emp.id);
 
           let status = "Absent";
           let checkIn = "-";
@@ -98,6 +101,61 @@ const Attendance = () => {
           absent: absentCount
         });
 
+        // Process Chart Data (Last 6 months)
+        const chartStats: Record<string, { present: number }> = {};
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        // Initialize last 6 months buckets
+        for (let i = 0; i < 6; i++) {
+          const d = new Date();
+          d.setMonth(d.getMonth() - (5 - i));
+          const monthKey = `${months[d.getMonth()]}`;
+          chartStats[monthKey] = { present: 0 };
+        }
+
+        // Group by Date first
+        const attendanceByDate: Record<string, number> = {};
+        historicalAttendanceRecords.forEach(rec => {
+          const recDate = new Date(rec.recordDate);
+          if (recDate >= sixMonthsAgo) {
+            const dateKey = recDate.toISOString().split('T')[0];
+            if (!attendanceByDate[dateKey]) attendanceByDate[dateKey] = 0;
+
+            // If status implies presence
+            if (!rec.status || ['Present', 'Late', 'Checked In'].includes(rec.status)) {
+              attendanceByDate[dateKey]++;
+            }
+          }
+        });
+
+        const monthlyTotals: Record<string, { totalPresent: number, days: number }> = {};
+
+        Object.entries(attendanceByDate).forEach(([dateStr, count]) => {
+          const date = new Date(dateStr);
+          const monthKey = months[date.getMonth()];
+
+          if (!monthlyTotals[monthKey]) monthlyTotals[monthKey] = { totalPresent: 0, days: 0 };
+          monthlyTotals[monthKey].totalPresent += count;
+          monthlyTotals[monthKey].days += 1;
+        });
+
+        const finalChartData: AttendanceChartData[] = Object.keys(chartStats).map(monthName => {
+          let presentPct = 0;
+          if (monthlyTotals[monthName] && monthlyTotals[monthName].days > 0 && employees.length > 0) {
+            const avgDailyPresent = monthlyTotals[monthName].totalPresent / monthlyTotals[monthName].days;
+            presentPct = Math.round((avgDailyPresent / employees.length) * 100);
+          }
+          if (presentPct > 100) presentPct = 100;
+
+          return {
+            name: monthName,
+            present: presentPct,
+            absent: 100 - presentPct
+          };
+        });
+
+        setChartData(finalChartData);
+
       } catch (error) {
         console.error("Failed to fetch attendance data", error);
       }
@@ -153,7 +211,7 @@ const Attendance = () => {
           />
         </div>
         <div className="md:col-span-3 xl:col-span-2">
-          <AttendanceOverviewChart />
+          <AttendanceOverviewChart data={chartData} />
         </div>
       </div>
 

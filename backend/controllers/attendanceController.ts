@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
 import { attendance, user } from '../db/schema.js';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 export const syncAttendance = async (req: Request, res: Response) => {
@@ -138,10 +138,25 @@ export const getAttendance = async (req: Request, res: Response) => {
     //     console.error('Error fetching attendance:', error);
     //     res.status(500).json({ message: 'Internal server error' });
     // }
-    try{
-      const userId = (req as any).user?.id;
+    try {
+        const userRole = (req as any).user?.role;
+        const userId = (req as any).user?.id;
 
-       const records = await db.select({
+        const { startDate, endDate } = req.query;
+        let queryFilters: any[] = [];
+
+        if (startDate) {
+            queryFilters.push(sql`${attendance.recordDate} >= ${new Date(startDate as string)}`);
+        }
+        if (endDate) {
+            queryFilters.push(sql`${attendance.recordDate} <= ${new Date(endDate as string)}`);
+        }
+
+        if (userRole === 'branch') {
+            // Branch: Join user and filter by branchId
+            const conditions = [eq(user.branchId, userId), ...queryFilters];
+
+            const records = await db.select({
                 id: attendance.id,
                 userId: attendance.userId,
                 recordDate: attendance.recordDate,
@@ -155,12 +170,24 @@ export const getAttendance = async (req: Request, res: Response) => {
             })
                 .from(attendance)
                 .innerJoin(user, eq(attendance.userId, user.id))
-                .where(eq(user.branchId, userId))
+                .where(and(...conditions))
                 .orderBy(desc(attendance.recordDate));
 
             res.status(200).json(records);
+        } else {
+            // Admin: Filter only by date if present
+            let whereClause = undefined;
+            if (queryFilters.length > 0) {
+                whereClause = and(...queryFilters);
+            }
 
-    }catch(error){
+            const records = await db.select().from(attendance)
+                .where(whereClause)
+                .orderBy(desc(attendance.recordDate));
+            res.status(200).json(records);
+        }
+
+    } catch (error) {
         console.error('Error fetching attendance:', error);
         res.status(500).json({ message: 'Internal server error' });
     }

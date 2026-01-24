@@ -27,9 +27,10 @@ export interface AttendanceRecord {
 }
 
 export const attendanceService = {
-    getAllAttendance: async () => {
+    getAllAttendance: async (params?: { startDate?: string; endDate?: string }) => {
         const response = await axios.get<AttendanceRecord[]>(`${API_URL}/attendance`, {
             headers: getAuthHeader(),
+            params
         });
         return response.data;
     },

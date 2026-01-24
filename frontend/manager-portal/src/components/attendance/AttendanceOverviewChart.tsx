@@ -3,16 +3,17 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const data = [
-    { name: 'Feb', present: 70, onLeave: 20, absent: 10 },
-    { name: 'Mar', present: 65, onLeave: 25, absent: 10 },
-    { name: 'Apr', present: 75, onLeave: 15, absent: 10 },
-    { name: 'May', present: 60, onLeave: 30, absent: 10 },
-    { name: 'Jun', present: 80, onLeave: 15, absent: 5 },
-    { name: 'Jul', present: 75, onLeave: 20, absent: 5 },
-];
+export interface AttendanceChartData {
+    name: string;
+    present: number;
+    absent: number;
+}
 
-const AttendanceOverviewChart = () => {
+interface AttendanceOverviewChartProps {
+    data?: AttendanceChartData[];
+}
+
+const AttendanceOverviewChart = ({ data = [] }: AttendanceOverviewChartProps) => {
     return (
         <Card className="h-full border-none shadow-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
