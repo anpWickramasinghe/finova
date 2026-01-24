@@ -1,148 +1,126 @@
 import React, { useEffect, useState } from 'react';
 import { leaveService, type LeaveRequest } from '@/services/leaveService';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Check, X, Loader2,  } from "lucide-react";
-import { format } from 'date-fns';
+import { StatCard } from '@/components/leaves/StatCard';
+import { LeaveOverview } from '@/components/leaves/LeaveOverview';
+import { LeaveCalendar } from '@/components/leaves/LeaveCalendar';
+import { EmployeeLeavesList } from '@/components/leaves/EmployeeLeavesList';
+import { LeaveTypes } from '@/components/leaves/LeaveTypes';
+import { LeaveActivityTable } from '@/components/leaves/LeaveActivityTable';
+import { Briefcase, Stethoscope, Palmtree, UserMinus } from "lucide-react";
+
 
 
 const LeaveManagementPage: React.FC = () => {
     const [requests, setRequests] = useState<LeaveRequest[]>([]);
+    const [stats, setStats] = useState<{
+        totalOnLeave: number;
+        distribution: { name: string; value: number; color: string }[];
+        weekStats: { name: string; value: number }[];
+        upcomingLeaves: any[];
+    } | null>(null);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [date, setDate] = useState<Date | undefined>(new Date());
 
-    const fetchRequests = async () => {
+    const fetchData = async () => {
         setLoading(true);
         try {
-            const data = await leaveService.getLeaveRequests();
-            setRequests(data);
+            const [statsData, requestsData] = await Promise.all([
+                leaveService.getLeaveStats(),
+                leaveService.getLeaveRequests()
+            ]);
+            setStats(statsData);
+            setRequests(requestsData);
         } catch (error) {
-            console.error("Error fetching leave requests", error);
+            console.error("Error fetching data", error);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchRequests();
+        fetchData();
     }, []);
 
     const handleStatusUpdate = async (id: string, status: 'Approved' | 'Rejected') => {
         setProcessingId(id);
         try {
             await leaveService.updateLeaveStatus(id, status);
-            // Optimistic update or refetch
-            setRequests(prev => prev.map(req =>
-                req.id === id ? { ...req, status } : req
-            ));
-            // toast.success(`Leave request ${status.toLowerCase()}`);
+            // Refresh data to update stats and list
+            fetchData();
         } catch (error) {
             console.error("Error updating status", error);
-            // toast.error("Failed to update status");
         } finally {
             setProcessingId(null);
         }
     };
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'Approved':
-                return <Badge className="bg-green-500">Approved</Badge>;
-            case 'Rejected':
-                return <Badge variant="destructive">Rejected</Badge>;
-            default:
-                return <Badge variant="secondary">Pending</Badge>;
-        }
-    };
+    // Helper to extract count from distribution
+    const getCount = (name: string) => stats?.distribution.find(d => d.name === name)?.value || 0;
+    const totalLeaves = stats?.distribution.reduce((acc, curr) => acc + curr.value, 0) || 1; // Avoid div by 0
 
     return (
-        <div className="p-8 space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Leave Management</h1>
-                    <p className="text-muted-foreground">Review and manage employee leave requests.</p>
-                </div>
+        <div className="p-8 space-y-8 bg-slate-50/30 min-h-screen">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Leaves</h1>
+                <p className="text-muted-foreground">
+                    Leaves overview for today.
+                </p>
+            </div>
+            {/* Stat Cards Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard
+                    title="Total On Leave (Today)"
+                    count={stats?.totalOnLeave || 0}
+                    icon={UserMinus}
+                    colorClass="text-emerald-600"
+                    bgClass="bg-emerald-100/50"
+                    isFeatured={true}
+                />
+                <StatCard
+                    title="Annual Leave"
+                    count={getCount('Annual Leave')}
+                    subtitle={{ value: `${Math.round((getCount('Annual Leave') / totalLeaves) * 100)}%`, label: 'of total' }}
+                    icon={Briefcase}
+                    colorClass="text-blue-600"
+                    bgClass="bg-blue-100/50"
+                />
+                <StatCard
+                    title="Sick Leave"
+                    count={getCount('Sick Leave')}
+                    subtitle={{ value: `${Math.round((getCount('Sick Leave') / totalLeaves) * 100)}%`, label: 'of total' }}
+                    icon={Stethoscope}
+                    colorClass="text-rose-600"
+                    bgClass="bg-rose-100/50"
+                />
+                <StatCard
+                    title="Other Leaves"
+                    count={getCount('Other Leave')}
+                    subtitle={{ value: `${Math.round((getCount('Other Leave') / totalLeaves) * 100)}%`, label: 'of total' }}
+                    icon={Palmtree}
+                    colorClass="text-amber-600"
+                    bgClass="bg-amber-100/50"
+                />
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Leave Requests</CardTitle>
-                    <CardDescription>A list of all pending and processed leave requests.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {loading ? (
-                        <div className="flex justify-center py-8">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                        </div>
-                    ) : requests.length === 0 ? (
-                        <div className="py-8 text-center text-muted-foreground">
-                            No leave requests found.
-                        </div>
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Employee</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Duration</TableHead>
-                                    <TableHead>Reason</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Date Requested</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {requests.map((req) => (
-                                    <TableRow key={req.id}>
-                                        <TableCell className="font-medium">{req.userName || req.userId}</TableCell>
-                                        <TableCell>{req.type}</TableCell>
-                                        <TableCell>
-                                            <div className="flex flex-col text-sm">
-                                                <span>{format(new Date(req.startDate), 'MMM dd, yyyy')}</span>
-                                                <span className="text-xs text-muted-foreground">to</span>
-                                                <span>{format(new Date(req.endDate), 'MMM dd, yyyy')}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="max-w-[200px] truncate" title={req.reason}>
-                                            {req.reason}
-                                        </TableCell>
-                                        <TableCell>{getStatusBadge(req.status)}</TableCell>
-                                        <TableCell className="text-muted-foreground">
-                                            {format(new Date(req.createdAt), 'MMM dd, yyyy')}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            {req.status === 'Pending' && (
-                                                <div className="flex justify-end gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                                        onClick={() => handleStatusUpdate(req.id, 'Approved')}
-                                                        disabled={processingId === req.id}
-                                                    >
-                                                        <Check className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                        onClick={() => handleStatusUpdate(req.id, 'Rejected')}
-                                                        disabled={processingId === req.id}
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </Button>
-                                                </div>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    )}
-                </CardContent>
-            </Card>
+            {/* Middle Section: Chart | Calendar | Employee List | Leave Types */}
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                <LeaveOverview data={stats?.weekStats || []} />
+                <LeaveCalendar date={date} setDate={setDate} />
+                <EmployeeLeavesList leaves={stats?.upcomingLeaves || []} />
+                <LeaveTypes data={stats?.distribution || []} />
+            </div>
+
+            {/* Bottom Section: Leave Activity Table */}
+            <LeaveActivityTable
+                requests={requests}
+                loading={loading}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                handleStatusUpdate={handleStatusUpdate}
+                processingId={processingId}
+            />
         </div>
     );
 };
