@@ -38,6 +38,18 @@ export const leaveService = {
             headers: getAuthHeader(),
         });
         return response.data;
+    },
+
+    getLeaveStats: async () => {
+        const response = await axios.get<{
+            totalOnLeave: number;
+            distribution: { name: string; value: number; color: string }[];
+            weekStats: { name: string; value: number }[];
+            upcomingLeaves: any[];
+        }>(`${API_URL}/leaves/stats`, {
+            headers: getAuthHeader(),
+        });
+        return response.data;
     }
 };
 

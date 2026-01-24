@@ -29,6 +29,7 @@ export const attendance = pgTable("attendance", {
     checkOutTime: timestamp("checkOutTime"),
     status: text("status"),
     workHours: text("workHours"),
+    overtimeHours: text("overtimeHours"),
     biometricId: text("biometricId"),
     createdAt: timestamp("createdAt").defaultNow(),
     updatedAt: timestamp("updatedAt").defaultNow(),
@@ -80,6 +81,18 @@ export const branch = pgTable("branch", {
     employeeCount: text("employeeCount").default('0'),
     revenue: text("revenue").default('0'),
     lastAudit: timestamp("lastAudit"),
+    createdAt: timestamp("createdAt").defaultNow(),
+    updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+export const leave_request = pgTable("leave_request", {
+    id: text("id").primaryKey(),
+    userId: text("userId").notNull().references(() => user.id),
+    startDate: timestamp("startDate").notNull(),
+    endDate: timestamp("endDate").notNull(),
+    type: text("type").notNull(),
+    reason: text("reason"),
+    status: text("status").default('Pending'),
     createdAt: timestamp("createdAt").defaultNow(),
     updatedAt: timestamp("updatedAt").defaultNow(),
 });

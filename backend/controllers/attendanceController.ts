@@ -67,16 +67,22 @@ export const syncAttendance = async (req: Request, res: Response) => {
             if (attendanceRecord) {
                 // Calculate work hours
                 let workHoursText = "";
+                let overtimeHoursText: string | null = null;
                 if (attendanceRecord.checkInTime) {
                     const diffMs = logTime.getTime() - new Date(attendanceRecord.checkInTime).getTime();
                     const hours = diffMs / (1000 * 60 * 60);
                     workHoursText = hours.toFixed(2);
+
+                    if (hours > 8) {
+                        overtimeHoursText = (hours - 8).toFixed(2);
+                    }
                 }
 
                 await db.update(attendance)
                     .set({
                         checkOutTime: logTime,
                         workHours: workHoursText,
+                        overtimeHours: overtimeHoursText,
                         updatedAt: new Date()
                     })
                     .where(eq(attendance.id, attendanceRecord.id));
@@ -273,10 +279,16 @@ export const checkOut = async (req: Request, res: Response) => {
         const hours = diffMs / (1000 * 60 * 60);
         const workHoursText = hours.toFixed(2);
 
+        let overtimeHoursText: string | null = null;
+        if (hours > 8) {
+            overtimeHoursText = (hours - 8).toFixed(2);
+        }
+
         await db.update(attendance)
             .set({
                 checkOutTime: now,
                 workHours: workHoursText,
+                overtimeHours: overtimeHoursText,
                 updatedAt: new Date()
             })
             .where(eq(attendance.id, record.id));
