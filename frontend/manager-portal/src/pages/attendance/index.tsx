@@ -4,6 +4,7 @@ import AttendanceOverviewChart, { type AttendanceChartData } from "../../compone
 import EmployeeAttendanceTable, { type EmployeeAttendance } from "../../components/attendance/EmployeeAttendanceTable";
 import { attendanceService } from "../../services/attendanceService";
 import { branchService } from "../../services/branchService";
+import { leaveService } from "../../services/leaveService";
 import { useAuth } from "../../context/AuthContext";
 
 const Attendance = () => {
@@ -32,10 +33,11 @@ const Attendance = () => {
         const sixMonthsAgoStr = sixMonthsAgo.toISOString().split('T')[0];
 
         // Fetch Data in optimization parallel
-        const [employees, todaysAttendanceRecords, historicalAttendanceRecords] = await Promise.all([
+        const [employees, todaysAttendanceRecords, historicalAttendanceRecords, leaveStats] = await Promise.all([
           branchService.getBranchEmployees(branchId),
           attendanceService.getAllAttendance({ startDate: todayStr, endDate: todayStr }),
-          attendanceService.getAllAttendance({ startDate: sixMonthsAgoStr, endDate: todayStr })
+          attendanceService.getAllAttendance({ startDate: sixMonthsAgoStr, endDate: todayStr }),
+          leaveService.getLeaveStats()
         ]);
 
         // Process Today's Data
@@ -95,9 +97,19 @@ const Attendance = () => {
         const lateCount = processedData.filter(d => d.status === 'Late').length;
         const absentCount = processedData.filter(d => d.status === 'Absent').length;
 
+        // Extract leave stats
+        const annualLeave = leaveStats.distribution.find(d => d.name === 'Annual Leave')?.value || 0;
+        const sickLeave = leaveStats.distribution.find(d => d.name === 'Sick Leave')?.value || 0;
+        const otherLeave = leaveStats.distribution.find(d => d.name !== 'Annual Leave' && d.name !== 'Sick Leave')?.value || 0;
+
         setStats({
           present: { total: presentCount, onTime: onTimeCount, late: lateCount },
-          onLeave: { total: 0, annual: 0, sick: 0, other: 0 },
+          onLeave: {
+            total: leaveStats.totalOnLeave,
+            annual: annualLeave,
+            sick: sickLeave,
+            other: otherLeave
+          },
           absent: absentCount
         });
 
