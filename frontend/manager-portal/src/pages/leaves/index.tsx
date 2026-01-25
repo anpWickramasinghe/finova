@@ -9,6 +9,7 @@ import { LeaveActivityTable } from '@/components/leaves/LeaveActivityTable';
 import { Briefcase, Stethoscope, Palmtree, UserMinus } from "lucide-react";
 
 
+import { format } from 'date-fns';
 
 const LeaveManagementPage: React.FC = () => {
     const [requests, setRequests] = useState<LeaveRequest[]>([]);
@@ -60,6 +61,22 @@ const LeaveManagementPage: React.FC = () => {
     const getCount = (name: string) => stats?.distribution.find(d => d.name === name)?.value || 0;
     const totalLeaves = stats?.distribution.reduce((acc, curr) => acc + curr.value, 0) || 1; // Avoid div by 0
 
+    // Helper to format upcoming leaves for the component
+    const formattedUpcomingLeaves = stats?.upcomingLeaves.map(leave => {
+        const typeColor =
+            leave.type === 'Sick Leave' ? 'text-emerald-500 bg-emerald-50' :
+                leave.type === 'Annual Leave' ? 'text-blue-500 bg-blue-50' :
+                    'text-amber-500 bg-amber-50';
+
+        return {
+            name: leave.userName || 'Unknown',
+            type: leave.type,
+            date: format(new Date(leave.startDate), 'dd MMM yyyy'),
+            avatar: (leave.userName || 'U').charAt(0),
+            color: typeColor
+        };
+    }) || [];
+
     return (
         <div className="p-8 space-y-8 bg-slate-50/30 min-h-screen">
             <div>
@@ -108,7 +125,7 @@ const LeaveManagementPage: React.FC = () => {
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
                 <LeaveOverview data={stats?.weekStats || []} />
                 <LeaveCalendar date={date} setDate={setDate} />
-                <EmployeeLeavesList leaves={stats?.upcomingLeaves || []} />
+                <EmployeeLeavesList leaves={formattedUpcomingLeaves} />
                 <LeaveTypes data={stats?.distribution || []} />
             </div>
 
