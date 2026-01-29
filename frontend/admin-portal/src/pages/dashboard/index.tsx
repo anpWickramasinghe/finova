@@ -11,9 +11,8 @@ import RecentActivity from '../../components/dashboard/RecentActivity';
 import PendingTasks from '../../components/dashboard/PendingTasks';
 
 const Dashboard = () => {
-  const [userRole] = useState('staff'); // Mock user role
+  const [userRole] = useState('staff');
 
-  // Mock user data
   const mockUser = {
     name: "Sarah Johnson",
     email: "sarah.johnson@accountingpro.com",
@@ -21,7 +20,6 @@ const Dashboard = () => {
     avatar: "https://randomuser.me/api/portraits/women/32.jpg"
   };
 
-  // Mock KPI data
   const kpiData = [
     {
       id: 1,
