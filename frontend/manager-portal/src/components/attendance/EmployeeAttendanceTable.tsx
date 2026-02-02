@@ -33,12 +33,16 @@ export interface EmployeeAttendance {
     checkOut: string;
     duration: string;
     overtime: string;
+    overtimeStatus?: string;
+    calculatedOvertimeMinutes?: string;
+    attendanceId?: string; // Need ID for actions
     status: string;
     avatar: string;
 }
 
 interface EmployeeAttendanceTableProps {
     data: EmployeeAttendance[];
+    onReviewOvertime?: (employee: EmployeeAttendance) => void;
 }
 
 const getBadgeStyle = (status: string) => {
@@ -51,7 +55,7 @@ const getBadgeStyle = (status: string) => {
     return "";
 }
 
-const EmployeeAttendanceTable = ({ data = [] }: EmployeeAttendanceTableProps) => {
+const EmployeeAttendanceTable = ({ data = [], onReviewOvertime }: EmployeeAttendanceTableProps) => {
     const employees = data;
     const totalResults = employees.length;
 
@@ -96,6 +100,7 @@ const EmployeeAttendanceTable = ({ data = [] }: EmployeeAttendanceTableProps) =>
                             <TableHead className="font-medium h-10">Duration <ChevronsUpDown className="inline w-3 h-3 ml-1" /></TableHead>
                             <TableHead className="font-medium h-10">Overtime <ChevronsUpDown className="inline w-3 h-3 ml-1" /></TableHead>
                             <TableHead className="font-medium h-10 text-right">Status <ChevronsUpDown className="inline w-3 h-3 ml-1" /></TableHead>
+                            <TableHead className="font-medium h-10 text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -127,6 +132,25 @@ const EmployeeAttendanceTable = ({ data = [] }: EmployeeAttendanceTableProps) =>
                                     <Badge className={cn("px-3 py-0.5 rounded-full", getBadgeStyle(employee.status))}>
                                         {employee.status}
                                     </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    {employee.overtimeStatus === 'Pending' && onReviewOvertime && (
+                                        <Button
+                                            size="sm"
+                                            className="h-7 bg-indigo-600 hover:bg-indigo-700 text-white"
+                                            onClick={() => onReviewOvertime(employee)}
+                                        >
+                                            Review
+                                        </Button>
+                                    )}
+                                    {employee.overtimeStatus && employee.overtimeStatus !== 'Pending' && (
+                                        <span className={cn("text-xs font-medium",
+                                            employee.overtimeStatus === 'Approved' ? 'text-green-600' :
+                                                employee.overtimeStatus === 'Rejected' ? 'text-red-600' : 'text-gray-500'
+                                        )}>
+                                            OT: {employee.overtimeStatus}
+                                        </span>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}

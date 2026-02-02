@@ -1,8 +1,10 @@
+
 import { useEffect, useState } from "react";
 import AttendanceStatCard from "../../components/attendance/AttendanceStatCard";
 import AttendanceOverviewChart, { type AttendanceChartData } from "../../components/attendance/AttendanceOverviewChart";
 import EmployeeAttendanceTable, { type EmployeeAttendance } from "../../components/attendance/EmployeeAttendanceTable";
-import { attendanceService } from "../../services/attendanceService";
+import OvertimeApprovalModal from "../../components/attendance/OvertimeApprovalModal";
+import { getAttendance, approveOvertime } from "../../services/attendanceService";
 import { branchService } from "../../services/branchService";
 import { leaveService } from "../../services/leaveService";
 import { useAuth } from "../../context/AuthContext";
@@ -16,6 +18,11 @@ const Attendance = () => {
     onLeave: { total: 0, annual: 0, sick: 0, other: 0 },
     absent: 0
   });
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<EmployeeAttendance | null>(null);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,8 +42,8 @@ const Attendance = () => {
         // Fetch Data in optimization parallel
         const [employees, todaysAttendanceRecords, historicalAttendanceRecords, leaveStats] = await Promise.all([
           branchService.getBranchEmployees(branchId),
-          attendanceService.getAllAttendance({ startDate: todayStr, endDate: todayStr }),
-          attendanceService.getAllAttendance({ startDate: sixMonthsAgoStr, endDate: todayStr }),
+          getAttendance(todayStr, todayStr),
+          getAttendance(sixMonthsAgoStr, todayStr),
           leaveService.getLeaveStats()
         ]);
 
@@ -85,7 +92,11 @@ const Attendance = () => {
             duration,
             overtime,
             status,
-            avatar: emp.avatar || ""
+            avatar: emp.avatar || "",
+            // New Fields
+            attendanceId: record?.id,
+            overtimeStatus: record?.overtimeStatus,
+            calculatedOvertimeMinutes: record?.calculatedOvertimeMinutes
           };
         });
 
@@ -176,6 +187,39 @@ const Attendance = () => {
     fetchData();
   }, [user]);
 
+  const handleReviewOvertime = (record: EmployeeAttendance) => {
+    setSelectedRecord(record);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedRecord(null);
+  };
+
+  const handleApprovalAction = async (minutes: number, isApproved: boolean) => {
+    if (!selectedRecord?.attendanceId) return;
+
+    try {
+      await approveOvertime(selectedRecord.attendanceId, isApproved, isApproved ? minutes : 0);
+
+      // Optimistic Update
+      setAttendanceData(prev => prev.map(item => {
+        if (item.id === selectedRecord.id) {
+          return {
+            ...item,
+            overtimeStatus: isApproved ? 'Approved' : 'Rejected'
+          };
+        }
+        return item;
+      }));
+
+      closeModal();
+    } catch (error) {
+      console.error('Failed to update overtime status', error);
+    }
+  };
+
   return (
     <div className="p-6 space-y-8 bg-gray-50/50 min-h-screen">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -229,8 +273,21 @@ const Attendance = () => {
 
       {/* Main Content Section */}
       <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 ">
-        <EmployeeAttendanceTable data={attendanceData} />
+        <EmployeeAttendanceTable data={attendanceData} onReviewOvertime={handleReviewOvertime} />
       </div>
+
+      {/* Actions Modal */}
+      {selectedRecord && (
+        <OvertimeApprovalModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          onApprove={(minutes) => handleApprovalAction(minutes, true)}
+          onReject={() => handleApprovalAction(0, false)}
+          employeeName={selectedRecord.name}
+          date={selectedRecord.date}
+          calculatedMinutes={Number(selectedRecord.calculatedOvertimeMinutes || 0)}
+        />
+      )}
     </div>
   );
 }
