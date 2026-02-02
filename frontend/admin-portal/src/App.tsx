@@ -7,6 +7,7 @@ import UserManagement from './pages/user-management';
 import BranchManagement from './pages/branch-management';
 import Layout from './components/Layout';
 import Payroll from './pages/payroll';
+import OvertimeSettings from './pages/overtime/OvertimeSettings';
 
 
 import React, { useContext } from 'react';
@@ -35,6 +36,7 @@ function App() {
             <Route path="/user-management" element={<UserManagement />} />
             <Route path="/branch-management" element={<BranchManagement />} />
             <Route path="/payroll" element={<Payroll />} />
+            <Route path="/overtime-settings" element={<OvertimeSettings />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Route>
         </Routes>

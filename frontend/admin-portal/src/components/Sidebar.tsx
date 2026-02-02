@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Receipt, Building2, FileText, Calculator, Users, Globe, LogOut, Banknote } from "lucide-react";
+import { LayoutDashboard, Receipt, Building2, FileText, Calculator, Users, Globe, LogOut, Banknote, Timer, CalendarDays, Calendar } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
@@ -29,7 +29,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         Calculator,
         Users,
         Globe,
-        Banknote
+        Banknote,
+        Timer,
+        CalendarDays,
+        Calendar
     };
 
     const navigationItems = [
@@ -116,6 +119,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     icon: 'Globe',
                     roles: ['partner', 'staff', 'client'],
                     tooltip: 'Client access and communication'
+                },
+                {
+                    label: 'Overtime Settings',
+                    path: '/overtime-settings',
+                    icon: 'Timer',
+                    roles: ['partner'],
+                    tooltip: 'Configure overtime rules'
                 }
             ]
         }
