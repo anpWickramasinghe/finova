@@ -19,6 +19,9 @@ export const user = pgTable("user", {
     status: text("status").default('Active'),
     permissions: text("permissions"),
     biometricId: text("biometricId"),
+    baseSalary: text("baseSalary"),
+    otHourlyRate: text("otHourlyRate"),
+    otMultiplier: text("otMultiplier").default('1.5'),
 });
 
 export const attendance = pgTable("attendance", {
@@ -95,4 +98,18 @@ export const leave_request = pgTable("leave_request", {
     status: text("status").default('Pending'),
     createdAt: timestamp("createdAt").defaultNow(),
     updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+export const payroll = pgTable("payroll", {
+    id: text("id").primaryKey(),
+    userId: text("userId").notNull().references(() => user.id),
+    month: text("month").notNull(),
+    year: text("year").notNull(),
+    totalWorkHours: text("totalWorkHours"),
+    totalOvertimeHours: text("totalOvertimeHours"),
+    baseSalary: text("baseSalary"),
+    overtimePay: text("overtimePay"),
+    totalSalary: text("totalSalary"),
+    status: text("status").default('Pending'),
+    generatedAt: timestamp("generatedAt").defaultNow(),
 });

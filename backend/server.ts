@@ -4,7 +4,8 @@ import dotenv from 'dotenv';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import branchRoutes from './routes/branchRoutes.js';
-import leaveRoutes from './routes/leaveRoutes.js'; // Import new routes
+import leaveRoutes from './routes/leaveRoutes.js';
+import payrollRoutes from './routes/payrollRoutes.js';
 import { auth } from './auth.js';
 import { toNodeHandler } from 'better-auth/node';
 
@@ -24,6 +25,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/branches', branchRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/leaves', leaveRoutes);
+app.use('/api/payroll', payrollRoutes);
 
 app.get('/', (req, res) => {
   res.send('Finova API is running');
