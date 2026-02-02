@@ -3,6 +3,7 @@ import { db } from '../config/db.js';
 import { attendance, user } from '../db/schema.js';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+import { calculateOvertime } from '../services/overtimeService.js';
 
 export const syncAttendance = async (req: Request, res: Response) => {
     try {
@@ -78,11 +79,27 @@ export const syncAttendance = async (req: Request, res: Response) => {
                     }
                 }
 
+                // Calculate Overtime Logic
+                const otResult = await calculateOvertime(
+                    currentUser.id,
+                    new Date(attendanceRecord.checkInTime!),
+                    logTime,
+                    logDate
+                );
+
                 await db.update(attendance)
                     .set({
                         checkOutTime: logTime,
                         workHours: workHoursText,
                         overtimeHours: overtimeHoursText,
+
+                        // New Overtime Fields
+                        overtimeStatus: otResult.status,
+                        isHoliday: otResult.isHoliday,
+                        isWeekend: otResult.isWeekend,
+                        calculatedOvertimeMinutes: otResult.calculatedMinutes.toString(),
+                        attendenceOvertimeMinutes: '0', // Approved amount, initially 0 or copy calculated if auto-approve (default pending)
+
                         updatedAt: new Date()
                     })
                     .where(eq(attendance.id, attendanceRecord.id));
@@ -284,11 +301,27 @@ export const checkOut = async (req: Request, res: Response) => {
             overtimeHoursText = (hours - 8).toFixed(2);
         }
 
+        // Calculate Overtime Logic
+        const otResult = await calculateOvertime(
+            userId,
+            checkInTime,
+            now,
+            today
+        );
+
         await db.update(attendance)
             .set({
                 checkOutTime: now,
                 workHours: workHoursText,
                 overtimeHours: overtimeHoursText,
+
+                // New Overtime Fields
+                overtimeStatus: otResult.status,
+                isHoliday: otResult.isHoliday,
+                isWeekend: otResult.isWeekend,
+                calculatedOvertimeMinutes: otResult.calculatedMinutes.toString(),
+                attendenceOvertimeMinutes: '0',
+
                 updatedAt: new Date()
             })
             .where(eq(attendance.id, record.id));

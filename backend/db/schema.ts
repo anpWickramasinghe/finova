@@ -33,10 +33,38 @@ export const attendance = pgTable("attendance", {
     status: text("status"),
     workHours: text("workHours"),
     overtimeHours: text("overtimeHours"),
+    overtimeStatus: text("overtimeStatus").default('Pending'),
+    approvedBy: text("approvedBy"),
+    isHoliday: boolean("isHoliday").default(false),
+    isWeekend: boolean("isWeekend").default(false),
+    calculatedOvertimeMinutes: text("calculatedOvertimeMinutes"),
+    attendenceOvertimeMinutes: text("attendenceOvertimeMinutes"),
     biometricId: text("biometricId"),
     createdAt: timestamp("createdAt").defaultNow(),
     updatedAt: timestamp("updatedAt").defaultNow(),
 });
+
+export const overtime_settings = pgTable("overtime_settings", {
+    id: text("id").primaryKey(),
+    companyId: text("companyId"),
+    minOvertimeMinutes: text("minOvertimeMinutes").default('30'),
+    weekdayMultiplier: text("weekdayMultiplier").default('1.25'),
+    weekendMultiplier: text("weekendMultiplier").default('2.0'),
+    holidayMultiplier: text("holidayMultiplier").default('2.0'),
+    createdAt: timestamp("createdAt").defaultNow(),
+    updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+export const holiday = pgTable("holiday", {
+    id: text("id").primaryKey(),
+    date: timestamp("date").notNull(),
+    name: text("name").notNull(),
+    description: text("description"),
+    createdAt: timestamp("createdAt").defaultNow(),
+    updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+
 
 export const session = pgTable("session", {
     id: text("id").primaryKey(),

@@ -1,6 +1,7 @@
 import express from 'express';
 import { syncAttendance, getAttendance, checkIn, checkOut, getMyAttendance, getAttendanceStatus } from '../controllers/attendanceController.js';
-import { requireAuth } from '../middleware/authMiddleware.js';
+import { approveOvertime } from '../controllers/overtimeController.js';
+import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -21,5 +22,8 @@ router.post('/check-in', requireAuth, checkIn);
 router.post('/check-out', requireAuth, checkOut);
 router.get('/my-history', requireAuth, getMyAttendance);
 router.get('/status', requireAuth, getAttendanceStatus);
+
+// Manager Overtime Approval
+router.post('/approve-ot', requireAuth, requireRole(['Manager', 'Admin']), approveOvertime);
 
 export default router;
