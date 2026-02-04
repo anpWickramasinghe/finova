@@ -4,12 +4,12 @@ import { getOvertimeSettings, updateOvertimeSettings } from '../../services/over
 import Holidays from './Holidays';
 import { cn } from "@/lib/utils";
 
-const OvertimeSettings = () => {
+const Configuration = () => {
     const [activeTab, setActiveTab] = useState('general');
 
     return (
         <div className="p-6 space-y-6">
-            <h1 className="text-2xl font-bold">Overtime Settings</h1>
+            <h1 className="text-2xl font-bold">Configuration</h1>
 
             {/* Tabs */}
             <div className="flex space-x-1 border-b">
@@ -22,7 +22,7 @@ const OvertimeSettings = () => {
                             : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     )}
                 >
-                    General Configuration
+                    Overtime Settings
                 </button>
                 <button
                     onClick={() => setActiveTab('holidays')}
@@ -97,7 +97,7 @@ const GeneralSettings = () => {
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-md max-w-lg">
-            <h2 className="text-lg font-semibold mb-4">Thresholds & Rates</h2>
+            <h2 className="text-lg font-semibold mb-4">Overtime Thresholds & Rates</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Minimum Overtime Threshold (Minutes)</label>
@@ -162,4 +162,4 @@ const GeneralSettings = () => {
     );
 };
 
-export default OvertimeSettings;
+export default Configuration;

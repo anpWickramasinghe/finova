@@ -121,11 +121,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     tooltip: 'Client access and communication'
                 },
                 {
-                    label: 'Overtime Settings',
-                    path: '/overtime-settings',
+                    label: 'Configuration',
+                    path: '/configuration',
                     icon: 'Timer',
                     roles: ['partner'],
-                    tooltip: 'Configure overtime rules'
+                    tooltip: 'System configuration'
                 }
             ]
         }
