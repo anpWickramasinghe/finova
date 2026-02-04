@@ -34,6 +34,7 @@ graph TD
             Leave[Leave Management]
             Payroll[Payroll Processing]
             EPF_ETF[EPF/ETF Calculation]
+            Click here for [Payroll System Logic](./PAYROLL_SYSTEM.md)
         end
 
         subgraph Finance_Module [Finance & Accounts Module]
