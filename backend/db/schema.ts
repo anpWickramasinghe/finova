@@ -22,6 +22,7 @@ export const user = pgTable("user", {
     baseSalary: text("baseSalary"),
     otHourlyRate: text("otHourlyRate"),
     otMultiplier: text("otMultiplier").default('1.5'),
+    salaryType: text("salaryType").default('FixedWithOvertime'), // 'FixedWithOvertime', 'FixedNoOvertime', 'Daily'
 });
 
 export const attendance = pgTable("attendance", {
@@ -133,11 +134,18 @@ export const payroll = pgTable("payroll", {
     userId: text("userId").notNull().references(() => user.id),
     month: text("month").notNull(),
     year: text("year").notNull(),
+    salaryType: text("salaryType"),
+    workedDays: text("workedDays"),
     totalWorkHours: text("totalWorkHours"),
     totalOvertimeHours: text("totalOvertimeHours"),
     baseSalary: text("baseSalary"),
+    grossSalary: text("grossSalary"),
+    netSalary: text("netSalary"),
     overtimePay: text("overtimePay"),
-    totalSalary: text("totalSalary"),
+    epfDeduction: text("epfDeduction"), // Employee 8%
+    employerEpf: text("employerEpf"),   // Employer 12%
+    employerEtf: text("employerEtf"),   // Employer 3%
+    totalSalary: text("totalSalary"),   // Check if this is redundant with netSalary, but kept for now as per old schema
     status: text("status").default('Pending'),
     generatedAt: timestamp("generatedAt").defaultNow(),
 });
