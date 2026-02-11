@@ -9,7 +9,7 @@ export const auth = betterAuth({
     database: drizzleAdapter(db, {
         provider: "pg",
     }),
-    trustedOrigins: ["http://localhost:5173", "http://localhost:5175", "http://localhost:8081", "http://192.168.8.102:8081"],
+    trustedOrigins: ["http://localhost:5173", "http://localhost:5175", "http://localhost:8081", "http://192.168.8.102:8081", "http://172.20.10.7:8081"],
     emailAndPassword: {
         enabled: true
     },
