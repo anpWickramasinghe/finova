@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, numeric, integer } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
     id: text("id").primaryKey(),
@@ -148,4 +148,88 @@ export const payroll = pgTable("payroll", {
     totalSalary: text("totalSalary"),   // Check if this is redundant with netSalary, but kept for now as per old schema
     status: text("status").default('Pending'),
     generatedAt: timestamp("generatedAt").defaultNow(),
+});
+
+// ===== ACCOUNTING / TRANSACTION MANAGEMENT =====
+
+export const chart_of_accounts = pgTable("chart_of_accounts", {
+    id: text("id").primaryKey(),
+    code: text("code").notNull().unique(),          // e.g. "1000", "2000", "4100"
+    name: text("name").notNull(),                   // e.g. "Cash", "Accounts Receivable"
+    type: text("type").notNull(),                   // "asset" | "liability" | "equity" | "revenue" | "expense"
+    subType: text("subType"),                       // e.g. "current_asset", "fixed_asset"
+    description: text("description"),
+    parentAccountId: text("parentAccountId"),        // for hierarchical CoA
+    branchId: text("branchId").references(() => branch.id),
+    isSystem: boolean("isSystem").default(false),    // true = cannot be deleted
+    isActive: boolean("isActive").default(true),
+    normalBalance: text("normalBalance").notNull(),  // "debit" | "credit"
+    createdAt: timestamp("createdAt").defaultNow(),
+    updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+export const transaction = pgTable("transaction", {
+    id: text("id").primaryKey(),
+    transactionNumber: text("transactionNumber").notNull().unique(), // auto-generated TXN-YYYYMMDD-NNN
+    date: timestamp("date").notNull(),
+    description: text("description").notNull(),
+    reference: text("reference"),                    // external ref (invoice #, receipt #)
+    type: text("type").notNull(),                    // "journal" | "payment" | "receipt" | "transfer"
+    status: text("status").notNull().default('draft'), // draft -> pending_approval -> approved -> posted -> reconciled | rejected
+    branchId: text("branchId").references(() => branch.id),
+    totalAmount: numeric("totalAmount", { precision: 15, scale: 2 }).default('0'),
+    notes: text("notes"),
+    // Maker-Checker fields
+    createdBy: text("createdBy").references(() => user.id),
+    submittedAt: timestamp("submittedAt"),
+    approvedBy: text("approvedBy").references(() => user.id),
+    approvedAt: timestamp("approvedAt"),
+    rejectedBy: text("rejectedBy").references(() => user.id),
+    rejectedAt: timestamp("rejectedAt"),
+    rejectionReason: text("rejectionReason"),
+    postedBy: text("postedBy").references(() => user.id),
+    postedAt: timestamp("postedAt"),
+    // Approval threshold
+    requiresAdminApproval: boolean("requiresAdminApproval").default(false),
+    adminApprovedBy: text("adminApprovedBy").references(() => user.id),
+    adminApprovedAt: timestamp("adminApprovedAt"),
+    createdAt: timestamp("createdAt").defaultNow(),
+    updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+export const journal_line = pgTable("journal_line", {
+    id: text("id").primaryKey(),
+    transactionId: text("transactionId").notNull().references(() => transaction.id),
+    accountId: text("accountId").notNull().references(() => chart_of_accounts.id),
+    description: text("description"),
+    debit: numeric("debit", { precision: 15, scale: 2 }).default('0'),
+    credit: numeric("credit", { precision: 15, scale: 2 }).default('0'),
+    lineOrder: integer("lineOrder").default(0),
+    createdAt: timestamp("createdAt").defaultNow(),
+});
+
+export const ledger_entry = pgTable("ledger_entry", {
+    id: text("id").primaryKey(),
+    transactionId: text("transactionId").notNull().references(() => transaction.id),
+    journalLineId: text("journalLineId").notNull().references(() => journal_line.id),
+    accountId: text("accountId").notNull().references(() => chart_of_accounts.id),
+    date: timestamp("date").notNull(),
+    debit: numeric("debit", { precision: 15, scale: 2 }).default('0'),
+    credit: numeric("credit", { precision: 15, scale: 2 }).default('0'),
+    runningBalance: numeric("runningBalance", { precision: 15, scale: 2 }),
+    branchId: text("branchId").references(() => branch.id),
+    postedAt: timestamp("postedAt").defaultNow(),
+});
+
+export const reconciliation = pgTable("reconciliation", {
+    id: text("id").primaryKey(),
+    transactionId: text("transactionId").notNull().references(() => transaction.id),
+    bankStatementRef: text("bankStatementRef"),
+    bankDate: timestamp("bankDate"),
+    matchedAmount: numeric("matchedAmount", { precision: 15, scale: 2 }),
+    difference: numeric("difference", { precision: 15, scale: 2 }).default('0'),
+    status: text("status").notNull().default('matched'), // "matched" | "partial" | "unmatched"
+    reconciledBy: text("reconciledBy").references(() => user.id),
+    reconciledAt: timestamp("reconciledAt").defaultNow(),
+    notes: text("notes"),
 });

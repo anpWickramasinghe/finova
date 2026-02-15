@@ -3,6 +3,7 @@ import { AuthProvider, AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/dashboard';
 import Transactions from './pages/transactions';
+import TransactionReporting from './pages/transactions/reporting';
 import UserManagement from './pages/user-management';
 import BranchManagement from './pages/branch-management';
 import Layout from './components/Layout';
@@ -33,6 +34,7 @@ function App() {
           >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/transactions-management" element={<Transactions />} />
+            <Route path="/transactions-management/reporting" element={<TransactionReporting />} />
             <Route path="/user-management" element={<UserManagement />} />
             <Route path="/branch-management" element={<BranchManagement />} />
             <Route path="/payroll" element={<Payroll />} />

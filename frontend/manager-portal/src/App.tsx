@@ -3,6 +3,7 @@ import { AuthProvider, AuthContext } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/dashboard';
 import Transactions from './pages/transactions';
+import TransactionReporting from './pages/transactions/reporting';
 import Layout from './components/Layout';
 
 import React, { useContext } from 'react';
@@ -30,6 +31,7 @@ function App() {
           >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/transactions-management" element={<Transactions />} />
+            <Route path="/transactions-management/reports" element={<TransactionReporting />} />
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/leaves" element={<LeaveManagementPage />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />

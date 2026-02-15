@@ -8,15 +8,14 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 interface TransactionFiltersProps {
     filters: {
         search: string;
-        account: string;
         type: string;
-        status: string;
-        dateRange: string;
+        startDate: string;
+        endDate: string;
     };
     onFilterChange: (newFilters: any) => void;
     resultCount: number;
@@ -35,22 +34,24 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
         onFilterChange({ ...filters, [key]: value });
     };
 
+    const handleDateChange = (key: string, value: string) => {
+        onFilterChange({ ...filters, [key]: value });
+    };
+
     const clearFilters = () => {
         onFilterChange({
             search: '',
-            account: 'all',
             type: 'all',
-            status: 'all',
-            dateRange: 'all',
+            startDate: '',
+            endDate: '',
         });
     };
 
     const hasActiveFilters =
         filters.search !== '' ||
-        filters.account !== 'all' ||
         filters.type !== 'all' ||
-        filters.status !== 'all' ||
-        filters.dateRange !== 'all';
+        filters.startDate !== '' ||
+        filters.endDate !== '';
 
     return (
         <div className="space-y-4 mb-6">
@@ -58,7 +59,7 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
                 <div className="relative flex-1">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search transactions..."
+                        placeholder="Search by description, reference, or transaction #..."
                         value={filters.search}
                         onChange={handleSearchChange}
                         className="pl-8"
@@ -66,56 +67,35 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
                     <Select
-                        value={filters.account}
-                        onValueChange={(value) => handleSelectChange('account', value)}
-                    >
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Account" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Accounts</SelectItem>
-                            <SelectItem value="Office Expenses">Office Expenses</SelectItem>
-                            <SelectItem value="Accounts Receivable">Accounts Receivable</SelectItem>
-                            <SelectItem value="Bank Charges">Bank Charges</SelectItem>
-                            <SelectItem value="Fixed Assets">Fixed Assets</SelectItem>
-                            <SelectItem value="Utilities">Utilities</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <Select
                         value={filters.type}
                         onValueChange={(value) => handleSelectChange('type', value)}
                     >
-                        <SelectTrigger className="w-[140px]">
+                        <SelectTrigger className="w-[150px]">
                             <SelectValue placeholder="Type" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Types</SelectItem>
-                            <SelectItem value="income">Income</SelectItem>
-                            <SelectItem value="expense">Expense</SelectItem>
-                            <SelectItem value="asset">Asset</SelectItem>
-                            <SelectItem value="liability">Liability</SelectItem>
+                            <SelectItem value="payment">Payment</SelectItem>
+                            <SelectItem value="receipt">Receipt</SelectItem>
+                            <SelectItem value="transfer">Transfer</SelectItem>
+                            <SelectItem value="journal">Journal Entry</SelectItem>
                         </SelectContent>
                     </Select>
 
-                    <Select
-                        value={filters.status}
-                        onValueChange={(value) => handleSelectChange('status', value)}
-                    >
-                        <SelectTrigger className="w-[140px]">
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="reconciled">Reconciled</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="review">Review</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <Button variant="outline" size="icon">
-                        <Filter className="h-4 w-4" />
-                    </Button>
+                    <Input
+                        type="date"
+                        value={filters.startDate}
+                        onChange={(e) => handleDateChange('startDate', e.target.value)}
+                        className="w-[150px]"
+                        placeholder="From"
+                    />
+                    <Input
+                        type="date"
+                        value={filters.endDate}
+                        onChange={(e) => handleDateChange('endDate', e.target.value)}
+                        className="w-[150px]"
+                        placeholder="To"
+                    />
 
                     {hasActiveFilters && (
                         <Button variant="ghost" onClick={clearFilters} className="px-2 lg:px-4">
