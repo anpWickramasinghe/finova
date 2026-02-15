@@ -1,111 +1,60 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import TransactionTable from '../../components/transactions/TransactionTable';
 import TransactionFilters from '../../components/transactions/TransactionFilters';
-import TransactionDetails from '../../components/transactions/TransactionDetails';
-import BulkActions from '../../components/transactions/BulkActions';
 import AddTransactionModal from '../../components/transactions/AddTransactionModal';
-import { Upload, Download, Plus, FileText, CheckCircle, Clock, AlertCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { transactionService, type Transaction } from '@/services/transactionService';
+import {
+  Download, Plus, FileText, TrendingUp, TrendingDown,
+  DollarSign, Loader2, BarChart3
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const TransactionsManagement = () => {
-  const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
-  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const navigate = useNavigate();
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    dateRange: 'all',
-    account: 'all',
     type: 'all',
-    status: 'all',
-    search: ''
+    search: '',
+    startDate: '',
+    endDate: '',
   });
 
+  useEffect(() => {
+    loadTransactions();
+  }, [filters]);
 
-  // Mock transactions data
-  const transactions = [
-    {
-      id: "TXN-001",
-      date: "2024-01-15",
-      description: "Office Supplies Purchase",
-      account: "Office Expenses",
-      accountCode: "6200",
-      debit: 450.00,
-      credit: 0,
-      type: "expense",
-      status: "reconciled",
-      reference: "INV-2024-001",
-      category: "Operating Expenses",
-      bankFeed: false,
-      attachments: 1
-    },
-    {
-      id: "TXN-002",
-      date: "2024-01-14",
-      description: "Client Payment - ABC Corp",
-      account: "Accounts Receivable",
-      accountCode: "1200",
-      debit: 0,
-      credit: 2500.00,
-      type: "income",
-      status: "pending",
-      reference: "PAY-2024-002",
-      category: "Revenue",
-      bankFeed: true,
-      attachments: 0
-    },
-    {
-      id: "TXN-003",
-      date: "2024-01-13",
-      description: "Bank Service Charges",
-      account: "Bank Charges",
-      accountCode: "6300",
-      debit: 25.00,
-      credit: 0,
-      type: "expense",
-      status: "review",
-      reference: "BSC-2024-001",
-      category: "Financial Expenses",
-      bankFeed: true,
-      attachments: 0
-    },
-    {
-      id: "TXN-004",
-      date: "2024-01-12",
-      description: "Equipment Purchase",
-      account: "Fixed Assets",
-      accountCode: "1500",
-      debit: 3200.00,
-      credit: 0,
-      type: "asset",
-      status: "reconciled",
-      reference: "EQ-2024-001",
-      category: "Capital Expenditure",
-      bankFeed: false,
-      attachments: 2
-    },
-    {
-      id: "TXN-005",
-      date: "2024-01-11",
-      description: "Utility Bill Payment",
-      account: "Utilities",
-      accountCode: "6400",
-      debit: 180.00,
-      credit: 0,
-      type: "expense",
-      status: "pending",
-      reference: "UTL-2024-001",
-      category: "Operating Expenses",
-      bankFeed: true,
-      attachments: 1
+  const loadTransactions = async () => {
+    setLoading(true);
+    try {
+      const data = await transactionService.getTransactions({
+        type: filters.type !== 'all' ? filters.type : undefined,
+        search: filters.search || undefined,
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined,
+      });
+      setTransactions(data);
+    } catch (err) {
+      console.error('Failed to load transactions:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
-
-
-  const handleTransactionSelect = (transactionIds: string[]) => {
-    setSelectedTransactions(transactionIds);
   };
 
-  const handleTransactionClick = (transaction: any) => {
+  const handleTransactionClick = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
   };
 
@@ -113,177 +62,220 @@ const TransactionsManagement = () => {
     setFilters(newFilters);
   };
 
-  const handleBulkAction = (action: string) => {
-    console.log(`Performing ${action} on transactions:`, selectedTransactions);
-    // Handle bulk actions
-    setSelectedTransactions([]);
-  };
-
-  const handleAddTransaction = (transactionData: any) => {
-    console.log('Adding new transaction:', transactionData);
+  const handleAddTransaction = () => {
     setShowAddModal(false);
+    loadTransactions();
   };
 
   const handleExport = () => {
-    console.log('Exporting transactions...');
+    if (transactions.length === 0) return;
+    const headers = ['TXN #', 'Date', 'Description', 'Reference', 'Type', 'Debit', 'Credit'];
+    const rows = transactions.map(t => [
+      t.transactionNumber,
+      t.date,
+      t.description,
+      t.reference || '',
+      t.type,
+      t.debit,
+      t.credit,
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
   };
 
-  const handleImport = () => {
-    console.log('Importing transactions...');
-  };
-
-  // Filter transactions based on current filters
-  const filteredTransactions = transactions.filter(transaction => {
-    if (filters.search && !transaction.description.toLowerCase().includes(filters.search.toLowerCase()) &&
-      !transaction.account.toLowerCase().includes(filters.search.toLowerCase()) &&
-      !transaction.reference.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false;
-    }
-    if (filters.account !== 'all' && transaction.account !== filters.account) return false;
-    if (filters.type !== 'all' && transaction.type !== filters.type) return false;
-    if (filters.status !== 'all' && transaction.status !== filters.status) return false;
-    return true;
-  });
-
-  const stats = {
-    total: filteredTransactions.length,
-    reconciled: filteredTransactions.filter(t => t.status === 'reconciled').length,
-    pending: filteredTransactions.filter(t => t.status === 'pending').length,
-    review: filteredTransactions.filter(t => t.status === 'review').length,
-    totalDebit: filteredTransactions.reduce((sum, t) => sum + t.debit, 0),
-    totalCredit: filteredTransactions.reduce((sum, t) => sum + t.credit, 0)
-  };
+  // Compute stats
+  const totalDebit = transactions.reduce((sum, t) => sum + parseFloat(t.debit || '0'), 0);
+  const totalCredit = transactions.reduce((sum, t) => sum + parseFloat(t.credit || '0'), 0);
+  const netBalance = totalDebit - totalCredit;
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
-      
-
-     
-        <div className="p-6 space-y-6">
-          {/* Page Header */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight mb-1">
-                Transactions
-              </h1>
-              <p className="text-muted-foreground">
-                Manage and reconcile your financial transactions.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={handleImport}>
-                <Upload className="mr-2 h-4 w-4" />
-                Import
-              </Button>
-              <Button variant="outline" onClick={handleExport}>
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
-              <Button onClick={() => setShowAddModal(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Transaction
-              </Button>
-            </div>
+      <div className="p-6 space-y-6">
+        {/* Page Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight mb-1">
+              Transactions
+            </h1>
+            <p className="text-muted-foreground">
+              View and manage your company's debit and credit transactions.
+            </p>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <Card>
-              <CardContent className="p-4 flex flex-col justify-between h-full">
-                <div className="flex items-center space-x-2 text-muted-foreground mb-2">
-                  <FileText className="h-4 w-4" />
-                  <span className="text-sm font-medium">Total</span>
-                </div>
-                <div className="text-2xl font-bold">{stats.total}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 flex flex-col justify-between h-full">
-                <div className="flex items-center space-x-2 text-muted-foreground mb-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium">Reconciled</span>
-                </div>
-                <div className="text-2xl font-bold text-green-600">{stats.reconciled}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 flex flex-col justify-between h-full">
-                <div className="flex items-center space-x-2 text-muted-foreground mb-2">
-                  <Clock className="h-4 w-4 text-yellow-500" />
-                  <span className="text-sm font-medium">Pending</span>
-                </div>
-                <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 flex flex-col justify-between h-full">
-                <div className="flex items-center space-x-2 text-muted-foreground mb-2">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                  <span className="text-sm font-medium">Review</span>
-                </div>
-                <div className="text-2xl font-bold text-red-600">{stats.review}</div>
-              </CardContent>
-            </Card>
-
-            <Card className="col-span-2 md:col-span-1">
-              <CardContent className="p-4 flex flex-col justify-between h-full">
-                <div className="flex items-center space-x-2 text-muted-foreground mb-2">
-                  <TrendingUp className="h-4 w-4 text-cyan-600" />
-                  <span className="text-sm font-medium">Total Debit</span>
-                </div>
-                <div className="text-lg font-bold text-cyan-700">${stats.totalDebit.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-
-            <Card className="col-span-2 md:col-span-1">
-              <CardContent className="p-4 flex flex-col justify-between h-full">
-                <div className="flex items-center space-x-2 text-muted-foreground mb-2">
-                  <TrendingDown className="h-4 w-4 text-cyan-600" />
-                  <span className="text-sm font-medium">Total Credit</span>
-                </div>
-                <div className="text-lg font-bold text-cyan-700">${stats.totalCredit.toLocaleString()}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            {/* Filters */}
-            <TransactionFilters
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              resultCount={filteredTransactions.length}
-            />
-
-            {/* Bulk Actions */}
-            {selectedTransactions.length > 0 && (
-              <BulkActions
-                selectedCount={selectedTransactions.length}
-                onBulkAction={handleBulkAction}
-                onClearSelection={() => setSelectedTransactions([])}
-              />
-            )}
-
-            {/* Main Content */}
-            <div className="grid grid-cols-1 gap-6">
-              <TransactionTable
-                transactions={filteredTransactions}
-                selectedTransactions={selectedTransactions}
-                onTransactionSelect={handleTransactionSelect}
-                onTransactionClick={handleTransactionClick}
-              />
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => navigate('/transactions-management/reports')}>
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Reports
+            </Button>
+            <Button variant="outline" onClick={handleExport}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+            <Button onClick={() => setShowAddModal(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Transaction
+            </Button>
           </div>
         </div>
-      
-      {/* Transaction Details Panel */}
-      <TransactionDetails
-        transaction={selectedTransaction}
-        onClose={() => setSelectedTransaction(null)}
-      />
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Total Transactions</p>
+                  <p className="text-2xl font-bold">{transactions.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Total Debits</p>
+                  <p className="text-2xl font-bold font-mono text-green-600">
+                    ${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
+                  <TrendingDown className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Total Credits</p>
+                  <p className="text-2xl font-bold font-mono text-red-600">
+                    ${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4 flex flex-col justify-between h-full">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${netBalance >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-orange-100 dark:bg-orange-900/30'}`}>
+                  <DollarSign className={`h-5 w-5 ${netBalance >= 0 ? 'text-emerald-600' : 'text-orange-600'}`} />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Net Balance</p>
+                  <p className={`text-2xl font-bold font-mono ${netBalance >= 0 ? 'text-emerald-600' : 'text-orange-600'}`}>
+                    {netBalance >= 0 ? '' : '-'}${Math.abs(netBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          {/* Filters */}
+          <TransactionFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            resultCount={transactions.length}
+          />
+
+          {/* Main Content */}
+          <div className="grid grid-cols-1 gap-6">
+            {loading ? (
+              <div className="flex items-center justify-center h-40">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <TransactionTable
+                transactions={transactions}
+                onTransactionClick={handleTransactionClick}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Transaction Details Dialog */}
+      <Dialog open={!!selectedTransaction} onOpenChange={() => setSelectedTransaction(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Transaction Details</DialogTitle>
+            <DialogDescription>
+              {selectedTransaction?.transactionNumber}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedTransaction && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Date</p>
+                  <p className="font-medium">{format(new Date(selectedTransaction.date), 'MMM dd, yyyy')}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Type</p>
+                  <Badge variant="outline" className="capitalize">{selectedTransaction.type}</Badge>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-1">Description</p>
+                <p className="font-medium">{selectedTransaction.description}</p>
+              </div>
+
+              {selectedTransaction.reference && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Reference</p>
+                  <p className="font-medium">{selectedTransaction.reference}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 p-4 rounded-lg border bg-muted/30">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Debit</p>
+                  <p className="text-xl font-bold font-mono text-green-600">
+                    ${parseFloat(selectedTransaction.debit || '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Credit</p>
+                  <p className="text-xl font-bold font-mono text-red-600">
+                    ${parseFloat(selectedTransaction.credit || '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </div>
+
+              {selectedTransaction.notes && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Notes</p>
+                  <p className="text-sm">{selectedTransaction.notes}</p>
+                </div>
+              )}
+
+              <div className="text-xs text-muted-foreground pt-2 border-t">
+                Created {format(new Date(selectedTransaction.createdAt), 'MMM dd, yyyy HH:mm')}
+                {selectedTransaction.creatorName && ` by ${selectedTransaction.creatorName}`}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Add Transaction Modal */}
       {showAddModal && (
