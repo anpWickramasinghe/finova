@@ -223,7 +223,7 @@ const TransactionsManagement = () => {
           </DialogHeader>
           {selectedTransaction && (
             <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground font-medium mb-1">Date</p>
                   <p className="font-medium">{format(new Date(selectedTransaction.date), 'MMM dd, yyyy')}</p>
@@ -231,6 +231,10 @@ const TransactionsManagement = () => {
                 <div>
                   <p className="text-xs text-muted-foreground font-medium mb-1">Type</p>
                   <Badge variant="outline" className="capitalize">{selectedTransaction.type}</Badge>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Status</p>
+                  <Badge variant="outline" className="capitalize">{selectedTransaction.status || 'draft'}</Badge>
                 </div>
               </div>
 
