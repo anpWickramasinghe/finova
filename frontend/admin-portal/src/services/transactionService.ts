@@ -48,6 +48,7 @@ export interface Transaction {
     totalAmount: string;
     notes: string;
     branchId: string;
+    branchName?: string;
     createdBy: string;
     creatorName?: string;
     approvedBy?: string;

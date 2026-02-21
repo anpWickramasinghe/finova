@@ -42,7 +42,9 @@ export const requireAuth = async (req: AuthRequest, res: Response, next: NextFun
 
 export const requireRole = (roles: string[]) => {
     return (req: AuthRequest, res: Response, next: NextFunction) => {
-        if (!req.user || !roles.includes(req.user.role)) {
+        const userRole = req.user?.role?.toLowerCase();
+        const allowedRoles = roles.map(r => r.toLowerCase());
+        if (!userRole || !allowedRoles.includes(userRole)) {
             return res.status(403).json({ message: 'Forbidden: Insufficient role' });
         }
         next();

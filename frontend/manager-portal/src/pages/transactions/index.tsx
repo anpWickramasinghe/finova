@@ -15,7 +15,7 @@ import AddTransactionModal from '../../components/transactions/AddTransactionMod
 import { transactionService, type Transaction } from '@/services/transactionService';
 import {
   Download, Plus, FileText, TrendingUp, TrendingDown,
-  DollarSign, Loader2, BarChart3
+  DollarSign, Loader2, BarChart3, Send, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +26,8 @@ const TransactionsManagement = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState('');
   const [filters, setFilters] = useState({
     type: 'all',
     search: '',
@@ -65,6 +67,25 @@ const TransactionsManagement = () => {
   const handleAddTransaction = () => {
     setShowAddModal(false);
     loadTransactions();
+  };
+
+  const handleAction = async (action: 'submit' | 'post') => {
+    if (!selectedTransaction) return;
+    setActionLoading(true);
+    setActionError('');
+    try {
+      if (action === 'submit') {
+        await transactionService.submitTransaction(selectedTransaction.id);
+      } else if (action === 'post') {
+        await transactionService.postTransaction(selectedTransaction.id);
+      }
+      setSelectedTransaction(null);
+      loadTransactions();
+    } catch (err: any) {
+      setActionError(err.response?.data?.message || `Failed to ${action} transaction`);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleExport = () => {
@@ -213,7 +234,7 @@ const TransactionsManagement = () => {
       </div>
 
       {/* Transaction Details Dialog */}
-      <Dialog open={!!selectedTransaction} onOpenChange={() => setSelectedTransaction(null)}>
+      <Dialog open={!!selectedTransaction} onOpenChange={() => { setSelectedTransaction(null); setActionError(''); }}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Transaction Details</DialogTitle>
@@ -223,7 +244,7 @@ const TransactionsManagement = () => {
           </DialogHeader>
           {selectedTransaction && (
             <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground font-medium mb-1">Date</p>
                   <p className="font-medium">{format(new Date(selectedTransaction.date), 'MMM dd, yyyy')}</p>
@@ -231,6 +252,10 @@ const TransactionsManagement = () => {
                 <div>
                   <p className="text-xs text-muted-foreground font-medium mb-1">Type</p>
                   <Badge variant="outline" className="capitalize">{selectedTransaction.type}</Badge>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Status</p>
+                  <Badge variant="outline" className="capitalize">{selectedTransaction.status || 'draft'}</Badge>
                 </div>
               </div>
 
@@ -266,6 +291,63 @@ const TransactionsManagement = () => {
                   <p className="text-xs text-muted-foreground font-medium mb-1">Notes</p>
                   <p className="text-sm">{selectedTransaction.notes}</p>
                 </div>
+              )}
+
+              {/* Rejection reason banner */}
+              {selectedTransaction.status === 'rejected' && (selectedTransaction as any).rejectionReason && (
+                <div className="flex items-start gap-2 p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 text-red-700 text-sm">
+                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-medium">Rejected</p>
+                    <p className="text-xs mt-0.5">{(selectedTransaction as any).rejectionReason}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Pending approval info */}
+              {selectedTransaction.status === 'pending_approval' && (
+                <div className="flex items-center gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 text-amber-700 text-sm">
+                  <Loader2 className="h-4 w-4 shrink-0" />
+                  <p>Waiting for admin approval.</p>
+                </div>
+              )}
+
+              {/* Posted confirmation */}
+              {(selectedTransaction.status === 'posted' || selectedTransaction.status === 'reconciled') && (
+                <div className="flex items-center gap-2 p-3 rounded-md bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 text-emerald-700 text-sm">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <p>This transaction has been posted to the ledger.</p>
+                </div>
+              )}
+
+              {/* Action error */}
+              {actionError && (
+                <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded-md border border-red-200">
+                  {actionError}
+                </div>
+              )}
+
+              {/* Action buttons */}
+              {(selectedTransaction.status === 'draft' || selectedTransaction.status === 'rejected') && (
+                <Button
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+                  onClick={() => handleAction('submit')}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                  Submit for Approval
+                </Button>
+              )}
+
+              {selectedTransaction.status === 'approved' && (
+                <Button
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={() => handleAction('post')}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                  Post to Ledger
+                </Button>
               )}
 
               <div className="text-xs text-muted-foreground pt-2 border-t">

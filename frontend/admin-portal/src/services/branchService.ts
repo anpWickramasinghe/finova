@@ -5,8 +5,12 @@ import type { Branch } from '../pages/branch-management/types';
 const API_URL = import.meta.env.VITE_API_URL;
 
 const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user?.token) return { Authorization: `Bearer ${user.token}` };
+    }
+    return {};
 };
 
 export const branchService = {
