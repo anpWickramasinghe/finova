@@ -28,10 +28,12 @@ export const getTransactions = async (req: AuthRequest, res: Response) => {
         const userBranchId = req.user?.branchId;
 
         const conditions: any[] = [];
+
         // Admins see all branches; other roles are scoped to their own branch
         const userRole = req.user?.role?.toLowerCase();
         const isAdmin = userRole === 'admin';
         if (!isAdmin && userBranchId) conditions.push(eq(transaction.branchId, userBranchId));
+
         if (status && status !== 'all') conditions.push(eq(transaction.status, status as string));
         if (type && type !== 'all') conditions.push(eq(transaction.type, type as string));
         if (startDate && endDate) {
