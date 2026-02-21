@@ -28,13 +28,14 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { transactionService, type Transaction } from '@/services/transactionService';
 import { branchService } from '@/services/branchService';
 import type { Branch } from '@/pages/branch-management/types';
 import {
   Loader2, CheckCircle2, XCircle, BookOpen,
-  FileText, Clock, AlertCircle, Search, Filter,
-  Building2, ChevronDown, ChevronRight,
+  FileText, Clock, AlertCircle, Search, 
+  Building2, SlidersHorizontal,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -62,7 +63,6 @@ const StatusBadge = ({ status }: { status: string }) => (
   </Badge>
 );
 
-// Merge all branches with their transactions (empty branches included)
 function mergeWithBranches(
   branches: Branch[],
   txns: Transaction[]
@@ -82,75 +82,92 @@ function mergeWithBranches(
     .sort((a, b) => a.branchName.localeCompare(b.branchName));
 }
 
-// ─── Branch Section ──────────────────────────────────────────────────────────
+// ─── Branch Tab Content ──────────────────────────────────────────────────────
 
-interface BranchSectionProps {
-  branchName: string;
+interface BranchTabContentProps {
   transactions: Transaction[];
   onRowClick: (txn: Transaction) => void;
+  tabSearch: string;
 }
 
-const BranchSection = ({ branchName, transactions, onRowClick }: BranchSectionProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+const BranchTabContent = ({ transactions, onRowClick, tabSearch }: BranchTabContentProps) => {
+  const filtered = tabSearch
+    ? transactions.filter(
+      t =>
+        t.description?.toLowerCase().includes(tabSearch.toLowerCase()) ||
+        t.transactionNumber?.toLowerCase().includes(tabSearch.toLowerCase()) ||
+        t.reference?.toLowerCase().includes(tabSearch.toLowerCase())
+    )
+    : transactions;
 
-  const pending = transactions.filter(t => t.status === 'pending_approval').length;
-  const totalAmount = transactions.reduce((sum, t) => sum + parseFloat(t.totalAmount || '0'), 0);
+  const totalAmount = filtered.reduce((s, t) => s + parseFloat(t.totalAmount || '0'), 0);
+  const pending = filtered.filter(t => t.status === 'pending_approval').length;
+  const posted = filtered.filter(t => t.status === 'posted').length;
+
+  if (transactions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+        <div className="p-4 rounded-full bg-muted/50">
+          <Building2 className="h-8 w-8 opacity-40" />
+        </div>
+        <p className="text-sm font-medium">No transactions for this branch</p>
+        <p className="text-xs opacity-60">Transactions will appear here once created</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="rounded-lg border bg-card overflow-hidden">
-      {/* Branch header */}
-      <button
-        className="w-full flex items-center justify-between px-4 py-3 bg-muted/40 hover:bg-muted/60 transition-colors text-left"
-        onClick={() => setCollapsed(c => !c)}
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-1.5 rounded-md bg-primary/10">
-            <Building2 className="h-4 w-4 text-primary" />
-          </div>
+    <div className="space-y-4">
+      {/* Branch mini stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-lg border bg-amber-50/60 dark:bg-amber-900/10 px-4 py-3 flex items-center gap-3">
+          <Clock className="h-4 w-4 text-amber-500 shrink-0" />
           <div>
-            <span className="font-semibold text-sm">{branchName}</span>
-            <span className="ml-3 text-xs text-muted-foreground">{transactions.length} transaction{transactions.length !== 1 ? 's' : ''}</span>
+            <p className="text-xs text-muted-foreground font-medium">Pending</p>
+            <p className="text-lg font-bold text-amber-600">{pending}</p>
           </div>
-          {pending > 0 && (
-            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs ml-1">
-              {pending} pending
-            </Badge>
-          )}
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-mono font-medium text-muted-foreground">
-            ${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </span>
-          {collapsed
-            ? <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            : <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          }
+        <div className="rounded-lg border bg-emerald-50/60 dark:bg-emerald-900/10 px-4 py-3 flex items-center gap-3">
+          <BookOpen className="h-4 w-4 text-emerald-500 shrink-0" />
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Posted</p>
+            <p className="text-lg font-bold text-emerald-600">{posted}</p>
+          </div>
         </div>
-      </button>
+        <div className="rounded-lg border bg-card px-4 py-3 flex items-center gap-3">
+          <FileText className="h-4 w-4 text-primary/60 shrink-0" />
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Total Volume</p>
+            <p className="text-lg font-bold font-mono">
+              ${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+        </div>
+      </div>
 
-      {/* Table */}
-      {!collapsed && (
-        transactions.length === 0 ? (
-          <div className="px-4 py-6 text-center text-sm text-muted-foreground border-t">
-            No transactions for this branch.
-          </div>
-        ) : (
+      {/* Transactions table */}
+      {filtered.length === 0 ? (
+        <div className="rounded-lg border bg-card py-10 text-center text-sm text-muted-foreground">
+          No transactions match your search.
+        </div>
+      ) : (
+        <div className="rounded-lg border overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/20">
-                <TableHead className="text-xs">TXN #</TableHead>
-                <TableHead className="text-xs">Date</TableHead>
-                <TableHead className="text-xs">Description</TableHead>
-                <TableHead className="text-xs">Type</TableHead>
-                <TableHead className="text-xs">Status</TableHead>
-                <TableHead className="text-right text-xs">Amount</TableHead>
+              <TableRow className="bg-muted/30">
+                <TableHead className="text-xs font-semibold">TXN #</TableHead>
+                <TableHead className="text-xs font-semibold">Date</TableHead>
+                <TableHead className="text-xs font-semibold">Description</TableHead>
+                <TableHead className="text-xs font-semibold">Type</TableHead>
+                <TableHead className="text-xs font-semibold">Status</TableHead>
+                <TableHead className="text-right text-xs font-semibold">Amount</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map(txn => (
+              {filtered.map(txn => (
                 <TableRow
                   key={txn.id}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  className="cursor-pointer hover:bg-muted/40 transition-colors"
                   onClick={() => onRowClick(txn)}
                 >
                   <TableCell className="font-mono text-xs text-muted-foreground">
@@ -182,9 +199,8 @@ const BranchSection = ({ branchName, transactions, onRowClick }: BranchSectionPr
               ))}
             </TableBody>
           </Table>
-        )
+        </div>
       )}
-
     </div>
   );
 };
@@ -201,16 +217,17 @@ const TransactionsManagement = () => {
   const [actionError, setActionError] = useState('');
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [activeTab, setActiveTab] = useState<string>('');
+  const [tabSearch, setTabSearch] = useState('');
 
   const [filters, setFilters] = useState({
     status: 'all',
     type: 'all',
-    search: '',
   });
 
   useEffect(() => {
     loadTransactions();
-  }, [filters.status, filters.type, filters.search]);
+  }, [filters.status, filters.type]);
 
   const loadTransactions = async () => {
     setLoading(true);
@@ -219,7 +236,6 @@ const TransactionsManagement = () => {
         transactionService.getTransactions({
           status: filters.status !== 'all' ? filters.status : undefined,
           type: filters.type !== 'all' ? filters.type : undefined,
-          search: filters.search || undefined,
         }),
         branchService.getAllBranches(),
       ]);
@@ -297,24 +313,41 @@ const TransactionsManagement = () => {
     }
   };
 
-  // ── Stats ──
-  const pending = transactions.filter(t => t.status === 'pending_approval').length;
-  const approved = transactions.filter(t => t.status === 'approved').length;
-  const posted = transactions.filter(t => t.status === 'posted').length;
+  // ── Stats (global) ──
+  const globalPending = transactions.filter(t => t.status === 'pending_approval').length;
+  const globalApproved = transactions.filter(t => t.status === 'approved').length;
+  const globalPosted = transactions.filter(t => t.status === 'posted').length;
 
   const branchGroups = mergeWithBranches(branches, transactions);
+
+  // set default tab once loaded
+  useEffect(() => {
+    if (!activeTab && branchGroups.length > 0) {
+      setActiveTab(branchGroups[0].branchId);
+    }
+  }, [branchGroups.length]);
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
       <div className="p-6 space-y-6">
 
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-1">Transaction Review</h1>
-          <p className="text-muted-foreground">Approve, reject, and post branch transactions to the ledger.</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight mb-1">Transaction Review</h1>
+            <p className="text-muted-foreground">
+              Review, approve, reject, and post branch transactions to the ledger.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border rounded-lg px-3 py-2">
+            <Building2 className="h-3.5 w-3.5" />
+            <span>{branchGroups.length} branch{branchGroups.length !== 1 ? 'es' : ''}</span>
+            <span className="text-border">·</span>
+            <span>{transactions.length} transaction{transactions.length !== 1 ? 's' : ''}</span>
+          </div>
         </div>
 
-        {/* Stats */}
+        {/* Global Stats */}
         <div className="grid grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
@@ -323,7 +356,7 @@ const TransactionsManagement = () => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground font-medium">Pending Approval</p>
-                <p className="text-2xl font-bold text-amber-600">{pending}</p>
+                <p className="text-2xl font-bold text-amber-600">{globalPending}</p>
               </div>
             </CardContent>
           </Card>
@@ -334,7 +367,7 @@ const TransactionsManagement = () => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground font-medium">Approved (Unposted)</p>
-                <p className="text-2xl font-bold text-blue-600">{approved}</p>
+                <p className="text-2xl font-bold text-blue-600">{globalApproved}</p>
               </div>
             </CardContent>
           </Card>
@@ -345,41 +378,33 @@ const TransactionsManagement = () => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground font-medium">Posted to Ledger</p>
-                <p className="text-2xl font-bold text-emerald-600">{posted}</p>
+                <p className="text-2xl font-bold text-emerald-600">{globalPosted}</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filters */}
+        {/* Filters row */}
         <div className="flex flex-wrap gap-3 items-center">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search transactions..."
-              className="pl-9"
-              value={filters.search}
-              onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
-            />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <SlidersHorizontal className="h-4 w-4 shrink-0" />
+            <span className="font-medium">Filters:</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
-            <Select value={filters.status} onValueChange={v => setFilters(f => ({ ...f, status: v }))}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending_approval">Pending Approval</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="posted">Posted</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="reconciled">Reconciled</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Select value={filters.type} onValueChange={v => setFilters(f => ({ ...f, type: v }))}>
+          <Select value={filters.status} onValueChange={v => { setFilters(f => ({ ...f, status: v })); setTabSearch(''); }}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending_approval">Pending Approval</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="posted">Posted</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="reconciled">Reconciled</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filters.type} onValueChange={v => { setFilters(f => ({ ...f, type: v })); setTabSearch(''); }}>
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
@@ -391,32 +416,69 @@ const TransactionsManagement = () => {
               <SelectItem value="transfer">Transfer</SelectItem>
             </SelectContent>
           </Select>
-          <span className="text-sm text-muted-foreground ml-auto">
-            {branchGroups.length} branch{branchGroups.length !== 1 ? 'es' : ''} · {transactions.length} transaction{transactions.length !== 1 ? 's' : ''}
-          </span>
+
+          {/* Per-branch search */}
+          <div className="relative ml-auto min-w-[220px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search in branch..."
+              className="pl-9"
+              value={tabSearch}
+              onChange={e => setTabSearch(e.target.value)}
+            />
+          </div>
         </div>
 
-        {/* Branch-grouped tables */}
+        {/* Branch tabs */}
         {loading ? (
-          <div className="flex items-center justify-center h-40">
+          <div className="flex items-center justify-center h-60">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : branchGroups.length === 0 ? (
-          <div className="rounded-lg border bg-card flex flex-col items-center justify-center h-40 text-muted-foreground gap-2">
-            <Building2 className="h-8 w-8" />
-            <p className="text-sm">No transactions found.</p>
+          <div className="rounded-lg border bg-card flex flex-col items-center justify-center h-60 text-muted-foreground gap-3">
+            <Building2 className="h-10 w-10 opacity-30" />
+            <p className="text-sm font-medium">No branches or transactions found</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <Tabs value={activeTab} onValueChange={v => { setActiveTab(v); setTabSearch(''); }}>
+            {/* Tab list — scrollable if many branches */}
+            <div className="border-b overflow-x-auto">
+              <TabsList className="h-auto bg-transparent p-0 w-max">
+                {branchGroups.map(group => {
+                  const pendingCount = group.transactions.filter(t => t.status === 'pending_approval').length;
+                  return (
+                    <TabsTrigger
+                      key={group.branchId}
+                      value={group.branchId}
+                      className="relative flex items-center gap-2 rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                    >
+                      <Building2 className="h-3.5 w-3.5 shrink-0" />
+                      <span>{group.branchName}</span>
+                      <span className="text-xs text-muted-foreground/60 tabular-nums">
+                        ({group.transactions.length})
+                      </span>
+                      {pendingCount > 0 && (
+                        <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white leading-none">
+                          {pendingCount}
+                        </span>
+                      )}
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </div>
+
+            {/* Tab contents */}
             {branchGroups.map(group => (
-              <BranchSection
-                key={group.branchId}
-                branchName={group.branchName}
-                transactions={group.transactions}
-                onRowClick={handleRowClick}
-              />
+              <TabsContent key={group.branchId} value={group.branchId} className="mt-5 focus-visible:outline-none">
+                <BranchTabContent
+                  transactions={group.transactions}
+                  onRowClick={handleRowClick}
+                  tabSearch={tabSearch}
+                />
+              </TabsContent>
             ))}
-          </div>
+          </Tabs>
         )}
       </div>
 
@@ -482,7 +544,7 @@ const TransactionsManagement = () => {
                 )}
               </div>
 
-              {/* Journal lines (if loaded) */}
+              {/* Journal lines */}
               {selected.journalLines && selected.journalLines.length > 0 && (
                 <div>
                   <p className="text-xs text-muted-foreground font-medium mb-2 flex items-center gap-1">
@@ -543,7 +605,7 @@ const TransactionsManagement = () => {
                 </div>
               )}
 
-              {/* ── Action Buttons ── */}
+              {/* Action Buttons */}
               {selected.status === 'pending_approval' && (
                 <div className="flex gap-2 pt-1">
                   <Button
