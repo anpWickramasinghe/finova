@@ -226,4 +226,32 @@ export const transactionService = {
         });
         return response.data;
     },
+
+    // Submit a draft transaction for approval
+    submitTransaction: async (id: string): Promise<void> => {
+        await axios.post(`${API_URL}/transactions/${id}/submit`, {}, {
+            headers: getAuthHeader(),
+        });
+    },
+
+    // Approve a pending transaction (admin / maker-checker)
+    approveTransaction: async (id: string): Promise<void> => {
+        await axios.post(`${API_URL}/transactions/${id}/approve`, {}, {
+            headers: getAuthHeader(),
+        });
+    },
+
+    // Reject a pending transaction with a reason
+    rejectTransaction: async (id: string, reason: string): Promise<void> => {
+        await axios.post(`${API_URL}/transactions/${id}/reject`, { reason }, {
+            headers: getAuthHeader(),
+        });
+    },
+
+    // Post an approved transaction to the ledger
+    postTransaction: async (id: string): Promise<void> => {
+        await axios.post(`${API_URL}/transactions/${id}/post`, {}, {
+            headers: getAuthHeader(),
+        });
+    },
 };
