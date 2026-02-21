@@ -13,6 +13,12 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
+import {
     Loader2,
     Users,
     UserCheck,
@@ -22,8 +28,10 @@ import {
     Mail,
     Phone,
     Briefcase,
+    MapPin,
+    CreditCard,
+    Hash,
 } from 'lucide-react';
-
 
 function getInitials(name: string) {
     return name
@@ -39,8 +47,6 @@ const STATUS_STYLES: Record<string, string> = {
     Inactive: 'bg-slate-100 text-slate-600 border-slate-200',
     Suspended: 'bg-red-50 text-red-700 border-red-200',
 };
-
-
 
 interface StatCardProps {
     label: string;
@@ -62,22 +68,39 @@ const StatCard = ({ label, value, icon, iconBg, valueColor }: StatCardProps) => 
     </Card>
 );
 
-const EmployeeAvatar = ({ employee }: { employee: Employee }) => {
+const EmployeeAvatar = ({ employee, size = 'sm' }: { employee: Employee; size?: 'sm' | 'lg' }) => {
+    const dim = size === 'lg' ? 'w-16 h-16 text-xl' : 'w-8 h-8 text-xs';
     if (employee.avatar) {
         return (
             <img
                 src={employee.avatar}
                 alt={employee.name}
-                className="w-8 h-8 rounded-full object-cover"
+                className={`${dim} rounded-full object-cover`}
             />
         );
     }
     return (
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
+        <div className={`${dim} rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary`}>
             {getInitials(employee.name)}
         </div>
     );
 };
+
+interface DetailRowProps {
+    icon: React.ReactNode;
+    label: string;
+    value: string | null | undefined;
+}
+
+const DetailRow = ({ icon, label, value }: DetailRowProps) => (
+    <div className="flex items-start gap-3 py-3 border-b last:border-0">
+        <div className="mt-0.5 text-muted-foreground shrink-0">{icon}</div>
+        <div className="min-w-0">
+            <p className="text-xs text-muted-foreground font-medium mb-0.5">{label}</p>
+            <p className="text-sm font-medium break-all">{value ?? <span className="text-muted-foreground italic">—</span>}</p>
+        </div>
+    </div>
+);
 
 const UserManagement = () => {
     const { user } = useAuth();
@@ -88,6 +111,7 @@ const UserManagement = () => {
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'Active' | 'Inactive'>('all');
+    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
     useEffect(() => {
         if (!branchId) return;
@@ -116,7 +140,7 @@ const UserManagement = () => {
             statusFilter === 'all' ? true : e.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
- 
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -131,6 +155,7 @@ const UserManagement = () => {
     return (
         <div className="min-h-screen bg-background font-sans text-foreground">
             <div className="p-6 space-y-7 max-w-[1400px]">
+
                 <div>
                     <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
                         <Building2 className="h-4 w-4" />
@@ -142,14 +167,12 @@ const UserManagement = () => {
                     </p>
                 </div>
 
-                {/* ── Error ── */}
                 {error && (
                     <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700">
                         {error}
                     </div>
                 )}
 
-                {/* ── Stat Cards ── */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <StatCard
                         label="Total Employees"
@@ -172,7 +195,6 @@ const UserManagement = () => {
                     />
                 </div>
 
-                {/* ── Filters ── */}
                 <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1 max-w-sm">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -199,7 +221,6 @@ const UserManagement = () => {
                     </div>
                 </div>
 
-                {/* ── Table ── */}
                 <Card>
                     <CardContent className="p-0">
                         {filtered.length === 0 ? (
@@ -238,9 +259,9 @@ const UserManagement = () => {
                                     {filtered.map((emp) => (
                                         <TableRow
                                             key={emp.id}
-                                            className="hover:bg-muted/30 transition-colors"
+                                            className="hover:bg-muted/30 transition-colors cursor-pointer"
+                                            onClick={() => setSelectedEmployee(emp)}
                                         >
-                                            {/* Employee */}
                                             <TableCell className="pl-5">
                                                 <div className="flex items-center gap-3">
                                                     <EmployeeAvatar employee={emp} />
@@ -257,12 +278,10 @@ const UserManagement = () => {
                                                 </div>
                                             </TableCell>
 
-                                            {/* Email */}
                                             <TableCell className="text-sm text-muted-foreground">
                                                 {emp.email}
                                             </TableCell>
 
-                                            {/* Role / Designation */}
                                             <TableCell>
                                                 <div className="flex flex-col">
                                                     {emp.role && (
@@ -281,12 +300,10 @@ const UserManagement = () => {
                                                 </div>
                                             </TableCell>
 
-                                            {/* Phone */}
                                             <TableCell className="text-sm text-muted-foreground">
                                                 {emp.phone ?? '—'}
                                             </TableCell>
 
-                                            {/* Status */}
                                             <TableCell className="pr-5">
                                                 <Badge
                                                     variant="outline"
@@ -301,17 +318,104 @@ const UserManagement = () => {
                                 </TableBody>
                             </Table>
                         )}
-                        {/* Footer row count */}
                         {filtered.length > 0 && (
                             <div className="px-5 py-3 border-t text-xs text-muted-foreground">
                                 Showing {filtered.length} of {employees.length} employee
                                 {employees.length !== 1 ? 's' : ''}
+                                {' '}· Click a row to view details
                             </div>
                         )}
                     </CardContent>
                 </Card>
 
             </div>
+
+            {/* ── Employee Detail Sheet ── */}
+            <Sheet open={!!selectedEmployee} onOpenChange={(open) => { if (!open) setSelectedEmployee(null); }}>
+                <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                    {selectedEmployee && (
+                        <>
+                            <SheetHeader className="pb-4 border-b">
+                                <div className="flex items-center gap-4">
+                                    <EmployeeAvatar employee={selectedEmployee} size="lg" />
+                                    <div>
+                                        <SheetTitle className="text-xl leading-tight">
+                                            {selectedEmployee.name}
+                                        </SheetTitle>
+                                        <p className="text-sm text-muted-foreground mt-0.5">
+                                            {selectedEmployee.designation ?? selectedEmployee.role ?? 'Employee'}
+                                        </p>
+                                        <Badge
+                                            variant="outline"
+                                            className={`mt-1.5 text-xs ${STATUS_STYLES[selectedEmployee.status] ?? STATUS_STYLES['Inactive']}`}
+                                        >
+                                            {selectedEmployee.status}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </SheetHeader>
+
+                            <div className="mt-4 space-y-1">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                                    Contact Information
+                                </p>
+                                <DetailRow
+                                    icon={<Mail className="h-4 w-4" />}
+                                    label="Email"
+                                    value={selectedEmployee.email}
+                                />
+                                <DetailRow
+                                    icon={<Phone className="h-4 w-4" />}
+                                    label="Phone"
+                                    value={selectedEmployee.phone}
+                                />
+                                <DetailRow
+                                    icon={<MapPin className="h-4 w-4" />}
+                                    label="Address"
+                                    value={selectedEmployee.address}
+                                />
+                            </div>
+
+                            <div className="mt-6 space-y-1">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                                    Work Details
+                                </p>
+                                <DetailRow
+                                    icon={<Briefcase className="h-4 w-4" />}
+                                    label="Role"
+                                    value={selectedEmployee.role}
+                                />
+                                <DetailRow
+                                    icon={<Briefcase className="h-4 w-4" />}
+                                    label="Designation"
+                                    value={selectedEmployee.designation}
+                                />
+                                <DetailRow
+                                    icon={<Hash className="h-4 w-4" />}
+                                    label="Branch ID"
+                                    value={selectedEmployee.branchId}
+                                />
+                                <DetailRow
+                                    icon={<Hash className="h-4 w-4" />}
+                                    label="Employee ID"
+                                    value={selectedEmployee.id}
+                                />
+                            </div>
+
+                            <div className="mt-6 space-y-1">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                                    Identity
+                                </p>
+                                <DetailRow
+                                    icon={<CreditCard className="h-4 w-4" />}
+                                    label="NIC"
+                                    value={selectedEmployee.nic}
+                                />
+                            </div>
+                        </>
+                    )}
+                </SheetContent>
+            </Sheet>
         </div>
     );
 };
