@@ -11,7 +11,7 @@ const getAuthHeader = () => {
 // Get all payroll records
 export const getPayrollRecords = async (month?: string, year?: string) => {
     try {
-        const response = await axios.get(`${API_URL}/admin/payroll`, {
+        const response = await axios.get(`${API_URL}/payroll`, {
             headers: getAuthHeader(),
             params: { month, year }
         });
@@ -24,7 +24,7 @@ export const getPayrollRecords = async (month?: string, year?: string) => {
 // Generate payroll
 export const generatePayroll = async (userId: string, month: string, year: string) => {
     try {
-        const response = await axios.post(`${API_URL}/admin/payroll/generate`,
+        const response = await axios.post(`${API_URL}/payroll/generate`,
             { userId, month, year },
             { headers: getAuthHeader() }
         );

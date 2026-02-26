@@ -1,287 +1,160 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
-import { Banknote, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { getPayrollRecords, generatePayroll } from '../../services/payrollService';
-import { getUsers } from '../../services/userService';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RefreshCw, PlayCircle, Settings, Users, Calculator } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'sonner';
 
-const PayrollPage = () => {
+import PayrollStatsCards from './components/PayrollStatsCards';
+import PayrollTable from './components/PayrollTable';
+import PayrollDetailDrawer from './components/PayrollDetailDrawer';
+import GeneratePayrollWizard from './components/GeneratePayrollWizard';
+import CompensationConfigurator from './components/CompensationConfigurator';
+import EmployeeSalaryMapping from './components/EmployeeSalaryMapping';
+
+const API_URL = import.meta.env.VITE_API_URL;
+const getAuthHeader = () => {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+export default function PayrollPage() {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+
+    // Data States
     const [records, setRecords] = useState<any[]>([]);
+    const [employees, setEmployees] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Filters
     const [month, setMonth] = useState<string>(String(new Date().getMonth() + 1));
     const [year, setYear] = useState<string>(String(new Date().getFullYear()));
 
-    const [users, setUsers] = useState<any[]>([]);
-    const [selectedUser, setSelectedUser] = useState<string>('');
-    const [generateMonth, setGenerateMonth] = useState<string>(String(new Date().getMonth() + 1));
-    const [generateYear, setGenerateYear] = useState<string>(String(new Date().getFullYear()));
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
+    // UI States
+    const [isWizardOpen, setIsWizardOpen] = useState(false);
+    const [selectedPayrollId, setSelectedPayrollId] = useState<string | null>(null);
 
-    const currentUser = {
-        name: "Admin",
-        email: "admin@finova.com",
-        role: "Admin",
-        avatar: "" // Placeholder
-    };
+    const currentUser = { name: "Admin", email: "admin@finova.com", role: "Admin", avatar: "" };
 
-    const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed);
-
-    useEffect(() => {
-        fetchRecords();
-        fetchUsers();
-    }, [month, year]);
-
-    const fetchRecords = async () => {
+    const loadRecords = useCallback(async () => {
+        setIsLoading(true);
         try {
-            setIsLoading(true);
-            const data = await getPayrollRecords(month, year);
-            setRecords(data);
-        } catch (error) {
-            console.error("Failed to fetch payroll records", error);
+            const res = await axios.get(`${API_URL}/payroll?month=${month}&year=${year}`, { headers: getAuthHeader() });
+            setRecords(res.data);
+        } catch {
+            toast.error('Failed to load records');
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [month, year]);
 
-    const fetchUsers = async () => {
+    const loadUsers = useCallback(async () => {
         try {
-            const data = await getUsers();
-            setUsers(data);
-        } catch (error) {
-            console.error("Failed to fetch users", error);
+            const res = await axios.get(`${API_URL}/admin/users`, { headers: getAuthHeader() });
+            setEmployees(res.data || []);
+        } catch {
+            // ignore error for fetching users
         }
-    };
+    }, []);
 
-    const handleGenerate = async () => {
-        if (!selectedUser || !generateMonth || !generateYear) return;
-        try {
-            setIsGenerating(true);
-            await generatePayroll(selectedUser, generateMonth, generateYear);
-            setIsGenerateDialogOpen(false);
-            fetchRecords(); // Refresh list
-            alert("Payroll generated successfully!");
-        } catch (error: any) {
-            console.error("Failed to generate payroll", error);
-            alert(`Error: ${error.message || 'Unknown error'}`);
-        } finally {
-            setIsGenerating(false);
-        }
-    };
+    useEffect(() => { loadRecords(); }, [loadRecords]);
+    useEffect(() => { loadUsers(); }, [loadUsers]);
 
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
     const years = [2024, 2025, 2026];
 
     return (
         <div className="min-h-screen bg-background">
-            <Header
-                user={currentUser}
-                onMenuToggle={toggleSidebar}
-                sidebarCollapsed={sidebarCollapsed}
-            />
-
-            <Sidebar
-                collapsed={sidebarCollapsed}
-                onToggle={toggleSidebar}
-                userRole="partner"
-            />
+            <Header user={currentUser} onMenuToggle={() => setSidebarCollapsed(!sidebarCollapsed)} sidebarCollapsed={sidebarCollapsed} />
+            <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} userRole="admin" />
 
             <main className={`pt-header-height nav-transition ${sidebarCollapsed ? 'lg:pl-sidebar-collapsed' : 'lg:pl-sidebar-width'}`}>
-                <div className="p-6">
-                    <div className="flex flex-col mb-6 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                            <h1 className="mb-2 text-3xl font-bold font-heading text-text-primary">Payroll Management</h1>
-                            <p className="text-text-secondary">Manage and generate employee payroll records.</p>
-                        </div>
-                        <div className="mt-4 lg:mt-0">
-                            <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button className="bg-primary text-white hover:bg-primary-700">
-                                        <Banknote className="mr-2 h-4 w-4" />
-                                        Generate Payroll
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Generate Payroll</DialogTitle>
-                                        <DialogDescription>
-                                            Select an employee and period to generate payroll.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="grid gap-4 py-4">
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="user" className="text-right">
-                                                Employee
-                                            </Label>
-                                            <Select onValueChange={setSelectedUser} value={selectedUser}>
-                                                <SelectTrigger className="col-span-3">
-                                                    <SelectValue placeholder="Select Employee" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {users.map(u => (
-                                                        <SelectItem key={u.id} value={u.id}>
-                                                            {u.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="month" className="text-right">
-                                                Month
-                                            </Label>
-                                            <Select onValueChange={setGenerateMonth} value={String(generateMonth)}>
-                                                <SelectTrigger className="col-span-3">
-                                                    <SelectValue placeholder="Select Month" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {months.map(m => (
-                                                        <SelectItem key={m} value={String(m)}>
-                                                            {new Date(0, m - 1).toLocaleString('default', { month: 'long' })}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="year" className="text-right">
-                                                Year
-                                            </Label>
-                                            <Select onValueChange={setGenerateYear} value={String(generateYear)}>
-                                                <SelectTrigger className="col-span-3">
-                                                    <SelectValue placeholder="Select Year" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {years.map(y => (
-                                                        <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                    <DialogFooter>
-                                        <Button variant="outline" onClick={() => setIsGenerateDialogOpen(false)}>Cancel</Button>
-                                        <Button onClick={handleGenerate} disabled={isGenerating}>
-                                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                            Generate
-                                        </Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                    </div>
+                <div className="p-6 max-w-7xl mx-auto">
 
-                    <div className="mb-6 bg-surface p-4 rounded-lg border border-border flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">Filter by Period:</span>
-                            <Select onValueChange={setMonth} value={month}>
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Select Month" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {months.map(m => (
-                                        <SelectItem key={m} value={String(m)}>
-                                            {new Date(0, m - 1).toLocaleString('default', { month: 'long' })}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Select onValueChange={setYear} value={year}>
-                                <SelectTrigger className="w-[120px]">
-                                    <SelectValue placeholder="Select Year" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {years.map(y => (
-                                        <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Button variant="ghost" size="icon" onClick={() => fetchRecords()}>
-                                <RefreshCw className="h-4 w-4" />
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+                        <div>
+                            <h1 className="text-3xl font-bold font-heading text-text-primary mb-1">Payroll Management</h1>
+                            <p className="text-text-secondary">Process monthly comp, configure rules, and manage ledger integrations.</p>
+                        </div>
+                        <div className="mt-4 md:mt-0 flex gap-3">
+                            <Button className="bg-primary text-white" onClick={() => setIsWizardOpen(true)}>
+                                <PlayCircle className="w-4 h-4 mr-2" /> Run Engine
                             </Button>
                         </div>
                     </div>
 
-                    <div className="rounded-md border bg-surface">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Employee</TableHead>
-                                    <TableHead>Month/Year</TableHead>
-                                    <TableHead>Work Hours</TableHead>
-                                    <TableHead>Overtime</TableHead>
-                                    <TableHead>Base Salary</TableHead>
-                                    <TableHead>Total Pay</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {isLoading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={7} className="h-24 text-center">
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin inline" /> Loading...
-                                        </TableCell>
-                                    </TableRow>
-                                ) : records.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={7} className="h-24 text-center">
-                                            No payroll records found for this period.
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    records.map((record) => (
-                                        <TableRow key={record.id}>
-                                            <TableCell className="font-medium">{record.userName}</TableCell>
-                                            <TableCell>{record.month}/{record.year}</TableCell>
-                                            <TableCell>{record.totalWorkHours} hrs</TableCell>
-                                            <TableCell>{record.totalOvertimeHours} hrs</TableCell>
-                                            <TableCell>LKR {parseFloat(record.baseSalary).toFixed(2)}</TableCell>
-                                            <TableCell className="font-bold">LKR {parseFloat(record.totalSalary).toFixed(2)}</TableCell>
-                                            <TableCell>
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${record.status === 'Paid' ? 'bg-green-100 text-green-800' :
-                                                    record.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-gray-100 text-gray-800'
-                                                    }`}>
-                                                    {record.status}
-                                                </span>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                    <Tabs defaultValue="processing" className="space-y-6">
+                        <TabsList className="bg-surface border border-border p-1 w-full flex overflow-x-auto justify-start h-12">
+                            <TabsTrigger value="processing" className="data-[state=active]:bg-background min-w-[150px]"><Calculator className="w-4 h-4 mr-2" /> Batch Processing</TabsTrigger>
+                            <TabsTrigger value="employee_config" className="data-[state=active]:bg-background min-w-[150px]"><Users className="w-4 h-4 mr-2" /> Employee Rules</TabsTrigger>
+                            <TabsTrigger value="global_config" className="data-[state=active]:bg-background min-w-[150px]"><Settings className="w-4 h-4 mr-2" /> Global Components</TabsTrigger>
+                        </TabsList>
+
+                        {/* TAB 1: Main Payroll Processing */}
+                        <TabsContent value="processing" className="animate-fade-in space-y-6">
+                            <PayrollStatsCards records={records} />
+
+                            <div className="bg-surface p-4 rounded-xl border border-border flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+                                <div className="flex items-center gap-3 w-full sm:w-auto">
+                                    <span className="text-sm font-medium whitespace-nowrap">Filter Period:</span>
+                                    <Select value={month} onValueChange={setMonth}>
+                                        <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {months.map(m => (
+                                                <SelectItem key={m} value={String(m)}>
+                                                    {new Date(0, m - 1).toLocaleString('default', { month: 'short' })}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Select value={year} onValueChange={setYear}>
+                                        <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button variant="ghost" size="icon" onClick={() => loadRecords()}>
+                                        <RefreshCw className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <PayrollTable
+                                records={records}
+                                isLoading={isLoading}
+                                onViewDetails={(id) => setSelectedPayrollId(id)}
+                            />
+                        </TabsContent>
+
+                        {/* TAB 2: Employee Mapping */}
+                        <TabsContent value="employee_config" className="animate-fade-in">
+                            <EmployeeSalaryMapping employees={employees} />
+                        </TabsContent>
+
+                        {/* TAB 3: Global Rules */}
+                        <TabsContent value="global_config" className="animate-fade-in">
+                            <CompensationConfigurator />
+                        </TabsContent>
+                    </Tabs>
+
+                    <PayrollDetailDrawer
+                        payrollId={selectedPayrollId}
+                        open={!!selectedPayrollId}
+                        onClose={() => setSelectedPayrollId(null)}
+                        onStatusChange={loadRecords}
+                    />
+
+                    <GeneratePayrollWizard
+                        open={isWizardOpen}
+                        onOpenChange={setIsWizardOpen}
+                        onSuccess={loadRecords}
+                    />
+
                 </div>
             </main>
         </div>
     );
-};
-
-export default PayrollPage;
+}
