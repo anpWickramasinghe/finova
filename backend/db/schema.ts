@@ -129,6 +129,27 @@ export const leave_request = pgTable("leave_request", {
     updatedAt: timestamp("updatedAt").defaultNow(),
 });
 
+export const salary_component = pgTable("salary_component", {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    type: text("type").notNull(), // "Earning", "Deduction", "Statutory"
+    calculationType: text("calculationType").notNull(), // "Fixed", "PercentageOfBase"
+    defaultAmount: numeric("defaultAmount", { precision: 15, scale: 2 }), // default amount or percentage
+    isActive: boolean("isActive").default(true),
+    createdAt: timestamp("createdAt").defaultNow(),
+    updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+export const employee_salary_component = pgTable("employee_salary_component", {
+    id: text("id").primaryKey(),
+    userId: text("userId").notNull().references(() => user.id),
+    componentId: text("componentId").notNull().references(() => salary_component.id),
+    amount: numeric("amount", { precision: 15, scale: 2 }), // overrides defaultAmount if set
+    isActive: boolean("isActive").default(true),
+    createdAt: timestamp("createdAt").defaultNow(),
+    updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
 export const payroll = pgTable("payroll", {
     id: text("id").primaryKey(),
     userId: text("userId").notNull().references(() => user.id),
@@ -138,16 +159,25 @@ export const payroll = pgTable("payroll", {
     workedDays: text("workedDays"),
     totalWorkHours: text("totalWorkHours"),
     totalOvertimeHours: text("totalOvertimeHours"),
-    baseSalary: text("baseSalary"),
-    grossSalary: text("grossSalary"),
-    netSalary: text("netSalary"),
-    overtimePay: text("overtimePay"),
-    epfDeduction: text("epfDeduction"), // Employee 8%
-    employerEpf: text("employerEpf"),   // Employer 12%
-    employerEtf: text("employerEtf"),   // Employer 3%
-    totalSalary: text("totalSalary"),   // Check if this is redundant with netSalary, but kept for now as per old schema
-    status: text("status").default('Pending'),
+    baseSalary: numeric("baseSalary", { precision: 15, scale: 2 }),
+    totalEarnings: numeric("totalEarnings", { precision: 15, scale: 2 }),
+    totalDeductions: numeric("totalDeductions", { precision: 15, scale: 2 }),
+    netSalary: numeric("netSalary", { precision: 15, scale: 2 }),
+    status: text("status").default('Draft'), // Draft -> Pending Approval -> Approved -> Processed -> Paid
+    preparedBy: text("preparedBy").references(() => user.id),
+    approvedBy: text("approvedBy").references(() => user.id),
+    paymentMethod: text("paymentMethod"),
+    paymentReference: text("paymentReference"),
     generatedAt: timestamp("generatedAt").defaultNow(),
+    updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+export const payroll_item = pgTable("payroll_item", {
+    id: text("id").primaryKey(),
+    payrollId: text("payrollId").notNull().references(() => payroll.id),
+    componentName: text("componentName").notNull(),
+    type: text("type").notNull(), // "Earning", "Deduction"
+    amount: numeric("amount", { precision: 15, scale: 2 }).notNull(),
 });
 
 // ===== ACCOUNTING / TRANSACTION MANAGEMENT =====
