@@ -209,15 +209,7 @@ export const bulkGeneratePayroll = async (req: Request, res: Response) => {
         }
 
         const employees = await db.select().from(user).where(
-            and(
-                or(
-                    eq(user.role, 'employee'),
-                    eq(user.role, 'Employee'),
-                    eq(user.role, 'User'),
-                    eq(user.role, 'user')
-                ),
-                eq(user.status, 'Active')
-            )
+            eq(user.status, 'Active')
         );
 
         if (employees.length === 0) {
