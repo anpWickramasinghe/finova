@@ -1,5 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2 } from 'lucide-react';
+import { Loader2, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface PayrollTableProps {
@@ -9,8 +9,18 @@ interface PayrollTableProps {
 }
 
 export default function PayrollTable({ records, isLoading, onViewDetails }: PayrollTableProps) {
+    // Group records by branchName
+    const groupedRecords = records.reduce((acc: any, record) => {
+        const branch = record.branchName || 'Unassigned / HQ';
+        if (!acc[branch]) acc[branch] = [];
+        acc[branch].push(record);
+        return acc;
+    }, {});
+
+    const sortedBranches = Object.keys(groupedRecords).sort();
+
     return (
-        <div className="rounded-md border bg-surface">
+        <div className="rounded-md border bg-surface overflow-hidden">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -23,46 +33,61 @@ export default function PayrollTable({ records, isLoading, onViewDetails }: Payr
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
-                <TableBody>
-                    {isLoading ? (
+                {isLoading ? (
+                    <TableBody>
                         <TableRow>
                             <TableCell colSpan={7} className="h-24 text-center">
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin inline" /> Loading...
                             </TableCell>
                         </TableRow>
-                    ) : records.length === 0 ? (
+                    </TableBody>
+                ) : records.length === 0 ? (
+                    <TableBody>
                         <TableRow>
                             <TableCell colSpan={7} className="h-24 text-center text-text-secondary">
                                 No payroll records found for this period.
                             </TableCell>
                         </TableRow>
-                    ) : (
-                        records.map((record) => (
-                            <TableRow key={record.id} className="cursor-pointer hover:bg-background/50 transition-colors" onClick={() => onViewDetails(record.id)}>
-                                <TableCell className="font-medium text-text-primary">{record.userName || record.userId}</TableCell>
-                                <TableCell>{record.month}/{record.year}</TableCell>
-                                <TableCell className="text-green-600 font-medium">+{parseFloat(record.totalEarnings).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
-                                <TableCell className="text-red-500 font-medium">-{parseFloat(record.totalDeductions).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
-                                <TableCell className="font-bold text-primary-900">LKR {parseFloat(record.netSalary).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
-                                <TableCell>
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${record.status === 'Draft' ? 'bg-gray-100 text-gray-700 border-gray-200' :
-                                        record.status === 'Pending Approval' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                            record.status === 'Approved' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                record.status === 'Paid' ? 'bg-green-50 text-green-700 border-green-200' :
-                                                    'bg-red-50 text-red-700 border-red-200'
-                                        }`}>
-                                        {record.status}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onViewDetails(record.id); }}>
-                                        View Details
-                                    </Button>
+                    </TableBody>
+                ) : (
+                    sortedBranches.map(branch => (
+                        <TableBody key={branch} className="border-t-[3px] border-border/50">
+                            {/* Branch Header Row */}
+                            <TableRow className="bg-background/80 hover:bg-background/80">
+                                <TableCell colSpan={7} className="py-2.5 font-semibold text-primary-900 border-b border-border/50 bg-primary/5">
+                                    <div className="flex items-center">
+                                        <Building2 className="w-4 h-4 mr-2" />
+                                        {branch} <span className="ml-2 text-xs font-normal text-text-secondary">({groupedRecords[branch].length} employees)</span>
+                                    </div>
                                 </TableCell>
                             </TableRow>
-                        ))
-                    )}
-                </TableBody>
+                            {groupedRecords[branch].map((record: any) => (
+                                <TableRow key={record.id} className="cursor-pointer hover:bg-background/50 transition-colors" onClick={() => onViewDetails(record.id)}>
+                                    <TableCell className="font-medium text-text-primary pl-8">{record.userName || record.userId}</TableCell>
+                                    <TableCell>{record.month}/{record.year}</TableCell>
+                                    <TableCell className="text-green-600 font-medium">+{parseFloat(record.totalEarnings).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
+                                    <TableCell className="text-red-500 font-medium">-{parseFloat(record.totalDeductions).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
+                                    <TableCell className="font-bold text-primary-900">LKR {parseFloat(record.netSalary).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
+                                    <TableCell>
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${record.status === 'Draft' ? 'bg-gray-100 text-gray-700 border-gray-200' :
+                                            record.status === 'Pending Approval' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                                record.status === 'Approved' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                    record.status === 'Paid' ? 'bg-green-50 text-green-700 border-green-200' :
+                                                        'bg-red-50 text-red-700 border-red-200'
+                                            }`}>
+                                            {record.status}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onViewDetails(record.id); }}>
+                                            View Details
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    ))
+                )}
             </Table>
         </div>
     );

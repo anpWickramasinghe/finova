@@ -14,6 +14,7 @@ import PayrollDetailDrawer from './components/PayrollDetailDrawer';
 import GeneratePayrollWizard from './components/GeneratePayrollWizard';
 import CompensationConfigurator from './components/CompensationConfigurator';
 import EmployeeSalaryMapping from './components/EmployeeSalaryMapping';
+import { branchService } from '../../services/branchService';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const getAuthHeader = () => {
@@ -27,6 +28,7 @@ export default function PayrollPage() {
     // Data States
     const [records, setRecords] = useState<any[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
+    const [branches, setBranches] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     // Filters
@@ -60,8 +62,27 @@ export default function PayrollPage() {
         }
     }, []);
 
+    const loadBranches = useCallback(async () => {
+        try {
+            const data = await branchService.getAllBranches();
+            setBranches(data || []);
+        } catch {
+            // ignore error
+        }
+    }, []);
+
     useEffect(() => { loadRecords(); }, [loadRecords]);
     useEffect(() => { loadUsers(); }, [loadUsers]);
+    useEffect(() => { loadBranches(); }, [loadBranches]);
+
+    const augmentedRecords = records.map(record => {
+        const employee = employees.find(e => e.id === record.userId);
+        const branch = branches.find(b => String(b.id) === String(employee?.branchId));
+        return {
+            ...record,
+            branchName: branch ? branch.name : 'Unassigned / HQ'
+        };
+    });
 
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
     const years = [2024, 2025, 2026];
@@ -123,7 +144,7 @@ export default function PayrollPage() {
                             </div>
 
                             <PayrollTable
-                                records={records}
+                                records={augmentedRecords}
                                 isLoading={isLoading}
                                 onViewDetails={(id) => setSelectedPayrollId(id)}
                             />
