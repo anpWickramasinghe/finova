@@ -1,12 +1,4 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -60,434 +52,140 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen grid lg:grid-cols-2">
-
-            <div className="hidden lg:flex flex-col justify-center items-center bg-linear-to-br from-black via-black/95 to-black/90 p-12 relative overflow-hidden">
-
-                <div className="absolute inset-0">
-                    <motion.div
-                        className="absolute top-20 left-20 w-72 h-72 bg-primary/30 rounded-full blur-3xl"
-                        animate={{
-                            scale: [1, 1.2, 1],
-                            opacity: [0.3, 0.5, 0.3],
-                        }}
-                        transition={{
-                            duration: 4,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                        }}
-                    />
-                    <motion.div
-                        className="absolute bottom-32 right-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
-                        animate={{
-                            scale: [1, 1.3, 1],
-                            opacity: [0.2, 0.4, 0.2],
-                        }}
-                        transition={{
-                            duration: 6,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                        }}
-                    />
-                    <motion.div
-                        className="absolute top-1/2 left-1/3 w-48 h-48 bg-primary/25 rounded-full blur-3xl"
-                        animate={{
-                            scale: [1, 1.15, 1],
-                            opacity: [0.25, 0.45, 0.25],
-                        }}
-                        transition={{
-                            duration: 5,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                        }}
-                    />
+        <div className="flex min-h-screen bg-background">
+            {/* Left Branding Panel */}
+            <div className="hidden lg:flex w-1/2 bg-primary flex-col justify-between p-12 relative overflow-hidden">
+                {/* Subtle abstract geometric background element */}
+                <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute w-[200%] h-[200%] -top-[50%] -left-[50%]">
+                        <defs>
+                            <pattern id="grid" width="4" height="4" patternUnits="userSpaceOnUse">
+                                <path d="M 4 0 L 0 0 0 4" fill="none" stroke="white" strokeWidth="0.1" />
+                            </pattern>
+                        </defs>
+                        <rect width="100" height="100" fill="url(#grid)" />
+                    </svg>
                 </div>
 
-                {/* Floating Particles */}
-                {[...Array(20)].map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className="absolute w-1 h-1 bg-primary/40 rounded-full"
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                        }}
-                        animate={{
-                            y: [0, -30, 0],
-                            opacity: [0, 1, 0],
-                        }}
-                        transition={{
-                            duration: 3 + Math.random() * 2,
-                            repeat: Infinity,
-                            delay: Math.random() * 2,
-                        }}
-                    />
-                ))}
-
-                {/* Content */}
-                <motion.div
-                    className="relative z-10 text-center space-y-8"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                >
-                    {/* Restaurant Icon/Logo */}
-                    <motion.div
-                        className="mx-auto w-32 h-32 bg-linear-to-br from-primary to-primary/80 backdrop-blur-sm rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/50"
-                        animate={{
-                            y: [0, -10, 0],
-                            rotateY: [0, 5, 0],
-                        }}
-                        transition={{
-                            duration: 3,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                        }}
-                    >
-                        <svg
-                            className="w-20 h-20 text-black"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.5}
-                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                            />
-                        </svg>
-                    </motion.div>
-
-                    <motion.div
-                        className="space-y-4"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        <h1 className="text-5xl font-bold text-white drop-shadow-lg">
-                            Welcome Back
-                        </h1>
-                        <p className="text-xl text-gray-300 max-w-md mx-auto">
-                            Manage your system operations with{" "}
-                            <span className="text-primary font-semibold">elegance</span> and{" "}
-                            <span className="text-primary font-semibold">efficiency</span>
-                        </p>
-                    </motion.div>
-
-                    {/* Feature Cards */}
-                    <div className="grid grid-cols-3 gap-4 mt-12">
-                        {[
-                            {
-                                icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
-                                label: "Transactions",
-                                delay: 0.5,
-                            },
-                            {
-                                icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
-                                label: "Users",
-                                delay: 0.6,
-                            },
-                            {
-                                icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
-                                label: "Reports",
-                                delay: 0.7,
-                            },
-                        ].map((feature, index) => (
-                            <motion.div
-                                key={index}
-                                className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-primary/20 hover:border-primary/50 transition-all duration-300 group cursor-pointer"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: feature.delay }}
-                                whileHover={{ scale: 1.05, y: -5 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
-                                <motion.svg
-                                    className="w-8 h-8 text-primary mx-auto mb-2"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    whileHover={{ rotate: 5 }}
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d={feature.icon}
-                                    />
-                                </motion.svg>
-                                <p className="text-sm text-white font-medium group-hover:text-primary transition-colors">
-                                    {feature.label}
-                                </p>
-                            </motion.div>
-                        ))}
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-16">
+                        <div className="w-10 h-10 bg-primary-foreground rounded-lg flex items-center justify-center">
+                            <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <span className="text-primary-foreground text-2xl font-bold tracking-tight">Finova</span>
                     </div>
-                </motion.div>
 
-                {/* Animated Bottom Pattern */}
-                <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-primary/10 to-transparent"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                />
+                    <div className="max-w-md">
+                        <h1 className="text-4xl font-semibold text-primary-foreground mb-6 leading-tight">
+                            Enterprise-grade control for your financial ecosystem.
+                        </h1>
+                        <p className="text-primary-foreground/80 text-lg leading-relaxed">
+                            Access your administrative dashboard to manage user roles, oversee high-level transactions, and monitor global platform health with precision and security.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="relative z-10 text-primary-foreground/60 text-sm">
+                    &copy; 2026 Finova Systems. All rights reserved.
+                </div>
             </div>
 
-            {/* Right Column - Login Form */}
-            <div className="flex items-center justify-center p-6 lg:p-12 bg-white">
-                <motion.div
-                    className="w-full max-w-md"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.3 }}>
-                        <Card className="shadow-2xl border-black/10 hover:shadow-primary/20 transition-shadow duration-500 bg-white">
-                            <CardHeader className="space-y-1 text-center pb-6">
-                                {/* Mobile Logo */}
-                                <motion.div
-                                    className="lg:hidden mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-primary to-primary/80 shadow-lg shadow-primary/50"
-                                    animate={{
-                                        rotate: [0, 5, -5, 0],
-                                    }}
-                                    transition={{
-                                        duration: 2,
-                                        repeat: Infinity,
-                                        ease: "easeInOut",
-                                    }}
-                                >
-                                    <svg
-                                        className="h-8 w-8 text-black"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                                        />
+            {/* Right Login Form Panel */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 relative bg-card">
+                {/* Mobile Logo Only */}
+                <div className="absolute top-8 left-8 lg:hidden flex items-center gap-2">
+                    <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                        <svg className="w-5 h-5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <span className="text-foreground text-xl font-bold">Finova</span>
+                </div>
+
+                <div className="w-full max-w-[420px] space-y-8">
+                    <div className="text-center lg:text-left">
+                        <h2 className="text-3xl font-semibold text-foreground tracking-tight mb-2">
+                            Welcome back
+                        </h2>
+                        <p className="text-muted-foreground">
+                            Enter your administrative credentials to continue.
+                        </p>
+                    </div>
+
+                    {error && (
+                        <div className="p-4 rounded-md bg-destructive/10 text-destructive border border-destructive/20 text-sm flex items-start gap-3">
+                            <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>{error}</span>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                                    Email address
+                                </Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="admin@finova.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    className="h-11 bg-background border-input px-4 focus-visible:ring-1 focus-visible:ring-ring transition-shadow"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                                        Password
+                                    </Label>
+                                    <button type="button" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                                        Forgot password?
+                                    </button>
+                                </div>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className="h-11 bg-background border-input px-4 focus-visible:ring-1 focus-visible:ring-ring transition-shadow"
+                                />
+                            </div>
+                        </div>
+
+                        <Button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-colors"
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center justify-center gap-2">
+                                    <svg className="animate-spin h-5 w-5 opacity-70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                </motion.div>
+                                    <span>Signing in...</span>
+                                </div>
+                            ) : (
+                                "Sign In"
+                            )}
+                        </Button>
+                    </form>
 
-                                <CardTitle className="text-3xl font-bold bg-linear-to-r from-black to-black/70 bg-clip-text">
-                                    Admin Portal
-                                </CardTitle>
-                                <CardDescription className="text-base text-gray-600">
-                                    Sign in to access your dashboard
-                                </CardDescription>
-                            </CardHeader>
-
-                            <CardContent>
-                                {error && (
-                                    <div className="mb-4 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-                                        {error}
-                                    </div>
-                                )}
-                                <form onSubmit={handleSubmit} className="space-y-5">
-                                    <motion.div
-                                        className="space-y-2 group"
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.2 }}
-                                    >
-                                        <Label
-                                            htmlFor="email"
-                                            className="text-sm font-medium text-black"
-                                        >
-                                            Email Address
-                                        </Label>
-                                        <div className="relative">
-                                            <Input
-                                                id="email"
-                                                type="email"
-                                                placeholder="staff@finova.com"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                required
-                                                className="pl-10 transition-all focus:ring-2 focus:ring-primary focus:border-primary duration-200 border-black/20"
-                                            />
-                                            <svg
-                                                className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                                                />
-                                            </svg>
-                                        </div>
-                                    </motion.div>
-
-                                    <motion.div
-                                        className="space-y-2 group"
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.3 }}
-                                    >
-                                        <Label
-                                            htmlFor="password"
-                                            className="text-sm font-medium text-black"
-                                        >
-                                            Password
-                                        </Label>
-                                        <div className="relative">
-                                            <Input
-                                                id="password"
-                                                type="password"
-                                                placeholder="Enter your password"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                required
-                                                className="pl-10 transition-all focus:ring-2 focus:ring-primary focus:border-primary duration-200 border-black/20"
-                                            />
-                                            <svg
-                                                className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-primary transition-colors"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                                                />
-                                            </svg>
-                                        </div>
-                                    </motion.div>
-
-                                    <motion.div
-                                        className="flex items-center justify-between text-sm"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: 0.4 }}
-                                    >
-                                        <label className="flex items-center space-x-2 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                className="rounded border-black/30 text-primary focus:ring-primary transition-all"
-                                            />
-                                            <span className="text-gray-600 group-hover:text-black transition-colors">
-                                                Remember me
-                                            </span>
-                                        </label>
-                                        <a
-                                            href="#"
-                                            className="text-primary hover:text-primary/80 transition-colors font-medium hover:underline"
-                                        >
-                                            Forgot password?
-                                        </a>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.5 }}
-                                    >
-                                        <motion.div
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            <Button
-                                                type="submit"
-                                                className="w-full bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-black font-semibold py-6 text-base transition-all shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40"
-                                                disabled={isLoading}
-                                            >
-                                                {isLoading ? (
-                                                    <div className="flex items-center justify-center">
-                                                        <motion.svg
-                                                            className="-ml-1 mr-3 h-5 w-5 text-black"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            animate={{ rotate: 360 }}
-                                                            transition={{
-                                                                duration: 1,
-                                                                repeat: Infinity,
-                                                                ease: "linear",
-                                                            }}
-                                                        >
-                                                            <circle
-                                                                className="opacity-25"
-                                                                cx="12"
-                                                                cy="12"
-                                                                r="10"
-                                                                stroke="currentColor"
-                                                                strokeWidth="4"
-                                                            ></circle>
-                                                            <path
-                                                                className="opacity-75"
-                                                                fill="currentColor"
-                                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                                            ></path>
-                                                        </motion.svg>
-                                                        Signing in...
-                                                    </div>
-                                                ) : (
-                                                    <span className="flex items-center justify-center gap-2">
-                                                        Sign In
-                                                        <motion.svg
-                                                            className="w-5 h-5"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                            whileHover={{ x: 5 }}
-                                                            transition={{ type: "spring", stiffness: 400 }}
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M14 5l7 7m0 0l-7 7m7-7H3"
-                                                            />
-                                                        </motion.svg>
-                                                    </span>
-                                                )}
-                                            </Button>
-                                        </motion.div>
-                                    </motion.div>
-                                </form>
-
-                                <motion.div
-                                    className="mt-8 text-center space-y-4"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.6 }}
-                                >
-                                    <div className="relative">
-                                        <div className="absolute inset-0 flex items-center">
-                                            <div className="w-full border-t border-black/10"></div>
-                                        </div>
-                                        <div className="relative flex justify-center text-xs uppercase">
-                                            <span className="bg-white px-2 text-gray-500">
-                                                Staff Access Only
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <p className="text-sm text-gray-600">
-                                        Need help?{" "}
-                                        <a
-                                            href="#"
-                                            className="text-primary hover:text-primary/80 transition-colors font-medium hover:underline"
-                                        >
-                                            Contact Manager
-                                        </a>
-                                    </p>
-                                </motion.div>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-
-
-                </motion.div>
+                    <div className="flex justify-center mt-8">
+                        <span className="bg-secondary text-secondary-foreground text-xs font-medium px-2.5 py-1 rounded-sm uppercase tracking-wider">
+                            Admin Portal Access
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     );
