@@ -5,7 +5,7 @@ import {
     salary_component, employee_salary_component, payroll_item,
     transaction, journal_line, ledger_entry, chart_of_accounts
 } from '../db/schema.js';
-import { eq, and, sql, or } from 'drizzle-orm';
+import { eq, and, sql, or, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -233,6 +233,35 @@ export const bulkGeneratePayroll = async (req: Request, res: Response) => {
         });
     } catch (error: any) {
         console.error('Error in bulk payroll:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
+    }
+};
+
+export const bulkSubmitApproval = async (req: Request, res: Response) => {
+    try {
+        const { payrollIds } = req.body;
+
+        if (!payrollIds || !Array.isArray(payrollIds) || payrollIds.length === 0) {
+            return res.status(400).json({ message: 'Missing required payroll IDs' });
+        }
+
+        const updatedArray = await db.update(payroll)
+            .set({
+                status: 'Pending Approval',
+                updatedAt: new Date()
+            })
+            .where(and(
+                inArray(payroll.id, payrollIds),
+                eq(payroll.status, 'Draft')
+            ))
+            .returning();
+
+        res.status(200).json({
+            message: `Successfully submitted ${updatedArray.length} record(s) for approval.`,
+            count: updatedArray.length
+        });
+    } catch (error: any) {
+        console.error('Error in bulk submit:', error);
         res.status(500).json({ message: error.message || 'Internal server error' });
     }
 };

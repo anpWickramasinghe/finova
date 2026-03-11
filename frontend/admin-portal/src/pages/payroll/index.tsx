@@ -4,7 +4,7 @@ import Sidebar from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, PlayCircle, Settings, Users, Calculator } from 'lucide-react';
+import { RefreshCw, PlayCircle, Settings, Users, Calculator, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -38,6 +38,7 @@ export default function PayrollPage() {
     // UI States
     const [isWizardOpen, setIsWizardOpen] = useState(false);
     const [selectedPayrollId, setSelectedPayrollId] = useState<string | null>(null);
+    const [isSubmittingBulk, setIsSubmittingBulk] = useState(false);
 
     const currentUser = { name: "Admin", email: "admin@finova.com", role: "Admin", avatar: "" };
 
@@ -71,6 +72,20 @@ export default function PayrollPage() {
         }
     }, []);
 
+    const handleBulkSubmitApproval = async (payrollIds: string[]) => {
+        if (!payrollIds.length) return;
+        setIsSubmittingBulk(true);
+        try {
+            const res = await axios.post(`${API_URL}/payroll/bulk-submit`, { payrollIds }, { headers: getAuthHeader() });
+            toast.success(res.data.message || 'Records submitted for approval');
+            loadRecords();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to submit records');
+        } finally {
+            setIsSubmittingBulk(false);
+        }
+    };
+
     useEffect(() => { loadRecords(); }, [loadRecords]);
     useEffect(() => { loadUsers(); }, [loadUsers]);
     useEffect(() => { loadBranches(); }, [loadBranches]);
@@ -87,6 +102,8 @@ export default function PayrollPage() {
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
     const years = [2024, 2025, 2026];
 
+    const hasDrafts = records.some(r => r.status === 'Draft');
+
     return (
         <div className="min-h-screen bg-background">
             <Header user={currentUser} onMenuToggle={() => setSidebarCollapsed(!sidebarCollapsed)} sidebarCollapsed={sidebarCollapsed} />
@@ -101,6 +118,17 @@ export default function PayrollPage() {
                             <p className="text-text-secondary">Process monthly comp, configure rules, and manage ledger integrations.</p>
                         </div>
                         <div className="mt-4 md:mt-0 flex gap-3">
+                            {hasDrafts && (
+                                <Button
+                                    variant="outline"
+                                    className="border-primary text-primary hover:bg-primary/10"
+                                    onClick={() => handleBulkSubmitApproval(records.filter(r => r.status === 'Draft').map(r => r.id))}
+                                    disabled={isSubmittingBulk}
+                                >
+                                    {isSubmittingBulk ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
+                                    Submit All for Approval
+                                </Button>
+                            )}
                             <Button className="bg-primary text-white" onClick={() => setIsWizardOpen(true)}>
                                 <PlayCircle className="w-4 h-4 mr-2" /> Run Engine
                             </Button>
@@ -147,6 +175,7 @@ export default function PayrollPage() {
                                 records={augmentedRecords}
                                 isLoading={isLoading}
                                 onViewDetails={(id) => setSelectedPayrollId(id)}
+                                onBulkSubmit={handleBulkSubmitApproval}
                             />
                         </TabsContent>
 

@@ -2,6 +2,7 @@ import express from 'express';
 import {
     generatePayroll,
     bulkGeneratePayroll,
+    bulkSubmitApproval,
     getPayrollRecords,
     getPayrollById,
     updatePayrollStatus,
@@ -36,6 +37,7 @@ router.delete('/mappings/entry/:id', requireRole(['admin']), removeComponentFrom
 // --- PAYROLL LIFECYCLE ---
 router.post('/generate', requireRole(['admin', 'manager']), generatePayroll);
 router.post('/bulk', requireRole(['admin', 'manager']), bulkGeneratePayroll);
+router.post('/bulk-submit', requireRole(['admin', 'manager']), bulkSubmitApproval);
 router.get('/', requireRole(['admin', 'manager']), getPayrollRecords);
 router.get('/:id', requireRole(['admin', 'manager']), getPayrollById);
 router.patch('/:id/status', requireRole(['admin']), updatePayrollStatus);
