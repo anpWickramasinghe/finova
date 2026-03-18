@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Receipt, Building2, FileText, Calculator, Users, Globe, LogOut, Banknote, Timer, CalendarDays, Calendar, Settings } from "lucide-react";
+import { LayoutDashboard, Receipt, Building2, FileText, Calculator, Users, Globe, LogOut, Banknote, Timer, CalendarDays, Calendar, Settings, MessageCircle } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
@@ -33,7 +33,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         Timer,
         Settings,
         CalendarDays,
-        Calendar
+        Calendar,
+        MessageCircle
     };
 
     const navigationItems = [
@@ -120,6 +121,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     icon: 'Globe',
                     roles: ['partner', 'staff', 'client'],
                     tooltip: 'Client access and communication'
+                },
+                {
+                    label: 'Support Chat',
+                    path: '/support-chat',
+                    icon: 'MessageCircle',
+                    roles: ['partner', 'staff'],
+                    tooltip: 'Respond to employee and client messages'
                 },
                 {
                     label: 'Configuration',
