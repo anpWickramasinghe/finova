@@ -254,7 +254,7 @@ export default function AdminChatDashboard() {
             const formData = new FormData();
             formData.append('file', selectedFile);
             try {
-                const uploadRes = await axios.post(`${API_URL}/upload`, formData, {
+                const uploadRes = await axios.post(`${API_URL}/chat/upload`, formData, {
                     headers: { ...getHeaders(), 'Content-Type': 'multipart/form-data' },
                 });
                 attachmentUrl = uploadRes.data.url;
