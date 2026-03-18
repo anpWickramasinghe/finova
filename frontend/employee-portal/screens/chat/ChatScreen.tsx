@@ -56,7 +56,7 @@ export default function ChatScreen() {
                     type: asset.mimeType || 'application/octet-stream',
                 } as any);
 
-                const uploadRes = await axios.post(`${API_URL}/upload`, formData, {
+                const uploadRes = await axios.post(`${API_URL}/chat/upload`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     }
