@@ -263,3 +263,51 @@ export const reconciliation = pgTable("reconciliation", {
     reconciledAt: timestamp("reconciledAt").defaultNow(),
     notes: text("notes"),
 });
+
+// ===== SUPPORT & REAL-TIME CHAT =====
+
+export const support_chat = pgTable("support_chats", {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => user.id).unique(),
+    lastMessageAt: timestamp("last_message_at").defaultNow(),
+    adminViewedAt: timestamp("admin_viewed_at"),
+    archivedAt: timestamp("archived_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const support_message = pgTable("support_messages", {
+    id: text("id").primaryKey(),
+    chatId: text("chat_id").notNull().references(() => support_chat.id),
+    content: text("content").notNull(),
+    senderType: text("sender_type", { enum: ['user', 'admin'] }).notNull(),
+    attachmentUrl: text("attachment_url"),
+    readAt: timestamp("read_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const chat_room = pgTable("chat_rooms", {
+    id: text("id").primaryKey(),
+    name: text("name"), // e.g. "Colombo Branch General"
+    type: text("type", { enum: ['direct', 'branch'] }).notNull().default('branch'),
+    branchId: text("branch_id").references(() => branch.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const chat_room_member = pgTable("chat_room_members", {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => chat_room.id),
+    userId: text("user_id").notNull().references(() => user.id),
+    joinedAt: timestamp("joined_at").defaultNow().notNull(),
+});
+
+export const chat_room_message = pgTable("chat_room_messages", {
+    id: text("id").primaryKey(),
+    roomId: text("room_id").notNull().references(() => chat_room.id),
+    userId: text("user_id").notNull().references(() => user.id),
+    content: text("content").notNull(),
+    attachmentUrl: text("attachment_url"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+});
