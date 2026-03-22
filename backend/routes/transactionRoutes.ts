@@ -5,6 +5,7 @@ import {
     createTransaction,
     updateTransaction,
     submitTransaction,
+    bulkSubmitTransactions,
     approveTransaction,
     rejectTransaction,
     postTransaction,
@@ -33,6 +34,7 @@ router.post('/', createTransaction);
 router.put('/:id', updateTransaction);
 
 // Workflow actions
+router.post('/bulk-submit', bulkSubmitTransactions);   // ← bulk submission (must be before /:id routes)
 router.post('/:id/submit', submitTransaction);
 router.post('/:id/approve', approveTransaction);
 router.post('/:id/reject', rejectTransaction);

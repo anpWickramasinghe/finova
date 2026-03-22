@@ -349,6 +349,114 @@ export const submitTransaction = async (req: AuthRequest, res: Response) => {
 };
 
 // ==========================================
+// BULK SUBMIT TRANSACTIONS FOR APPROVAL
+// Accepts { transactionIds?: string[], period?: string (YYYY-MM) }
+// ==========================================
+export const bulkSubmitTransactions = async (req: AuthRequest, res: Response) => {
+    try {
+        const { transactionIds, period } = req.body;
+        const branchId = req.user?.role === 'branch' ? req.user.id : req.user?.branchId;
+
+        let targetIds: string[] = [];
+
+        if (transactionIds && Array.isArray(transactionIds) && transactionIds.length > 0) {
+            // Use explicitly provided IDs
+            targetIds = transactionIds;
+        } else if (period) {
+            // Derive date range from YYYY-MM period string
+            const [year, month] = period.split('-').map(Number);
+            if (!year || !month) {
+                return res.status(400).json({ message: 'Invalid period format. Use YYYY-MM.' });
+            }
+            const startDate = new Date(year, month - 1, 1);
+            const endDate = new Date(year, month, 0, 23, 59, 59, 999); // last day of month
+
+            const conditions: any[] = [
+                sql`${transaction.status} IN ('draft', 'rejected')`,
+                sql`${transaction.date} >= ${startDate}`,
+                sql`${transaction.date} <= ${endDate}`,
+            ];
+            if (branchId) conditions.push(eq(transaction.branchId, branchId));
+
+            const eligible = await db
+                .select({ id: transaction.id })
+                .from(transaction)
+                .where(and(...conditions));
+
+            targetIds = eligible.map((t) => t.id);
+        } else {
+            // No period or IDs — submit ALL draft/rejected for this branch
+            const conditions: any[] = [sql`${transaction.status} IN ('draft', 'rejected')`];
+            if (branchId) conditions.push(eq(transaction.branchId, branchId));
+
+            const eligible = await db
+                .select({ id: transaction.id })
+                .from(transaction)
+                .where(and(...conditions));
+
+            targetIds = eligible.map((t) => t.id);
+        }
+
+        if (targetIds.length === 0) {
+            return res.status(200).json({ submitted: 0, failed: [], message: 'No eligible transactions found.' });
+        }
+
+        let submitted = 0;
+        const failed: { id: string; reason: string }[] = [];
+
+        for (const id of targetIds) {
+            try {
+                const txns = await db.select().from(transaction).where(eq(transaction.id, id)).limit(1);
+                if (txns.length === 0) {
+                    failed.push({ id, reason: 'Transaction not found' });
+                    continue;
+                }
+
+                const txn = txns[0];
+                if (!['draft', 'rejected'].includes(txn.status)) {
+                    failed.push({ id, reason: `Cannot submit: status is '${txn.status}'` });
+                    continue;
+                }
+
+                // Validate debit = credit
+                const lines = await db
+                    .select({ debit: journal_line.debit, credit: journal_line.credit })
+                    .from(journal_line)
+                    .where(eq(journal_line.transactionId, id));
+
+                if (lines.length < 2) {
+                    failed.push({ id, reason: 'At least 2 journal lines required' });
+                    continue;
+                }
+
+                const totalDebit = lines.reduce((sum, l) => sum + parseFloat(l.debit || '0'), 0);
+                const totalCredit = lines.reduce((sum, l) => sum + parseFloat(l.credit || '0'), 0);
+
+                if (Math.abs(totalDebit - totalCredit) > 0.01) {
+                    failed.push({ id, reason: `Debits (${totalDebit.toFixed(2)}) ≠ Credits (${totalCredit.toFixed(2)})` });
+                    continue;
+                }
+
+                await db.update(transaction).set({
+                    status: 'pending_approval',
+                    submittedAt: new Date(),
+                    updatedAt: new Date(),
+                }).where(eq(transaction.id, id));
+
+                submitted++;
+            } catch (err: any) {
+                failed.push({ id, reason: err.message || 'Unknown error' });
+            }
+        }
+
+        res.status(200).json({ submitted, failed, message: `${submitted} transaction(s) submitted for approval.` });
+    } catch (error) {
+        console.error('Error bulk-submitting transactions:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// ==========================================
 // APPROVE TRANSACTION (maker-checker: approver ≠ creator)
 // ==========================================
 export const approveTransaction = async (req: AuthRequest, res: Response) => {
