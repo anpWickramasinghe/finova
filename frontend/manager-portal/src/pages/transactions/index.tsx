@@ -46,6 +46,9 @@ const TransactionsManagement = () => {
     endDate: '',
   });
 
+  // ── View toggle ────────────────────────────────────────────────────────────
+  const [groupByMonth, setGroupByMonth] = useState(false);
+
   // ── Bulk-approval modal state ──────────────────────────────────────────────
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkPeriod, setBulkPeriod] = useState(() => {
@@ -329,6 +332,8 @@ const TransactionsManagement = () => {
             filters={filters}
             onFilterChange={handleFilterChange}
             resultCount={transactions.length}
+            groupByMonth={groupByMonth}
+            onToggleGroup={() => setGroupByMonth(v => !v)}
           />
 
           {/* Main Content */}
@@ -341,6 +346,7 @@ const TransactionsManagement = () => {
               <TransactionTable
                 transactions={transactions}
                 onTransactionClick={handleTransactionClick}
+                groupByMonth={groupByMonth}
               />
             )}
           </div>

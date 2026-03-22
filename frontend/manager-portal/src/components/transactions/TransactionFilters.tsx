@@ -8,7 +8,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, X } from "lucide-react";
+import { Search, X, Layers, LayoutList } from "lucide-react";
 
 interface TransactionFiltersProps {
     filters: {
@@ -19,12 +19,16 @@ interface TransactionFiltersProps {
     };
     onFilterChange: (newFilters: any) => void;
     resultCount: number;
+    groupByMonth: boolean;
+    onToggleGroup: () => void;
 }
 
 const TransactionFilters: React.FC<TransactionFiltersProps> = ({
     filters,
     onFilterChange,
     resultCount,
+    groupByMonth,
+    onToggleGroup,
 }) => {
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onFilterChange({ ...filters, search: e.target.value });
@@ -81,6 +85,19 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
                             <SelectItem value="journal">Journal Entry</SelectItem>
                         </SelectContent>
                     </Select>
+
+                    {/* Group by month toggle */}
+                    <Button
+                        variant={groupByMonth ? 'default' : 'outline'}
+                        onClick={onToggleGroup}
+                        title={groupByMonth ? 'Switch to flat list' : 'Group by month'}
+                        className="whitespace-nowrap"
+                    >
+                        {groupByMonth
+                            ? <><LayoutList className="mr-2 h-4 w-4" />All Transactions</>
+                            : <><Layers className="mr-2 h-4 w-4" />Group by Month</>
+                        }
+                    </Button>
 
                     <Input
                         type="date"
