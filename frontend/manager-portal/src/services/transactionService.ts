@@ -234,6 +234,17 @@ export const transactionService = {
         });
     },
 
+    // Bulk submit all draft/rejected transactions (by period YYYY-MM or explicit IDs)
+    bulkSubmitTransactions: async (options: {
+        transactionIds?: string[];
+        period?: string;
+    }): Promise<{ submitted: number; failed: { id: string; reason: string }[]; message: string }> => {
+        const response = await axios.post(`${API_URL}/transactions/bulk-submit`, options, {
+            headers: getAuthHeader(),
+        });
+        return response.data;
+    },
+
     // Approve a pending transaction (admin / maker-checker)
     approveTransaction: async (id: string): Promise<void> => {
         await axios.post(`${API_URL}/transactions/${id}/approve`, {}, {
