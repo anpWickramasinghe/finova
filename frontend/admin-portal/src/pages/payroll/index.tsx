@@ -55,6 +55,7 @@ export default function PayrollPage() {
     null,
   );
   const [isSubmittingBulk, setIsSubmittingBulk] = useState(false);
+  const [isApprovingBulk, setIsApprovingBulk] = useState(false);
   const [activeBranchTab, setActiveBranchTab] = useState<string>("");
 
   const currentUser = {
@@ -117,6 +118,26 @@ export default function PayrollPage() {
     }
   };
 
+  const handleBulkApproveBranch = async (payrollIds: string[]) => {
+    if (!payrollIds.length) return;
+    setIsApprovingBulk(true);
+    try {
+      const res = await axios.post(
+        `${API_URL}/payroll/bulk-approve`,
+        { payrollIds },
+        { headers: getAuthHeader() },
+      );
+
+      toast.success(res.data.message || "Records approved successfully");
+
+      loadRecords();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to approve records");
+    } finally {
+      setIsApprovingBulk(false);
+    }
+  };
+
   useEffect(() => {
     loadRecords();
   }, [loadRecords]);
@@ -166,6 +187,11 @@ export default function PayrollPage() {
 
   const branchTabIds = branchGroups.map((group) => group.branchId);
   const branchTabIdsKey = branchTabIds.join("|");
+  const activeBranchGroup =
+    branchGroups.find((group) => group.branchId === activeBranchTab) || null;
+  const activeBranchPendingIds = (activeBranchGroup?.records || [])
+    .filter((record) => record.status === "Pending Approval")
+    .map((record) => record.id);
 
   useEffect(() => {
     if (!branchTabIds.length) {
@@ -308,6 +334,23 @@ export default function PayrollPage() {
                   >
                     <RefreshCw className="w-4 h-4" />
                   </Button>
+                  {activeBranchPendingIds.length > 0 && (
+                    <Button
+                      variant="outline"
+                      className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                      onClick={() =>
+                        handleBulkApproveBranch(activeBranchPendingIds)
+                      }
+                      disabled={isApprovingBulk}
+                    >
+                      {isApprovingBulk ? (
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                      )}
+                      Approve Branch Pending
+                    </Button>
+                  )}
                 </div>
               </div>
               {branchGroups.length === 0 ? (
