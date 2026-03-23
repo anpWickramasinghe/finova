@@ -15,6 +15,7 @@ import {
 } from "../db/schema.js";
 import { eq, and, sql, or, inArray } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
+import { createStripeTransfer } from "../services/stripeService.js";
 
 // Helper to generate a single employee's payroll logic
 const calculateEmployeePayroll = async (
@@ -597,15 +598,49 @@ export const updatePayrollStatus = async (req: Request, res: Response) => {
       .limit(1);
     if (existingRecords.length === 0)
       return res.status(404).json({ message: "Not found" });
+    const existing = existingRecords[0];
 
     const updateData: any = { status, updatedAt: new Date() };
 
     if (status === "Approved") {
       updateData.approvedBy = approvedBy;
     } else if (status === "Paid") {
-      updateData.paymentMethod = req.body.paymentMethod || "Bank Transfer";
-      updateData.paymentReference =
-        req.body.paymentReference || `PAY-${id.substring(0, 6)}`;
+      const requestedMethod = req.body.paymentMethod || "Bank Transfer";
+
+      if (requestedMethod.toLowerCase().includes("stripe")) {
+        const employeeAccountId = req.body.employeeAccountId;
+        const currency = req.body.currency || "usd";
+
+        if (!employeeAccountId) {
+          return res.status(400).json({
+            message: "employeeAccountId is required when paying with Stripe",
+          });
+        }
+
+        const netSalary = parseFloat(existing.netSalary || "0");
+        if (!netSalary || netSalary <= 0) {
+          return res.status(400).json({ message: "Invalid net salary amount" });
+        }
+
+        const transfer = await createStripeTransfer({
+          amount: netSalary,
+          currency,
+          destinationAccountId: employeeAccountId,
+          description: `Salary payout for payroll ${id}`,
+          metadata: {
+            type: "salary_payout",
+            payrollId: id,
+            userId: existing.userId,
+          },
+        });
+
+        updateData.paymentMethod = "Stripe Test Transfer";
+        updateData.paymentReference = transfer.id;
+      } else {
+        updateData.paymentMethod = requestedMethod;
+        updateData.paymentReference =
+          req.body.paymentReference || `PAY-${id.substring(0, 6)}`;
+      }
     }
 
     await db.update(payroll).set(updateData).where(eq(payroll.id, id));
