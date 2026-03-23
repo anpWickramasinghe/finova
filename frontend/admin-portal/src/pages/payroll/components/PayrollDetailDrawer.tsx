@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, DollarSign, Download, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { StripePayoutModal } from './StripePayoutModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const getAuthHeader = () => {
@@ -29,6 +30,7 @@ export default function PayrollDetailDrawer({ payrollId, open, onClose, onStatus
     const [data, setData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [showStripeModal, setShowStripeModal] = useState(false);
 
     useEffect(() => {
         if (!payrollId || !open) return;
@@ -171,9 +173,14 @@ export default function PayrollDetailDrawer({ payrollId, open, onClose, onStatus
                                 </>
                             )}
                             {data.status === 'Approved' && (
-                                <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleAction('Paid')} disabled={isUpdating}>
-                                    <DollarSign className="w-4 h-4 mr-2" /> Mark as Paid
-                                </Button>
+                                <>
+                                    <Button variant="outline" className="flex-1 border-green-600 text-green-700 hover:bg-green-50" onClick={() => handleAction('Paid')} disabled={isUpdating}>
+                                        <DollarSign className="w-4 h-4 mr-2" /> Mark Paid Manually
+                                    </Button>
+                                    <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => setShowStripeModal(true)} disabled={isUpdating}>
+                                        <DollarSign className="w-4 h-4 mr-2" /> Pay via Stripe
+                                    </Button>
+                                </>
                             )}
 
                             <Button variant="outline" size="icon" title="Download PDF">
@@ -188,6 +195,18 @@ export default function PayrollDetailDrawer({ payrollId, open, onClose, onStatus
                     <div className="text-center text-text-secondary py-12">Failed to load data.</div>
                 )}
             </SheetContent>
+
+            {data && (
+                <StripePayoutModal
+                    payrollId={payrollId!}
+                    open={showStripeModal}
+                    onOpenChange={setShowStripeModal}
+                    onSuccess={() => {
+                        onStatusChange();
+                        onClose();
+                    }}
+                />
+            )}
         </Sheet>
     );
 }

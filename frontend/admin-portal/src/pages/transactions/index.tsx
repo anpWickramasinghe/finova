@@ -38,6 +38,7 @@ import {
   Building2, SlidersHorizontal,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { BranchTransferModal } from './components/BranchTransferModal';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -219,6 +220,7 @@ const TransactionsManagement = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [activeTab, setActiveTab] = useState<string>('');
   const [tabSearch, setTabSearch] = useState('');
+  const [showTransferModal, setShowTransferModal] = useState(false);
 
   const [filters, setFilters] = useState({
     status: 'all',
@@ -339,11 +341,17 @@ const TransactionsManagement = () => {
               Review, approve, reject, and post branch transactions to the ledger.
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border rounded-lg px-3 py-2">
-            <Building2 className="h-3.5 w-3.5" />
-            <span>{branchGroups.length} branch{branchGroups.length !== 1 ? 'es' : ''}</span>
-            <span className="text-border">·</span>
-            <span>{transactions.length} transaction{transactions.length !== 1 ? 's' : ''}</span>
+          <div className="flex flex-col items-end gap-2">
+            <Button onClick={() => setShowTransferModal(true)} className="bg-primary text-primary-foreground">
+              <BookOpen className="h-4 w-4 mr-2" />
+              New Branch Transfer
+            </Button>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 border rounded-lg px-3 py-2">
+              <Building2 className="h-3.5 w-3.5" />
+              <span>{branchGroups.length} branch{branchGroups.length !== 1 ? 'es' : ''}</span>
+              <span className="text-border">·</span>
+              <span>{transactions.length} transaction{transactions.length !== 1 ? 's' : ''}</span>
+            </div>
           </div>
         </div>
 
@@ -693,6 +701,13 @@ const TransactionsManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BranchTransferModal 
+        open={showTransferModal}
+        onOpenChange={setShowTransferModal}
+        branches={branches}
+        onSuccess={loadTransactions}
+      />
     </div>
   );
 };
