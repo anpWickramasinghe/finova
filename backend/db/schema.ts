@@ -23,6 +23,7 @@ export const user = pgTable("user", {
     otHourlyRate: text("otHourlyRate"),
     otMultiplier: text("otMultiplier").default('1.5'),
     salaryType: text("salaryType").default('FixedWithOvertime'), // 'FixedWithOvertime', 'FixedNoOvertime', 'Daily'
+    stripeAccountId: text("stripeAccountId"),
 });
 
 export const attendance = pgTable("attendance", {
