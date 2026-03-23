@@ -199,6 +199,7 @@ export default function PayrollDetailDrawer({ payrollId, open, onClose, onStatus
             {data && (
                 <StripePayoutModal
                     payrollId={payrollId!}
+                    employeeAccountId={data.stripeAccountId}
                     open={showStripeModal}
                     onOpenChange={setShowStripeModal}
                     onSuccess={() => {

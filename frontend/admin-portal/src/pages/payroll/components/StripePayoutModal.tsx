@@ -9,19 +9,27 @@ import { toast } from "sonner";
 
 interface StripePayoutModalProps {
   payrollId: string;
+  employeeAccountId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 }
 
-export function StripePayoutModal({ payrollId, open, onOpenChange, onSuccess }: StripePayoutModalProps) {
+export function StripePayoutModal({ payrollId, employeeAccountId, open, onOpenChange, onSuccess }: StripePayoutModalProps) {
   const [loading, setLoading] = useState(false);
-  const [employeeAccountId, setEmployeeAccountId] = useState("");
+  const [employeeAccountIdInput, setEmployeeAccountIdInput] = useState("");
   const [error, setError] = useState("");
+
+  React.useEffect(() => {
+    if (open) {
+      setEmployeeAccountIdInput(employeeAccountId || "");
+      setError("");
+    }
+  }, [open, employeeAccountId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!employeeAccountId) {
+    if (!employeeAccountIdInput) {
       setError("Please enter the Stripe Connected Account ID.");
       return;
     }
@@ -31,13 +39,13 @@ export function StripePayoutModal({ payrollId, open, onOpenChange, onSuccess }: 
 
     try {
       await stripeService.payPayroll(payrollId, {
-        employeeAccountId,
+        employeeAccountId: employeeAccountIdInput,
         currency: "usd",
       });
       toast.success("Payroll paid via Stripe successfully.");
       onSuccess();
       onOpenChange(false);
-      setEmployeeAccountId("");
+      setEmployeeAccountIdInput("");
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || "Failed to process Stripe payout.");
     } finally {
@@ -66,9 +74,14 @@ export function StripePayoutModal({ payrollId, open, onOpenChange, onSuccess }: 
             <Input
               id="employeeAccountId"
               placeholder="e.g. acct_12345..."
-              value={employeeAccountId}
-              onChange={e => setEmployeeAccountId(e.target.value)}
+              value={employeeAccountIdInput}
+              onChange={e => setEmployeeAccountIdInput(e.target.value)}
+              readOnly={!!employeeAccountId}
+              className={employeeAccountId ? "bg-muted" : ""}
             />
+            {employeeAccountId && (
+              <p className="text-xs text-muted-foreground">Auto-filled from user profile.</p>
+            )}
           </div>
 
           <DialogFooter className="pt-4">
