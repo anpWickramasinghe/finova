@@ -10,5 +10,5 @@ export interface Branch {
     lastAudit: Date;
    
     auditLog: { action: string; timestamp: Date; user: string }[];
-  
+    stripeAccountId?: string;
 }

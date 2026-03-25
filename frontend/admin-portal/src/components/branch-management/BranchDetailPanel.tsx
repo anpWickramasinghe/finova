@@ -14,9 +14,11 @@ import {
     Building2,
     Users
 } from "lucide-react";
-
 import type { Branch } from '../../pages/branch-management/types';
 import BranchEmployeesModal from './BranchEmployeesModal';
+import BranchStripeTransferModal from './BranchStripeTransferModal';
+import { CreditCard } from "lucide-react";
+import { branchService } from '../../services/branchService';
 
 interface BranchDetailPanelProps {
     branch: Branch | null;
@@ -30,6 +32,8 @@ const BranchDetailPanel: React.FC<BranchDetailPanelProps> = ({
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Partial<Branch>>({});
     const [showEmployeesModal, setShowEmployeesModal] = useState(false);
+    const [showTransferModal, setShowTransferModal] = useState(false);
+    const [isConnecting, setIsConnecting] = useState(false);
 
     useEffect(() => {
         if (branch) {
@@ -53,6 +57,19 @@ const BranchDetailPanel: React.FC<BranchDetailPanelProps> = ({
     const handleSave = () => {
         onUpdateBranch({ ...branch, ...formData } as Branch);
         setIsEditing(false);
+    };
+
+    const handleConnectStripe = async () => {
+        try {
+            setIsConnecting(true);
+            const data = await branchService.connectBranchStripe(branch.id);
+            onUpdateBranch(data.branch);
+        } catch (error) {
+            console.error('Failed to connect Stripe:', error);
+            alert('Failed to connect Stripe account');
+        } finally {
+            setIsConnecting(false);
+        }
     };
 
     return (
@@ -112,6 +129,15 @@ const BranchDetailPanel: React.FC<BranchDetailPanelProps> = ({
                                 onChange={e => setFormData({ ...formData, contactNumber: e.target.value })}
                             />
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="stripeAccountId">Stripe Account ID (Optional)</Label>
+                            <Input
+                                id="stripeAccountId"
+                                value={formData.stripeAccountId || ''}
+                                onChange={e => setFormData({ ...formData, stripeAccountId: e.target.value })}
+                                placeholder="acct_12345"
+                            />
+                        </div>
                     </div>
                 ) : (
                     <>
@@ -152,6 +178,12 @@ const BranchDetailPanel: React.FC<BranchDetailPanelProps> = ({
                                     <p className="text-muted-foreground">Last Audit</p>
                                     <p className="font-medium">{new Date(branch.lastAudit).toLocaleDateString()}</p>
                                 </div>
+                                <div className="col-span-2">
+                                    <p className="text-muted-foreground">Stripe Account ID</p>
+                                    <p className="font-medium font-mono text-xs mt-1">
+                                        {branch.stripeAccountId || 'Not Configured'}
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
@@ -187,9 +219,31 @@ const BranchDetailPanel: React.FC<BranchDetailPanelProps> = ({
                         </Button>
                     </div>
                 ) : (
-                    <Button className="w-full" onClick={() => setIsEditing(true)}>
-                        Edit Branch
-                    </Button>
+                    <div className="flex flex-col w-full gap-2">
+                        <Button className="w-full" onClick={() => setIsEditing(true)}>
+                            Edit Branch
+                        </Button>
+                        {!branch.stripeAccountId ? (
+                            <Button
+                                variant="secondary"
+                                className="w-full"
+                                onClick={handleConnectStripe}
+                                disabled={isConnecting}
+                            >
+                                <CreditCard className="w-4 h-4 mr-2" />
+                                {isConnecting ? 'Connecting...' : 'Connect Stripe Account'}
+                            </Button>
+                        ) : (
+                            <Button 
+                                variant="secondary" 
+                                className="w-full" 
+                                onClick={() => setShowTransferModal(true)}
+                            >
+                                <CreditCard className="w-4 h-4 mr-2" />
+                                Transfer via Stripe
+                            </Button>
+                        )}
+                    </div>
                 )}
             </CardFooter>
             <BranchEmployeesModal
@@ -197,6 +251,14 @@ const BranchDetailPanel: React.FC<BranchDetailPanelProps> = ({
                 onClose={() => setShowEmployeesModal(false)}
                 branchName={branch.name}
                 branchId={branch.id}
+            />
+            <BranchStripeTransferModal
+                isOpen={showTransferModal}
+                onClose={() => setShowTransferModal(false)}
+                branch={branch}
+                onTransferComplete={() => {
+                    // Could refresh branch data or show a success toast here
+                }}
             />
         </Card>
     );
