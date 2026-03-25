@@ -46,5 +46,19 @@ export const branchService = {
             headers: getAuthHeader()
         });
         return response.data;
+    },
+
+    transferToBranchStripe: async (id: string | number, amount: number, currency: string = 'usd'): Promise<any> => {
+        const response = await axios.post(`${API_URL}/branches/${id}/stripe-transfer`, { amount, currency }, {
+            headers: getAuthHeader()
+        });
+        return response.data;
+    },
+
+    connectBranchStripe: async (id: string | number): Promise<any> => {
+        const response = await axios.post(`${API_URL}/branches/${id}/stripe-connect`, {}, {
+            headers: getAuthHeader()
+        });
+        return response.data;
     }
 };
