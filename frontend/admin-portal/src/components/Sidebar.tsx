@@ -152,7 +152,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                 {navigationItems.map((section) => (
                     <div key={section.section} className="space-y-2">
                         {!collapsed && (
-                            <h3 className="px-4 mb-2 text-xs font-semibold tracking-wider uppercase text-primary-foreground/70">
+                            <h3 className="px-2 mb-2 text-xs font-normal tracking-wider uppercase text-primary-foreground/70">
                                 {section.label}
                             </h3>
                         )}
@@ -163,16 +163,17 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                             return (
                                 <Button
                                     key={item.path}
-                                    variant={isActive ? "secondary" : "ghost"}
+                                    variant={isActive ? "outline" : "ghost"}
                                     className={cn(
                                         "w-full justify-start",
-                                        collapsed ? "px-2 justify-center" : "px-4"
+                                        collapsed ? "px-2 justify-center" : "px-6",
+                                        isActive ? "text-black" : "text-white/80"
                                     )}
                                     asChild
                                 >
                                     <Link to={item.path}>
                                         {Icon && <Icon className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-2")} />}
-                                        {!collapsed && <span>{item.label}</span>}
+                                        {!collapsed && <span className=''> {item.label}</span>}
                                     </Link>
                                 </Button>
                             );
