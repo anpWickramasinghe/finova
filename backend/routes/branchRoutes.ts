@@ -5,7 +5,9 @@ import {
     updateBranch,
     deleteBranch,
     getBranchEmployees,
-    loginBranch
+    loginBranch,
+    connectBranchStripe,
+    transferToBranchStripe
 } from '../controllers/branchController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
@@ -21,5 +23,7 @@ router.post('/', createBranch);
 router.put('/:id', updateBranch);
 router.delete('/:id', deleteBranch);
 router.get('/:id/employees', getBranchEmployees);
+router.post('/:id/stripe-connect', connectBranchStripe);
+router.post('/:id/stripe-transfer', transferToBranchStripe);
 
 export default router;

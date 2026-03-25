@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { db } from "../config/db.js";
-import { payroll, transaction } from "../db/schema.js";
+import { payroll, transaction, journal_line, chart_of_accounts } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -95,6 +95,36 @@ export const createBranchTransfer = async (req: AuthRequest, res: Response) => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+
+    // Fetch the Bank Account from chart of accounts
+    const accounts = await db.select().from(chart_of_accounts).where(eq(chart_of_accounts.code, '1100')).limit(1);
+    const bankAccountId = accounts.length > 0 ? accounts[0].id : null;
+
+    if (bankAccountId) {
+      // 1. Credit the sender branch's bank account (money leaving)
+      await db.insert(journal_line).values({
+        id: uuidv4(),
+        transactionId: txnId,
+        accountId: bankAccountId,
+        description: `transfer_from_branch:${req.user?.branchId || "null"}`,
+        debit: "0.00",
+        credit: parseFloat(String(amount)).toFixed(2),
+        lineOrder: 0,
+        createdAt: new Date(),
+      });
+
+      // 2. Debit the receiver branch's bank account (money arriving)
+      await db.insert(journal_line).values({
+        id: uuidv4(),
+        transactionId: txnId,
+        accountId: bankAccountId,
+        description: `transfer_to_branch:${toBranchId || "null"}`,
+        debit: parseFloat(String(amount)).toFixed(2),
+        credit: "0.00",
+        lineOrder: 1,
+        createdAt: new Date(),
+      });
+    }
 
     res.status(201).json({
       message: "Branch transfer completed in Stripe test mode",

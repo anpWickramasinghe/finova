@@ -15,6 +15,7 @@ export const getAllBranches = async (req: Request, res: Response) => {
             name: branch.name,
             email: branch.email,
             manager: branch.manager,
+            stripeAccountId: branch.stripeAccountId,
             contactNumber: branch.contactNumber,
             revenue: branch.revenue,
             lastAudit: branch.lastAudit,
@@ -51,6 +52,7 @@ export const createBranch = async (req: Request, res: Response) => {
             contactNumber,
             employeeCount: '0',
             revenue: '0',
+            stripeAccountId: req.body.stripeAccountId || null,
             lastAudit: new Date(),
         };
 
@@ -72,6 +74,7 @@ export const updateBranch = async (req: Request, res: Response) => {
             email,
             manager,
             contactNumber,
+            stripeAccountId: req.body.stripeAccountId !== undefined ? req.body.stripeAccountId : undefined,
             updatedAt: new Date()
         };
 
@@ -166,5 +169,83 @@ export const loginBranch = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error logging in branch:', error);
         res.status(500).json({ message: 'Login failed' });
+    }
+};
+
+import { createStripeTransfer, createConnectedTestAccount } from '../services/stripeService.js';
+
+export const connectBranchStripe = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const branches = await db.select().from(branch).where(eq(branch.id, id));
+        const foundBranch = branches[0];
+
+        if (!foundBranch) {
+            return res.status(404).json({ message: 'Branch not found' });
+        }
+
+        if (foundBranch.stripeAccountId) {
+            return res.status(400).json({ message: 'Branch already has a connected Stripe Account' });
+        }
+
+        // Create the connected account using the branch's email
+        const account = await createConnectedTestAccount(foundBranch.email || '');
+
+        // Save it to the database
+        await db.update(branch)
+            .set({ stripeAccountId: account.id })
+            .where(eq(branch.id, id));
+
+        const updatedBranches = await db.select().from(branch).where(eq(branch.id, id));
+
+        res.json({
+            message: 'Stripe account connected successfully',
+            branch: updatedBranches[0]
+        });
+    } catch (error: any) {
+        console.error('Error connecting branch Stripe account:', error);
+        res.status(500).json({ message: error.message || 'Failed to connect Stripe account' });
+    }
+};
+
+export const transferToBranchStripe = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { amount, currency = 'usd' } = req.body;
+
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ message: 'Invalid transfer amount' });
+        }
+
+        const branches = await db.select().from(branch).where(eq(branch.id, id));
+        const foundBranch = branches[0];
+
+        if (!foundBranch) {
+            return res.status(404).json({ message: 'Branch not found' });
+        }
+
+        if (!foundBranch.stripeAccountId) {
+            return res.status(400).json({ message: 'Branch does not have a connected Stripe Account' });
+        }
+
+        const transfer = await createStripeTransfer({
+            amount,
+            currency,
+            destinationAccountId: foundBranch.stripeAccountId,
+            description: `Fund transfer to branch ${foundBranch.name}`,
+            metadata: {
+                type: 'branch_fund_transfer',
+                branchId: foundBranch.id,
+            },
+        });
+
+        res.json({
+            message: 'Transfer successful',
+            transferId: transfer.id,
+        });
+    } catch (error: any) {
+        console.error('Error in transferToBranchStripe:', error);
+        res.status(500).json({ message: error.message || 'Transfer failed' });
     }
 };

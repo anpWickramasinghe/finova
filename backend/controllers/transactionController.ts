@@ -541,6 +541,16 @@ export const postTransaction = async (req: AuthRequest, res: Response) => {
 
         // Create immutable ledger entries from journal lines
         for (const line of lines) {
+            let entryBranchId = txns[0].branchId;
+            if (line.description?.startsWith('transfer_to_branch:')) {
+                entryBranchId = line.description.split(':')[1] || txns[0].branchId;
+            } else if (line.description?.startsWith('transfer_from_branch:')) {
+                entryBranchId = line.description.split(':')[1] || txns[0].branchId;
+            }
+            if (entryBranchId === 'null') {
+                entryBranchId = null;
+            }
+
             await db.insert(ledger_entry).values({
                 id: uuidv4(),
                 transactionId: id,
@@ -549,7 +559,7 @@ export const postTransaction = async (req: AuthRequest, res: Response) => {
                 date: txns[0].date,
                 debit: line.debit,
                 credit: line.credit,
-                branchId: txns[0].branchId,
+                branchId: entryBranchId,
                 postedAt: new Date(),
             });
         }

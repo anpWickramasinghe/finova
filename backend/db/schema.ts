@@ -113,6 +113,7 @@ export const branch = pgTable("branch", {
     contactNumber: text("contactNumber"),
     employeeCount: text("employeeCount").default('0'),
     revenue: text("revenue").default('0'),
+    stripeAccountId: text("stripeAccountId"),
     lastAudit: timestamp("lastAudit"),
     createdAt: timestamp("createdAt").defaultNow(),
     updatedAt: timestamp("updatedAt").defaultNow(),
