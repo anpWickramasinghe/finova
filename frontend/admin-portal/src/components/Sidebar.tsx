@@ -73,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         },
         {
             section: 'reports',
-            label: 'Reports & Compliance',
+            label: 'Reports',
             items: [
                 {
                     label: 'Financial Reports',
@@ -82,6 +82,21 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     roles: ['partner', 'staff', 'freelancer'],
                     tooltip: 'Generate financial statements'
                 },
+                {
+                    label: 'Payroll Reports',
+                    path: '/payroll-reports',
+                    icon: 'Banknote',
+                    roles: ['partner', 'staff'],
+                    tooltip: 'Generate payroll summaries and payslips'
+                },
+                {
+                    label: 'HR Reports',
+                    path: '/hr-reports',
+                    icon: 'Timer',
+                    roles: ['partner', 'staff'],
+                    tooltip: 'Generate attendance and leave logs'
+                },
+              
                 {
                     label: 'Tax Compliance Center',
                     path: '/tax-compliance-center',
@@ -152,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                 {navigationItems.map((section) => (
                     <div key={section.section} className="space-y-2">
                         {!collapsed && (
-                            <h3 className="px-2 mb-2 text-xs font-normal tracking-wider uppercase text-primary-foreground/70">
+                            <h3 className="px-1 mb-2 text-xs font-normal tracking-wider uppercase text-primary-foreground/70">
                                 {section.label}
                             </h3>
                         )}
@@ -166,7 +181,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                                     variant={isActive ? "outline" : "ghost"}
                                     className={cn(
                                         "w-full justify-start",
-                                        collapsed ? "px-2 justify-center" : "px-6",
+                                        collapsed ? "px-2 justify-center" : "px-4",
                                         isActive ? "text-black" : "text-white/80"
                                     )}
                                     asChild

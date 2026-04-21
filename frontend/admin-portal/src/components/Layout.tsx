@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import ChatbotWidget from './Chatbot/ChatbotWidget';
 import { useAuth } from '@/context/AuthContext';
 
 const Layout = () => {
@@ -41,6 +42,7 @@ const Layout = () => {
             `}>
                 <Outlet />
             </main>
+              <ChatbotWidget />
         </div>
     );
 };

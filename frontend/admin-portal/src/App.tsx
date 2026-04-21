@@ -10,8 +10,7 @@ import Layout from './components/Layout';
 import Payroll from './pages/payroll';
 import SupportChat from './pages/chat';
 import Configuration from './pages/configuration/Configuration';
-
-
+import FinancialReports from './pages/reports/FinancialReports';
 import React, { useContext } from 'react';
 
 const PrivateRoute = ({ children }: { children: React.ReactElement }) => {
@@ -41,6 +40,8 @@ function App() {
             <Route path="/payroll" element={<Payroll />} />
             <Route path="/support-chat" element={<SupportChat />} />
             <Route path="/configuration" element={<Configuration />} />
+            <Route path="/financial-reports" element={<FinancialReports />} />
+          
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Route>
         </Routes>
