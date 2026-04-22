@@ -12,6 +12,7 @@ import {
     reconcileTransaction,
     getLedgerEntries,
     getReportsSummary,
+    getProfitAndLossReport,
     getAccounts,
 } from '../controllers/transactionController.js';
 import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
@@ -29,6 +30,7 @@ router.get('/accounts', getAccounts);
 router.get('/', getTransactions);
 router.get('/ledger', getLedgerEntries);
 router.get('/reports/summary', getReportsSummary);
+router.get('/reports/profit-loss', getProfitAndLossReport);
 router.get('/:id', getTransactionById);
 router.post('/', createTransaction);
 router.put('/:id', updateTransaction);
