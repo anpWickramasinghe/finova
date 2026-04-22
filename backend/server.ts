@@ -57,6 +57,7 @@ app.get("/", (req, res) => {
   res.send("Finova API is running");
 });
 
+// Start Server
 httpServer.listen(PORT, () => {
   console.log(`Server & Socket.io running on port ${PORT}`);
 });

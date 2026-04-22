@@ -8,7 +8,9 @@ import {
     restoreChat,
     startAdminChat,
     getBranchChat,
-    getAdminBranchChats
+    getAdminBranchChats,
+    aiChatProxy,
+    clearAiChatSession,
 } from '../controllers/chatController.js';
 import { upload, uploadFile } from '../controllers/uploadController.js';
 import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
@@ -33,5 +35,10 @@ router.post('/admin/chats/start', requireRole(['admin', 'manager']), startAdminC
 router.get('/admin/chats/:id', requireRole(['admin', 'manager']), getAdminChatById);
 router.post('/admin/chats/:id/archive', requireRole(['admin', 'manager']), archiveChat);
 router.post('/admin/chats/:id/restore', requireRole(['admin', 'manager']), restoreChat);
+
+// ---------- AI Chatbot Proxy endpoints ----------
+// Routes through Node.js so JWT auth is handled centrally
+router.post('/ai', requireRole(['admin', 'manager']), aiChatProxy);
+router.delete('/ai/session/:sessionId', requireRole(['admin', 'manager']), clearAiChatSession);
 
 export default router;

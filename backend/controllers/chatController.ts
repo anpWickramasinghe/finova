@@ -299,3 +299,73 @@ export const getAdminBranchChats = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+// ====== AI CHATBOT PROXY ======
+
+const AI_CHATBOT_URL = process.env.AI_CHATBOT_URL || 'http://localhost:8000';
+
+/**
+ * Proxy POST /api/chat/ai → Python AI microservice POST /chat
+ * Forwards the authenticated user's JWT so the Python service can validate it.
+ * The session_id defaults to the authenticated user's ID on the Python side.
+ */
+export const aiChatProxy = async (req: Request, res: Response) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader) {
+            return res.status(401).json({ message: 'Missing authorization header' });
+        }
+
+        const { message, session_id } = req.body;
+        if (!message || typeof message !== 'string' || !message.trim()) {
+            return res.status(400).json({ message: '`message` field is required and must be a non-empty string.' });
+        }
+
+        const response = await fetch(`${AI_CHATBOT_URL}/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authHeader,
+            },
+            body: JSON.stringify({ message: message.trim(), session_id }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error('[AI Proxy] Python service error:', data);
+            return res.status(response.status).json({ message: data.detail || 'AI service error' });
+        }
+
+        return res.status(200).json(data);
+    } catch (error: any) {
+        console.error('[AI Proxy] Failed to reach AI service:', error.message);
+        return res.status(503).json({ message: 'AI chatbot service is unavailable. Please try again later.' });
+    }
+};
+
+/**
+ * Proxy DELETE /api/chat/ai/session/:sessionId → Python AI microservice DELETE /chat/:sessionId
+ * Clears the conversation history for the given session.
+ */
+export const clearAiChatSession = async (req: Request, res: Response) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader) {
+            return res.status(401).json({ message: 'Missing authorization header' });
+        }
+
+        const { sessionId } = req.params;
+
+        const response = await fetch(`${AI_CHATBOT_URL}/chat/${sessionId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': authHeader },
+        });
+
+        const data = await response.json();
+        return res.status(response.status).json(data);
+    } catch (error: any) {
+        console.error('[AI Proxy] Failed to clear session:', error.message);
+        return res.status(503).json({ message: 'AI chatbot service is unavailable.' });
+    }
+};

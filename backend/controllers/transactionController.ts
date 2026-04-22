@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
 import { transaction, journal_line, ledger_entry, reconciliation, chart_of_accounts, user, branch } from '../db/schema.js';
-import { eq, and, sql, desc, asc, between } from 'drizzle-orm';
+import { eq, and, sql, desc, asc, between, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 interface AuthRequest extends Request {
@@ -669,9 +669,14 @@ export const getLedgerEntries = async (req: AuthRequest, res: Response) => {
 export const getReportsSummary = async (req: AuthRequest, res: Response) => {
     try {
         const branchId = req.user?.branchId;
+        const { startDate, endDate } = req.query;
 
         const conditions: any[] = [];
         if (branchId) conditions.push(eq(transaction.branchId, branchId));
+        if (startDate && endDate) {
+            conditions.push(sql`${transaction.date} >= ${new Date(startDate as string)}`);
+            conditions.push(sql`${transaction.date} <= ${new Date(endDate as string)}`);
+        }
 
         const allTxns = await db.select({
             status: transaction.status,
@@ -697,6 +702,10 @@ export const getReportsSummary = async (req: AuthRequest, res: Response) => {
         // Debit vs Credit from ledger
         const ledgerConditions: any[] = [];
         if (branchId) ledgerConditions.push(eq(ledger_entry.branchId, branchId));
+        if (startDate && endDate) {
+            ledgerConditions.push(sql`${ledger_entry.date} >= ${new Date(startDate as string)}`);
+            ledgerConditions.push(sql`${ledger_entry.date} <= ${new Date(endDate as string)}`);
+        }
 
         const ledgerAgg = await db.select({
             totalDebit: sql<string>`COALESCE(SUM(${ledger_entry.debit}), 0)`,
@@ -731,6 +740,97 @@ export const getReportsSummary = async (req: AuthRequest, res: Response) => {
         });
     } catch (error) {
         console.error('Error fetching reports:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// ==========================================
+// GET PROFIT AND LOSS REPORT
+// ==========================================
+export const getProfitAndLossReport = async (req: AuthRequest, res: Response) => {
+    try {
+        const branchId = req.user?.branchId;
+        const { startDate, endDate } = req.query;
+
+        const ledgerConditions: any[] = [];
+        if (branchId) ledgerConditions.push(eq(ledger_entry.branchId, branchId));
+        if (startDate && endDate) {
+            ledgerConditions.push(sql`${ledger_entry.date} >= ${new Date(startDate as string)}`);
+            ledgerConditions.push(sql`${ledger_entry.date} <= ${new Date(endDate as string)}`);
+        }
+
+        // Filter only for revenue and expense
+        ledgerConditions.push(inArray(chart_of_accounts.type, ['revenue', 'expense']));
+
+        const entries = await db.select({
+            id: ledger_entry.id,
+            transactionId: ledger_entry.transactionId,
+            accountId: ledger_entry.accountId,
+            accountCode: chart_of_accounts.code,
+            accountName: chart_of_accounts.name,
+            accountType: chart_of_accounts.type,
+            date: ledger_entry.date,
+            debit: ledger_entry.debit,
+            credit: ledger_entry.credit,
+            postedAt: ledger_entry.postedAt,
+        })
+            .from(ledger_entry)
+            .innerJoin(chart_of_accounts, eq(ledger_entry.accountId, chart_of_accounts.id))
+            .where(ledgerConditions.length > 0 ? and(...ledgerConditions) : undefined)
+            .orderBy(asc(ledger_entry.date));
+
+        const accountMap = new Map<string, any>();
+        let totalRevenue = 0;
+        let totalExpenses = 0;
+
+        for (const entry of entries) {
+            if (!accountMap.has(entry.accountId)) {
+                accountMap.set(entry.accountId, {
+                    accountId: entry.accountId,
+                    accountCode: entry.accountCode,
+                    accountName: entry.accountName,
+                    accountType: entry.accountType,
+                    entries: [],
+                    totalDebit: 0,
+                    totalCredit: 0,
+                    netBalance: 0,
+                });
+            }
+
+            const acc = accountMap.get(entry.accountId);
+            acc.entries.push(entry);
+            acc.totalDebit += parseFloat(entry.debit || '0');
+            acc.totalCredit += parseFloat(entry.credit || '0');
+        }
+
+        const revenues: any[] = [];
+        const expenses: any[] = [];
+
+        for (const acc of accountMap.values()) {
+            if (acc.accountType === 'revenue') {
+                acc.netBalance = acc.totalCredit - acc.totalDebit;
+                totalRevenue += acc.netBalance;
+                revenues.push(acc);
+            } else if (acc.accountType === 'expense') {
+                acc.netBalance = acc.totalDebit - acc.totalCredit;
+                totalExpenses += acc.netBalance;
+                expenses.push(acc);
+            }
+        }
+
+        revenues.sort((a, b) => a.accountCode.localeCompare(b.accountCode));
+        expenses.sort((a, b) => a.accountCode.localeCompare(b.accountCode));
+
+        res.status(200).json({
+            revenues,
+            expenses,
+            totalRevenue,
+            totalExpenses,
+            netIncome: totalRevenue - totalExpenses
+        });
+
+    } catch (error) {
+        console.error('Error fetching P&L report:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
