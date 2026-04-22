@@ -104,6 +104,32 @@ export interface ReportsSummary {
     }[];
 }
 
+export interface ProfitAndLossReport {
+    revenues: {
+        accountId: string;
+        accountCode: string;
+        accountName: string;
+        accountType: string;
+        totalDebit: number;
+        totalCredit: number;
+        netBalance: number;
+        entries: any[];
+    }[];
+    expenses: {
+        accountId: string;
+        accountCode: string;
+        accountName: string;
+        accountType: string;
+        totalDebit: number;
+        totalCredit: number;
+        netBalance: number;
+        entries: any[];
+    }[];
+    totalRevenue: number;
+    totalExpenses: number;
+    netIncome: number;
+}
+
 // ===== Service =====
 
 export const transactionService = {
@@ -210,8 +236,29 @@ export const transactionService = {
         return response.data;
     },
 
-    getReportsSummary: async (): Promise<ReportsSummary> => {
-        const response = await axios.get(`${API_URL}/transactions/reports/summary`, {
+    getReportsSummary: async (filters?: {
+        startDate?: string;
+        endDate?: string;
+    }): Promise<ReportsSummary> => {
+        const params = new URLSearchParams();
+        if (filters?.startDate) params.append('startDate', filters.startDate);
+        if (filters?.endDate) params.append('endDate', filters.endDate);
+
+        const response = await axios.get(`${API_URL}/transactions/reports/summary?${params.toString()}`, {
+            headers: getAuthHeader(),
+        });
+        return response.data;
+    },
+
+    getProfitAndLossReport: async (filters?: {
+        startDate?: string;
+        endDate?: string;
+    }): Promise<ProfitAndLossReport> => {
+        const params = new URLSearchParams();
+        if (filters?.startDate) params.append('startDate', filters.startDate);
+        if (filters?.endDate) params.append('endDate', filters.endDate);
+
+        const response = await axios.get(`${API_URL}/transactions/reports/profit-loss?${params.toString()}`, {
             headers: getAuthHeader(),
         });
         return response.data;
