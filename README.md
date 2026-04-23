@@ -1,6 +1,6 @@
 ## Finance Application – High-Level Architecture
 
-```
+````
                  ┌───────────────────────────┐
                  │        Frontend Layer      │
                  │───────────────────────────│
@@ -27,7 +27,7 @@ graph TD
     %% Main System
     subgraph Finova_System [Finova Intelligent Platform]
         direction TB
-        
+
         %% Modules
         subgraph HR_Payroll [HR & Payroll Module]
             Attendance[Attendance Tracking]
@@ -54,7 +54,7 @@ graph TD
     %% Relationships
     Employee -->|Marks Attendance| Biometric
     Biometric -->|Syncs Data| Attendance
-    
+
     Employee -->|Requests Leave/View Payslip| HR_Payroll
     Employee -->|Queries| Chatbot
 
@@ -70,56 +70,57 @@ graph TD
     Leave --> Payroll
     Payroll -->|Payment Records| Finance_Module
     Payroll -->|Notifications| SMS
-    
+
     Finance_Module -->|Data Feed| AI_Layer
     AI_Layer -->|Insights| Reports
-```
+````
 
 ┌──────────────────────────────────────────────────────┐
-│                   API Gateway / Backend               │
+│ API Gateway / Backend │
 │──────────────────────────────────────────────────────│
-│  Auth & Security Layer                                │
-│  ├─ Authentication (JWT, Refresh Tokens)              │
-│  ├─ Role-Based Access Control (RBAC)                   │
-│  ├─ Permission Validation                              │
-│                                                       │
-│  Application Services                                  │
-│  ├─ Employee Service                                   │
-│  │    • View salary                                    │
-│  │    • Submit requests                                │
-│  │    • View payslips                                  │
-│  ├─ Manager Service                                    │
-│  │    • Approve payments                               │
-│  │    • Team reports                                   │
-│  │    • Budget review                                  │
-│  ├─ Admin Service                                      │
-│  │    • User & role management                         │
-│  │    • System configuration                           │
-│  │    • Financial rules                                │
-│  ├─ Finance Core Service                               │
-│  │    • Payroll calculations                           │
-│  │    • Transactions                                   │
-│  │    • Accounting logic                                │
-│  ├─ Reporting Service                                  │
-│  │    • Financial reports                               │
-│  │    • Audit exports                                   │
-│  └─ Audit & Logging Service                            │
-│       • Activity logs                                  │
-│       • Compliance tracking                            │
+│ Auth & Security Layer │
+│ ├─ Authentication (JWT, Refresh Tokens) │
+│ ├─ Role-Based Access Control (RBAC) │
+│ ├─ Permission Validation │
+│ │
+│ Application Services │
+│ ├─ Employee Service │
+│ │ • View salary │
+│ │ • Submit requests │
+│ │ • View payslips │
+│ ├─ Manager Service │
+│ │ • Approve payments │
+│ │ • Team reports │
+│ │ • Budget review │
+│ ├─ Admin Service │
+│ │ • User & role management │
+│ │ • System configuration │
+│ │ • Financial rules │
+│ ├─ Finance Core Service │
+│ │ • Payroll calculations │
+│ │ • Transactions │
+│ │ • Accounting logic │
+│ ├─ Reporting Service │
+│ │ • Financial reports │
+│ │ • Audit exports │
+│ └─ Audit & Logging Service │
+│ • Activity logs │
+│ • Compliance tracking │
 └─────────────┬───────────────────────┬────────────────┘
-              │                       │
-              ▼                       ▼
-┌──────────────────────┐   ┌──────────────────────────┐
-│   Primary Database   │   │   Audit / Log Database    │
-│──────────────────────│   │──────────────────────────│
-│ PostgreSQL / MSSQL   │   │ MongoDB / Elasticsearch  │
-│ • Users              │   │ • Access logs             │
-│ • Roles              │   │ • Change history          │
-│ • Permissions        │   │ • Financial events        │
-│ • Payroll            │   └──────────────────────────┘
-│ • Transactions       │
+│ │
+▼ ▼
+┌──────────────────────┐ ┌──────────────────────────┐
+│ Primary Database │ │ Audit / Log Database │
+│──────────────────────│ │──────────────────────────│
+│ PostgreSQL / MSSQL │ │ MongoDB / Elasticsearch │
+│ • Users │ │ • Access logs │
+│ • Roles │ │ • Change history │
+│ • Permissions │ │ • Financial events │
+│ • Payroll │ └──────────────────────────┘
+│ • Transactions │
 └──────────────────────┘
-```
+
+````
 
 ---
 
@@ -160,3 +161,60 @@ To run the entire application (Backend, Admin Portal, and Manager Portal) concur
 | **Backend** | `5000` | `http://localhost:5000` |
 | **Admin Portal** | `5175` | `http://localhost:5175` |
 | **Manager Portal** | `5176` | `http://localhost:5176` |
+
+---
+
+## Docker Setup (Backend + All Portals)
+
+This project is dockerized for:
+
+- Backend API
+- Admin Portal
+- Manager Portal
+- Employee Portal (Expo web export)
+
+### Prerequisites
+
+- Docker Engine + Docker Compose plugin
+- Backend environment file at `backend/.env`
+
+You can copy the template if needed:
+
+```bash
+cp backend/.env.example backend/.env
+````
+
+### Build and Run
+
+From the project root:
+
+```bash
+docker compose up --build -d
+```
+
+Stop services:
+
+```bash
+docker compose down
+```
+
+View logs:
+
+```bash
+docker compose logs -f
+```
+
+### Docker Service URLs
+
+| Service         | Container Port | Host Port | URL                     |
+| :-------------- | :------------- | :-------- | :---------------------- |
+| Backend         | `5000`         | `5001`    | `http://localhost:5001` |
+| Admin Portal    | `80`           | `8081`    | `http://localhost:8081` |
+| Manager Portal  | `80`           | `8082`    | `http://localhost:8082` |
+| Employee Portal | `80`           | `8083`    | `http://localhost:8083` |
+
+### Notes
+
+- Backend loads variables from `backend/.env` via `env_file` in Compose.
+- Host port `5001` is used to avoid conflict with existing local services on `5000`.
+- If auth redirects depend on backend URL, set `BETTER_AUTH_URL` accordingly (for local Docker, usually `http://localhost:5001`).

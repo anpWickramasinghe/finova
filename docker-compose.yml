@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: finova-backend
+    ports:
+      - "5001:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+    restart: unless-stopped
+
+  admin-portal:
+    build:
+      context: ./frontend/admin-portal
+      dockerfile: Dockerfile
+    container_name: finova-admin-portal
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  manager-portal:
+    build:
+      context: ./frontend/manager-portal
+      dockerfile: Dockerfile
+    container_name: finova-manager-portal
+    ports:
+      - "8082:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  employee-portal:
+    build:
+      context: ./frontend/employee-portal
+      dockerfile: Dockerfile
+    container_name: finova-employee-portal
+    ports:
+      - "8083:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
