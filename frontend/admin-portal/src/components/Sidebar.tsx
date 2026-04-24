@@ -61,14 +61,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     icon: 'Receipt',
                     roles: ['partner', 'staff', 'freelancer'],
                     tooltip: 'Manage financial transactions'
-                },
-                {
-                    label: 'Bank Reconciliation',
-                    path: '/bank-reconciliation',
-                    icon: 'Building2',
-                    roles: ['partner', 'staff', 'freelancer'],
-                    tooltip: 'Reconcile bank statements'
                 }
+               
             ]
         },
         {
@@ -95,14 +89,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     icon: 'Timer',
                     roles: ['partner', 'staff'],
                     tooltip: 'Generate attendance and leave logs'
-                },
-              
-                {
-                    label: 'Tax Compliance Center',
-                    path: '/tax-compliance-center',
-                    icon: 'Calculator',
-                    roles: ['partner', 'staff'],
-                    tooltip: 'Tax filing and compliance'
                 }
             ]
         },
@@ -131,14 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     tooltip: 'Manage employee payroll'
                 },
                 {
-                    label: 'Client Portal',
-                    path: '/client-portal',
-                    icon: 'Globe',
-                    roles: ['partner', 'staff', 'client'],
-                    tooltip: 'Client access and communication'
-                },
-                {
-                    label: 'Support Chat',
+                    label: 'Chat',
                     path: '/support-chat',
                     icon: 'MessageCircle',
                     roles: ['partner', 'staff'],
