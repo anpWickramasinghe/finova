@@ -12,6 +12,7 @@ import SupportChat from './pages/chat';
 import Configuration from './pages/configuration/Configuration';
 import FinancialReports from './pages/reports/FinancialReports';
 import PayrollReports from './pages/reports/PayrollReports';
+import HrReports from './pages/reports/HrReports';
 import React, { useContext } from 'react';
 
 const PrivateRoute = ({ children }: { children: React.ReactElement }) => {
@@ -43,6 +44,7 @@ function App() {
             <Route path="/configuration" element={<Configuration />} />
             <Route path="/financial-reports" element={<FinancialReports />} />
             <Route path="/payroll-reports" element={<PayrollReports />} />
+            <Route path="/hr-reports" element={<HrReports />} />
           
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Route>
