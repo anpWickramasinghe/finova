@@ -12,6 +12,7 @@ import payrollRoutes from "./routes/payrollRoutes.js";
 import transactionRoutes from "./routes/transactionRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import stripeRoutes from "./routes/stripeRoutes.js";
+import forecastingRoutes from "./routes/forecastingRoutes.js";
 
 import { auth } from "./auth.js";
 import path from "path";
@@ -49,6 +50,7 @@ app.use("/api/payroll", payrollRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/stripe", stripeRoutes);
+app.use("/api/forecasting", forecastingRoutes);
 
 // Serve uploads statically
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
