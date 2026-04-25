@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Loader2, X } from "lucide-react";
+import { Search, Filter, Loader2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from 'date-fns';
 import type { LeaveRequest } from '@/services/leaveService';
 
@@ -25,12 +25,28 @@ export const LeaveActivityTable: React.FC<LeaveActivityTableProps> = ({
     handleStatusUpdate,
     processingId
 }) => {
+    const [currentPage, setCurrentPage] = React.useState(1);
+    const itemsPerPage = 8;
+
+    // Reset to first page when search term changes
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
+
+    const filteredRequests = requests.filter(r =>
+        (r.userName || r.userId).toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedRequests = filteredRequests.slice(startIndex, startIndex + itemsPerPage);
 
     const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'Approved':
+        const s = status?.toLowerCase();
+        switch (s) {
+            case 'approved':
                 return <Badge className="bg-emerald-500 hover:bg-emerald-600 font-normal">Approved</Badge>;
-            case 'Rejected':
+            case 'rejected':
                 return <Badge variant="destructive" className="font-normal">Rejected</Badge>;
             default:
                 return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 font-normal hover:bg-amber-100">Pending</Badge>;
@@ -78,16 +94,14 @@ export const LeaveActivityTable: React.FC<LeaveActivityTableProps> = ({
                                     <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
                                 </TableCell>
                             </TableRow>
-                        ) : requests.length === 0 ? (
+                        ) : filteredRequests.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
-                                    No leave requests found.
+                                    No leave requests found{searchTerm ? ` for "${searchTerm}"` : ''}.
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            requests.filter(r =>
-                                (r.userName || r.userId).toLowerCase().includes(searchTerm.toLowerCase())
-                            ).map((req) => (
+                            paginatedRequests.map((req) => (
                                 <TableRow key={req.id} className="hover:bg-slate-50/50 border-b border-slate-50">
                                     <TableCell className="pl-6">
                                         {/* Checkbox placeholder */}
@@ -116,35 +130,82 @@ export const LeaveActivityTable: React.FC<LeaveActivityTableProps> = ({
                                         <span className="bg-slate-100 px-2 py-1 rounded text-xs">{req.reason || 'No reason'}</span>
                                     </TableCell>
                                     <TableCell className="text-right pr-6">
-                                        {req.status === 'Pending' ? (
-                                            <div className="flex justify-end gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    className="h-7 px-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-xs font-medium shadow-none"
-                                                    onClick={() => handleStatusUpdate(req.id, 'Approved')}
-                                                    disabled={processingId === req.id}
-                                                >
-                                                    Approve
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    className="h-7 w-7 p-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full"
-                                                    onClick={() => handleStatusUpdate(req.id, 'Rejected')}
-                                                    disabled={processingId === req.id}
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            getStatusBadge(req.status)
-                                        )}
+                                        <div className="flex items-center justify-end gap-3">
+                                            {req.status?.toLowerCase() === 'pending' ? (
+                                                <>
+                                                    {getStatusBadge('Pending')}
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            className="h-7 px-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-xs font-medium shadow-none"
+                                                            onClick={() => handleStatusUpdate(req.id, 'Approved')}
+                                                            disabled={processingId === req.id}
+                                                        >
+                                                            Approve
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            className="h-7 w-7 p-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full"
+                                                            onClick={() => handleStatusUpdate(req.id, 'Rejected')}
+                                                            disabled={processingId === req.id}
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                getStatusBadge(req.status)
+                                            )}
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
                         )}
                     </TableBody>
                 </Table>
+
+                {/* Pagination Controls */}
+                {!loading && filteredRequests.length > 0 && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-50">
+                        <div className="text-sm text-muted-foreground">
+                            Showing <span className="font-medium text-slate-900">{startIndex + 1}</span> to <span className="font-medium text-slate-900">{Math.min(startIndex + itemsPerPage, filteredRequests.length)}</span> of <span className="font-medium text-slate-900">{filteredRequests.length}</span> results
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <div className="flex items-center gap-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                    <Button
+                                        key={page}
+                                        variant={currentPage === page ? "default" : "outline"}
+                                        size="sm"
+                                        className={`h-8 w-8 p-0 ${currentPage === page ? 'bg-slate-900 text-white hover:bg-slate-800' : ''}`}
+                                        onClick={() => setCurrentPage(page)}
+                                    >
+                                        {page}
+                                    </Button>
+                                ))}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );
