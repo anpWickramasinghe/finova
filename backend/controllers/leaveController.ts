@@ -36,6 +36,76 @@ export const createLeaveRequest = async (req: Request, res: Response) => {
     }
 };
 
+// export const getLeaveRequests = async (req: Request, res: Response) => {
+//     try {
+//         const userId = (req as any).user?.id || res.locals.user?.id;
+//         const userRole = (req as any).user?.role;
+
+//         if (!userId) {
+//             return res.status(401).json({ message: 'Unauthorized' });
+//         }
+
+//         if (userRole === 'manager') {
+//             // Manager: View requests for their branch/employees
+//             // Note: Assuming manager's branch logic or just view all for now based on strict strict permissions?
+//             // Usually we filter by branch. Let's get the manager's branch first or if they are admin.
+//             // For now, mirroring attendance logic, if branch manager, show their branch.
+
+//             // Get manager details to find branchId
+//             const manager = await db.select().from(user).where(eq(user.id, userId)).limit(1);
+//             if (manager.length === 0) return res.status(404).json({ message: "User not found" });
+//             const branchId = manager[0].branchId;
+
+//             if (branchId) {
+//                 const requests = await db.select({
+//                     id: leave_request.id,
+//                     userId: leave_request.userId,
+//                     userName: user.name,
+//                     startDate: leave_request.startDate,
+//                     endDate: leave_request.endDate,
+//                     type: leave_request.type,
+//                     reason: leave_request.reason,
+//                     status: leave_request.status,
+//                     createdAt: leave_request.createdAt
+//                 })
+//                     .from(leave_request)
+//                     .innerJoin(user, eq(leave_request.userId, user.id))
+//                     .where(eq(user.branchId, branchId))
+//                     .orderBy(desc(leave_request.createdAt));
+
+//                 return res.status(200).json(requests);
+//             }
+//             // If no branch (maybe generic admin?), return all
+//             const requests = await db.select({
+//                 id: leave_request.id,
+//                 userId: leave_request.userId,
+//                 userName: user.name,
+//                 startDate: leave_request.startDate,
+//                 endDate: leave_request.endDate,
+//                 type: leave_request.type,
+//                 reason: leave_request.reason,
+//                 status: leave_request.status,
+//                 createdAt: leave_request.createdAt
+//             })
+//                 .from(leave_request)
+//                 .innerJoin(user, eq(leave_request.userId, user.id))
+//                 .orderBy(desc(leave_request.createdAt));
+//             return res.status(200).json(requests);
+
+//         } else {
+//             // Employee: View own requests
+//             const requests = await db.select().from(leave_request)
+//                 .where(eq(leave_request.userId, userId))
+//                 .orderBy(desc(leave_request.createdAt));
+//             res.status(200).json(requests);
+//         }
+
+//     } catch (error) {
+//         console.error('Error fetching leave requests:', error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// };
+
 export const getLeaveRequests = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user?.id || res.locals.user?.id;
@@ -45,67 +115,43 @@ export const getLeaveRequests = async (req: Request, res: Response) => {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        if (userRole === 'manager') {
-            // Manager: View requests for their branch/employees
-            // Note: Assuming manager's branch logic or just view all for now based on strict strict permissions?
-            // Usually we filter by branch. Let's get the manager's branch first or if they are admin.
-            // For now, mirroring attendance logic, if branch manager, show their branch.
+        let filterBranchId: string | undefined = undefined;
 
-            // Get manager details to find branchId
+        if (userRole === 'branch') {
+            // If logged in as a branch account, userId is the branchId
+            filterBranchId = userId;
+        } else if (userRole === 'manager') {
+            // If logged in as a manager, fetch their branchId
             const manager = await db.select().from(user).where(eq(user.id, userId)).limit(1);
-            if (manager.length === 0) return res.status(404).json({ message: "User not found" });
-            const branchId = manager[0].branchId;
-
-            if (branchId) {
-                const requests = await db.select({
-                    id: leave_request.id,
-                    userId: leave_request.userId,
-                    userName: user.name,
-                    startDate: leave_request.startDate,
-                    endDate: leave_request.endDate,
-                    type: leave_request.type,
-                    reason: leave_request.reason,
-                    status: leave_request.status,
-                    createdAt: leave_request.createdAt
-                })
-                    .from(leave_request)
-                    .innerJoin(user, eq(leave_request.userId, user.id))
-                    .where(eq(user.branchId, branchId))
-                    .orderBy(desc(leave_request.createdAt));
-
-                return res.status(200).json(requests);
-            }
-            // If no branch (maybe generic admin?), return all
-            const requests = await db.select({
-                id: leave_request.id,
-                userId: leave_request.userId,
-                userName: user.name,
-                startDate: leave_request.startDate,
-                endDate: leave_request.endDate,
-                type: leave_request.type,
-                reason: leave_request.reason,
-                status: leave_request.status,
-                createdAt: leave_request.createdAt
-            })
-                .from(leave_request)
-                .innerJoin(user, eq(leave_request.userId, user.id))
-                .orderBy(desc(leave_request.createdAt));
-            return res.status(200).json(requests);
-
-        } else {
-            // Employee: View own requests
-            const requests = await db.select().from(leave_request)
-                .where(eq(leave_request.userId, userId))
-                .orderBy(desc(leave_request.createdAt));
-            res.status(200).json(requests);
+            filterBranchId = manager[0]?.branchId || undefined;
+        } else if (userRole === 'admin') {
+            // Admin can filter by branchId query param
+            filterBranchId = req.query.branchId as string;
         }
+
+        const requests = await db.select({
+            id: leave_request.id,
+            userId: leave_request.userId,
+            userName: user.name,
+            startDate: leave_request.startDate,
+            endDate: leave_request.endDate,
+            type: leave_request.type,
+            reason: leave_request.reason,
+            status: leave_request.status,
+            createdAt: leave_request.createdAt
+        })
+        .from(leave_request)
+        .innerJoin(user, eq(leave_request.userId, user.id))
+        .where(filterBranchId ? eq(user.branchId, filterBranchId) : undefined)
+        .orderBy(desc(leave_request.createdAt));
+
+        return res.status(200).json(requests);
 
     } catch (error) {
         console.error('Error fetching leave requests:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-
 export const updateLeaveStatus = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
