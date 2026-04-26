@@ -13,22 +13,21 @@ import axios from 'axios';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+import { useAuth } from '@/providers/auth-context';
+
 export default function ChatScreen() {
     const primary = useColor('primary');
     const background = useColor('background');
     const border = useColor('border');
 
-
     const router = useRouter();
-
-    // TODO: Pull real user from your auth context
-    const mockUser = { id: 'test-emp-1', role: 'user', name: 'Nethmina', branchId: 'branch-colombo' };
+    const { user } = useAuth();
 
     const [chatMode, setChatMode] = useState<'support' | 'branch'>('support');
     const { chat, connected, unreadCount, sendMessage, markAsRead } = useSupportChat(
-        mockUser,
+        user,
         chatMode,
-        chatMode === 'branch' ? mockUser.branchId : undefined
+        chatMode === 'branch' ? (user as any)?.branchId : undefined
     );
     const [inputValue, setInputValue] = useState('');
     const flatListRef = useRef<FlatList>(null);
@@ -78,7 +77,7 @@ export default function ChatScreen() {
     const renderItem = ({ item }: { item: SupportMessage }) => {
         let isCurrentUser = item.senderType === 'user';
         if (chatMode === 'branch') {
-            isCurrentUser = (item as any).userId === mockUser.id;
+            isCurrentUser = (item as any).userId === (user?._id || (user as any)?.id);
         }
 
         const isImage = item.attachmentUrl?.match(/\.(jpeg|jpg|gif|png)$/i);
@@ -159,7 +158,7 @@ export default function ChatScreen() {
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <IconSymbol name="envelope.fill" size={48} color={border} />
-                            <Text style={styles.emptyText}>Hi {mockUser.name} 👋</Text>
+                            <Text style={styles.emptyText}>Hi {user?.name} 👋</Text>
                             <Text style={styles.emptySubText}>Send us a message and we'll reply as soon as we can.</Text>
                         </View>
                     }

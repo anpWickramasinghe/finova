@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api';
 const SOCKET_URL = API_URL.replace('/api', '');
@@ -29,10 +28,10 @@ export function useSupportChat(user: any, mode: 'support' | 'branch' = 'support'
     const socketRef = useRef<Socket | null>(null);
     const seenIds = useRef(new Set<string>());
 
-    const getAuthHeader = async () => {
-        const token = await AsyncStorage.getItem('token');
+    const getAuthHeader = useCallback(() => {
+        const token = user?.token;
         return token ? { Authorization: `Bearer ${token}` } : {};
-    };
+    }, [user?.token]);
 
     useEffect(() => {
         if (!user) return;
@@ -41,7 +40,7 @@ export function useSupportChat(user: any, mode: 'support' | 'branch' = 'support'
         // Load initial chat history
         const fetchHistory = async () => {
             try {
-                const headers = await getAuthHeader();
+                const headers = getAuthHeader();
                 let res;
                 if (mode === 'branch') {
                     res = await axios.get(`${API_URL}/chat/branch/${branchId}`, { headers });
@@ -65,34 +64,55 @@ export function useSupportChat(user: any, mode: 'support' | 'branch' = 'support'
     }, [user, mode, branchId]);
 
     useEffect(() => {
-        if (!user || !chat?.id) return;
+        if (!user) return;
 
         // Connect to WebSocket Server
         const socket = io(SOCKET_URL, {
             query: {
-                userId: user.id || 'employee',
+                userId: user._id || user.id || 'employee',
                 role: user.role || 'user'
-            }
+            },
+            reconnectionAttempts: 5,
+            timeout: 10000,
         });
 
         socketRef.current = socket;
 
         socket.on('connect', () => {
+            console.log('[Socket] Connected');
             setConnected(true);
-            if (mode === 'branch') {
-                socket.emit('join_branch_room', { roomId: chat.id });
-            } else {
-                socket.emit('join_chat', { chatId: chat.id });
-            }
         });
 
-        socket.on('disconnect', () => {
+        socket.on('connect_error', (error) => {
+            console.error('[Socket] Connection Error:', error);
             setConnected(false);
         });
 
+        socket.on('disconnect', () => {
+            console.log('[Socket] Disconnected');
+            setConnected(false);
+        });
+
+        return () => {
+            console.log('[Socket] Cleaning up');
+            socket.disconnect();
+            socketRef.current = null;
+        };
+    }, [user]);
+
+    useEffect(() => {
+        const socket = socketRef.current;
+        if (!socket || !connected || !chat?.id) return;
+
+        if (mode === 'branch') {
+            socket.emit('join_branch_room', { roomId: chat.id });
+        } else {
+            socket.emit('join_chat', { chatId: chat.id });
+        }
+
         const eventName = mode === 'branch' ? 'new_branch_message' : 'new_message';
 
-        socket.on(eventName, (message: SupportMessage) => {
+        const messageHandler = (message: SupportMessage) => {
             if (!seenIds.current.has(message.id)) {
                 seenIds.current.add(message.id);
                 setChat(prev => prev ? { ...prev, messages: [...prev.messages, message] } : prev);
@@ -101,12 +121,14 @@ export function useSupportChat(user: any, mode: 'support' | 'branch' = 'support'
                     setUnreadCount(prev => prev + 1);
                 }
             }
-        });
+        };
+
+        socket.on(eventName, messageHandler);
 
         return () => {
-            socket.disconnect();
+            socket.off(eventName, messageHandler);
         };
-    }, [user, chat?.id, mode]);
+    }, [connected, chat?.id, mode]);
 
     const sendMessage = useCallback((content: string, attachmentUrl?: string | null) => {
         if (!socketRef.current || !chat?.id) return;
@@ -130,7 +152,7 @@ export function useSupportChat(user: any, mode: 'support' | 'branch' = 'support'
     const markAsRead = useCallback(async () => {
         if (mode === 'branch') return; // maybe not necessary for branches right now
         try {
-            const headers = await getAuthHeader();
+            const headers = getAuthHeader();
             await axios.patch(`${API_URL}/chat/my-chat/read`, {}, { headers });
             setUnreadCount(0);
             setChat(prev => {
