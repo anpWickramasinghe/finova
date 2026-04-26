@@ -18,6 +18,9 @@ export default function ChatScreen() {
     const background = useColor('background');
     const border = useColor('border');
 
+
+    const router = useRouter();
+
     // TODO: Pull real user from your auth context
     const mockUser = { id: 'test-emp-1', role: 'user', name: 'Nethmina', branchId: 'branch-colombo' };
 
@@ -111,11 +114,11 @@ export default function ChatScreen() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: background }} edges={['top']}>
+        <View style={{ flex: 1 }}>
             <Header
                 title={chatMode === 'support' ? "Support Chat" : "Branch General"}
                 onNotificationPress={() => console.log('Notification pressed')}
-                onMenuPress={() => { }}
+                onMenuPress={() => router.push('/sheet')}
             />
 
             <View style={{ flexDirection: 'row', backgroundColor: '#fff', borderBottomWidth: 1, borderColor: border }}>
@@ -183,7 +186,7 @@ export default function ChatScreen() {
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View> 
     );
 }
 
