@@ -23,18 +23,23 @@ export default function ChatScreen() {
     const router = useRouter();
     const { user } = useAuth();
 
+    const [isInbox, setIsInbox] = useState(true);
     const [chatMode, setChatMode] = useState<'support' | 'branch'>('support');
+    
     const { chat, connected, unreadCount, sendMessage, markAsRead } = useSupportChat(
         user,
         chatMode,
         chatMode === 'branch' ? (user as any)?.branchId : undefined
     );
+
     const [inputValue, setInputValue] = useState('');
     const flatListRef = useRef<FlatList>(null);
 
     useEffect(() => {
-        markAsRead();
-    }, [chat?.messages.length, markAsRead, chatMode]);
+        if (!isInbox) {
+            markAsRead();
+        }
+    }, [chat?.messages.length, markAsRead, isInbox]);
 
     const handleSend = () => {
         if (!inputValue.trim()) return;
@@ -74,7 +79,35 @@ export default function ChatScreen() {
         }
     };
 
-    const renderItem = ({ item }: { item: SupportMessage }) => {
+    const renderInboxItem = (title: string, subtitle: string, icon: string, mode: 'support' | 'branch', unread: number, time: string) => (
+        <TouchableOpacity 
+            style={[styles.inboxItem, { borderBottomColor: border }]} 
+            onPress={() => {
+                setChatMode(mode);
+                setIsInbox(false);
+            }}
+        >
+            <View style={[styles.avatar, { backgroundColor: primary + '20' }]}>
+                <IconSymbol name={icon as any} size={24} color={primary} />
+            </View>
+            <View style={styles.inboxContent}>
+                <View style={styles.inboxHeader}>
+                    <Text style={styles.inboxTitle}>{title}</Text>
+                    <Text style={styles.inboxTime}>{time}</Text>
+                </View>
+                <View style={styles.inboxFooter}>
+                    <Text style={styles.inboxSubtitle} numberOfLines={1}>{subtitle}</Text>
+                    {unread > 0 && (
+                        <View style={[styles.badge, { backgroundColor: primary }]}>
+                            <Text style={styles.badgeText}>{unread}</Text>
+                        </View>
+                    )}
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+
+    const renderMessage = ({ item }: { item: SupportMessage }) => {
         let isCurrentUser = item.senderType === 'user';
         if (chatMode === 'branch') {
             isCurrentUser = (item as any).userId === (user?._id || (user as any)?.id);
@@ -112,28 +145,37 @@ export default function ChatScreen() {
         );
     };
 
+    if (isInbox) {
+        return (
+            <View style={{ flex: 1, backgroundColor: '#fff' }}>
+                <Header
+                    title="Chats"
+                    onNotificationPress={() => console.log('Notification pressed')}
+                    onMenuPress={() => router.push('/sheet')}
+                />
+                <FlatList
+                    data={[
+                        { id: 'support', title: 'Support Team', subtitle: 'Our team is here to help with your queries', icon: 'person.fill', mode: 'support', unread: chatMode === 'support' ? unreadCount : 0, time: 'Now' },
+                        { id: 'branch', title: 'Branch General', subtitle: 'Talk to your branch manager and staff', icon: 'building.2.fill', mode: 'branch', unread: chatMode === 'branch' ? unreadCount : 0, time: '1h' },
+                        { id: 'ai', title: 'AI Assistant', subtitle: 'Instant answers to your company questions', icon: 'sparkles', mode: 'support', unread: 0, time: '24/7' },
+                    ]}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => renderInboxItem(item.title, item.subtitle, item.icon, item.mode as any, item.unread, item.time)}
+                    contentContainerStyle={{ paddingVertical: 8 }}
+                />
+            </View>
+        );
+    }
+
     return (
         <View style={{ flex: 1 }}>
             <Header
                 title={chatMode === 'support' ? "Support Chat" : "Branch General"}
                 onNotificationPress={() => console.log('Notification pressed')}
                 onMenuPress={() => router.push('/sheet')}
+                showBackButton={true}
+                onBack={() => setIsInbox(true)}
             />
-
-            <View style={{ flexDirection: 'row', backgroundColor: '#fff', borderBottomWidth: 1, borderColor: border }}>
-                <TouchableOpacity
-                    style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderColor: chatMode === 'support' ? primary : 'transparent' }}
-                    onPress={() => setChatMode('support')}
-                >
-                    <Text style={{ fontWeight: chatMode === 'support' ? '600' : '400', color: chatMode === 'support' ? primary : '#666' }}>Support</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderColor: chatMode === 'branch' ? primary : 'transparent' }}
-                    onPress={() => setChatMode('branch')}
-                >
-                    <Text style={{ fontWeight: chatMode === 'branch' ? '600' : '400', color: chatMode === 'branch' ? primary : '#666' }}>My Branch</Text>
-                </TouchableOpacity>
-            </View>
 
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
@@ -152,7 +194,7 @@ export default function ChatScreen() {
                     ref={flatListRef}
                     data={chat?.messages || []}
                     keyExtractor={(item) => item.id}
-                    renderItem={renderItem}
+                    renderItem={renderMessage}
                     contentContainerStyle={styles.messageList}
                     onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
                     ListEmptyComponent={
@@ -185,7 +227,7 @@ export default function ChatScreen() {
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
-        </View> 
+        </View>
     );
 }
 
@@ -231,6 +273,62 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 20,
+    },
+    inboxItem: {
+        flexDirection: 'row',
+        padding: 16,
+        alignItems: 'center',
+        borderBottomWidth: 1,
+    },
+    avatar: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+    },
+    inboxContent: {
+        flex: 1,
+    },
+    inboxHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    inboxTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#000',
+    },
+    inboxTime: {
+        fontSize: 12,
+        color: '#666',
+    },
+    inboxFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    inboxSubtitle: {
+        fontSize: 14,
+        color: '#666',
+        flex: 1,
+        marginRight: 8,
+    },
+    badge: {
+        minWidth: 20,
+        height: 20,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+    },
+    badgeText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
     },
     timestamp: {
         fontSize: 10,

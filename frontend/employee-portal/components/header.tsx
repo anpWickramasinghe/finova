@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
-import { Bell, Menu } from 'lucide-react-native';
+import { Bell, Menu, ChevronLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface HeaderProps {
@@ -11,6 +11,8 @@ interface HeaderProps {
     title?: string;
     onNotificationPress?: () => void;
     onMenuPress?: () => void;
+    showBackButton?: boolean;
+    onBack?: () => void;
 }
 
 export default function Header({
@@ -19,6 +21,8 @@ export default function Header({
     title,
     onNotificationPress,
     onMenuPress,
+    showBackButton,
+    onBack,
 }: HeaderProps) {
 
     const primary = useColor('primary');
@@ -36,20 +40,29 @@ export default function Header({
         >
             <View style={styles.content}>
                 <View style={styles.textContainer}>
-                    {title ? (
-                        <Text style={styles.title}>{title}</Text>
-                    ) : (
-                        <>
-                            <Text style={styles.greeting}>{greeting}</Text>
-                            <Text style={styles.userName}>{userName}</Text>
-                        </>
-                    )}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                        {showBackButton && (
+                            <TouchableOpacity onPress={onBack}>
+                                <ChevronLeft size={28} color="white" />
+                            </TouchableOpacity>
+                        )}
+                        {title ? (
+                            <Text style={styles.title}>{title}</Text>
+                        ) : (
+                            <View>
+                                <Text style={styles.greeting}>{greeting}</Text>
+                                <Text style={styles.userName}>{userName}</Text>
+                            </View>
+                        )}
+                    </View>
                 </View>
                 <View style={styles.iconContainer}>
-                    <TouchableOpacity onPress={onNotificationPress} style={styles.iconButton}>
-                        <Bell size={24} color="white" />
-                        <View style={styles.badge} />
-                    </TouchableOpacity>
+                    {!showBackButton && (
+                        <TouchableOpacity onPress={onNotificationPress} style={styles.iconButton}>
+                            <Bell size={24} color="white" />
+                            <View style={styles.badge} />
+                        </TouchableOpacity>
+                    )}
                     <TouchableOpacity onPress={onMenuPress} style={styles.iconButton}>
                         <Menu size={28} color="white" />
                     </TouchableOpacity>
