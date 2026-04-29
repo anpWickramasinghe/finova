@@ -175,7 +175,7 @@ const FinancialReports = () => {
                                 <div>
                                     <p className="text-xs font-medium text-muted-foreground">Total Revenue</p>
                                     <p className="font-mono text-xl font-bold">
-                                        ${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        LKR{''} {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
                             </div>
@@ -191,7 +191,7 @@ const FinancialReports = () => {
                                 <div>
                                     <p className="text-xs font-medium text-muted-foreground">Net Income</p>
                                     <p className={`font-mono text-xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        ${netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        LKR{''} {netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
                             </div>
@@ -250,12 +250,12 @@ const FinancialReports = () => {
                                                         }}
                                                     >
                                                         <span>{r.accountCode} - {r.accountName} <span className="text-xs text-muted-foreground ml-2">({r.entries?.length || 0} entries)</span></span>
-                                                        <span className="font-mono">${Number(r.netBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                        <span className="font-mono"> {Number(r.netBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                     </div>
                                                 ))}
                                                 <div className="flex justify-between items-center font-bold text-sm pt-2">
                                                     <span>Total Revenue</span>
-                                                    <span className="font-mono text-green-600">${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                    <span className="font-mono text-green-600">LKR{''}{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -277,14 +277,14 @@ const FinancialReports = () => {
                                                 ))}
                                                 <div className="flex justify-between items-center font-bold text-sm pt-2">
                                                     <span>Total Expenses</span>
-                                                    <span className="font-mono text-orange-600">${totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                    <span className="font-mono text-orange-600">LKR{''} {totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="flex justify-between items-center font-bold text-lg pt-4 border-t-2 border-primary">
                                             <span>Net Income</span>
                                             <span className={`font-mono ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                                ${netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                LKR{''} {netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                     </div>
@@ -306,7 +306,7 @@ const FinancialReports = () => {
                                         >
                                             <CartesianGrid strokeDasharray="3 3" opacity={0.2} vertical={false} />
                                             <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                                            <YAxis tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
+                                            <YAxis tickLine={false} axisLine={false} tickFormatter={(val) => `LKR ${val}`} />
                                             <RechartsTooltip cursor={{ fill: 'transparent' }} formatter={(value) => `$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`} />
                                             <Legend wrapperStyle={{ paddingTop: '20px' }} />
                                             <Bar dataKey="Revenue" fill="#16a34a" radius={[4, 4, 0, 0]} maxBarSize={100} />
@@ -357,8 +357,8 @@ const FinancialReports = () => {
                                                 ))}
                                                 <div className="flex justify-between items-center font-bold text-sm pt-2">
                                                     <span>Total Liabilities</span>
-                                                    <span className="font-mono text-orange-600">${totalLiabilities.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                                </div>
+                                                    <span className="font-mono text-orange-600">LKR {totalLiabilities.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                </div>  
                                             </div>
                                         </div>
                                         <div>
@@ -367,23 +367,23 @@ const FinancialReports = () => {
                                                 {equities.map(e => (
                                                     <div key={e.accountCode} className="flex justify-between items-center text-sm py-1 border-b border-dashed border-muted">
                                                         <span>{e.accountCode} - {e.accountName}</span>
-                                                        <span className="font-mono">${(parseFloat(e.totalCredit) - parseFloat(e.totalDebit)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                        <span className="font-mono">LKR {(parseFloat(e.totalCredit) - parseFloat(e.totalDebit)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                     </div>
                                                 ))}
                                                 <div className="flex justify-between items-center text-sm py-1 border-b border-dashed border-muted">
                                                     <span>Retained Earnings (Net Income)</span>
-                                                    <span className="font-mono">${netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                    <span className="font-mono">LKR {netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                 </div>
-                                                <div className="flex justify-between items-center font-bold text-sm pt-2">
+                                                <div className="flex justify-between ims-center font-bold text-sm pt-2">
                                                     <span>Total Equity</span>
-                                                    <span className="font-mono text-indigo-600">${totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                    <span className="font-mono text-indigo-600">LKR {totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="flex justify-between items-center font-bold text-lg pt-4 border-t-2 border-primary">
                                             <span>Total Liabilities & Equity</span>
                                             <span className="font-mono text-blue-600">
-                                                ${(totalLiabilities + totalEquity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                LKR {(totalLiabilities + totalEquity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                     </div>

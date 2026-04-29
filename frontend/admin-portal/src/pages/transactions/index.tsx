@@ -140,7 +140,7 @@ const BranchTabContent = ({ transactions, onRowClick, tabSearch }: BranchTabCont
           <div>
             <p className="text-xs text-muted-foreground font-medium">Total Volume</p>
             <p className="text-lg font-bold font-mono">
-              ${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              LKR{" "} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
           </div>
         </div>
@@ -194,7 +194,7 @@ const BranchTabContent = ({ transactions, onRowClick, tabSearch }: BranchTabCont
                     <StatusBadge status={txn.status} />
                   </TableCell>
                   <TableCell className="text-right font-mono font-medium text-sm">
-                    ${parseFloat(txn.totalAmount || '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    LKR{" "}{parseFloat(txn.totalAmount || '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </TableCell>
                 </TableRow>
               ))}
