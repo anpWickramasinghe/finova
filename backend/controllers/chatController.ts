@@ -86,6 +86,13 @@ export const getAdminChats = async (req: Request, res: Response) => {
             conditions.push(isNull(support_chat.archivedAt));
         }
 
+        const requestingUserRole = (req as any).user?.role;
+        const requestingUserId = (req as any).user?.id;
+
+        if (requestingUserRole === 'branch') {
+            conditions.push(eq(user.branchId, requestingUserId));
+        }
+
         const chatsQuery = await db.select({
             id: support_chat.id,
             userId: support_chat.userId,
@@ -278,7 +285,15 @@ export const getBranchChat = async (req: Request, res: Response) => {
 
 export const getAdminBranchChats = async (req: Request, res: Response) => {
     try {
-        const rooms = await db.select().from(chat_room).orderBy(desc(chat_room.updatedAt));
+        const requestingUserRole = (req as any).user?.role;
+        const requestingUserId = (req as any).user?.id;
+
+        let query = db.select().from(chat_room);
+        if (requestingUserRole === 'branch') {
+            query = query.where(eq(chat_room.branchId, requestingUserId)) as any;
+        }
+
+        const rooms = await query.orderBy(desc(chat_room.updatedAt));
 
         const results = [];
         for (const room of rooms) {

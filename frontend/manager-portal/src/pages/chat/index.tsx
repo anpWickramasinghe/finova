@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
 import { Search, Archive, ArchiveRestore, MoreVertical, MessageCircle, Send, Plus, X, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
-
+import { useAuth } from '../../context/AuthContext';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const SOCKET_URL = API_URL.replace('/api', '');
 
@@ -62,6 +62,7 @@ function AttachmentPreview({ url, isAdminBubble }: { url: string; isAdminBubble:
 }
 
 export default function ManagerChatDashboard() {
+    const { user } = useAuth();
     const [chats, setChats] = useState<ChatPreview[]>([]);
     const [activeChat, setActiveChat] = useState<string | null>(null);
     const [activeMessages, setActiveMessages] = useState<Message[]>([]);
@@ -75,6 +76,7 @@ export default function ManagerChatDashboard() {
 
     const [showNewChat, setShowNewChat] = useState(false);
     const [usersList, setUsersList] = useState<any[]>([]);
+    const [searchUserQuery, setSearchUserQuery] = useState('');
 
     const socketRef = useRef<Socket | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -86,8 +88,16 @@ export default function ManagerChatDashboard() {
     useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
 
     const getHeaders = () => {
-        const token = localStorage.getItem('token');
-        return token ? { Authorization: `Bearer ${token}` } : {};
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const parsedUser = JSON.parse(userStr);
+                return parsedUser.token ? { Authorization: `Bearer ${parsedUser.token}` } : {};
+            } catch (e) {
+                return {};
+            }
+        }
+        return {};
     };
 
     const fetchChats = async () => {
@@ -117,7 +127,9 @@ export default function ManagerChatDashboard() {
 
     const fetchUsersForNewChat = async () => {
         try {
-            const res = await axios.get(`${API_URL}/admin/users`, { headers: getHeaders() });
+            if (!user) return;
+            const branchId = (user as any)._id || (user as any).id;
+            const res = await axios.get(`${API_URL}/branches/${branchId}/employees`, { headers: getHeaders() });
             setUsersList(res.data);
         } catch (err) {
             console.error('Failed to load users for new chat', err);
@@ -615,17 +627,19 @@ export default function ManagerChatDashboard() {
                                 <input
                                     type="text"
                                     placeholder="Search users to chat with..."
+                                    value={searchUserQuery}
+                                    onChange={(e) => setSearchUserQuery(e.target.value)}
                                     className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                            {usersList.length === 0 ? (
+                            {usersList.filter(u => u.name?.toLowerCase().includes(searchUserQuery.toLowerCase()) || u.email?.toLowerCase().includes(searchUserQuery.toLowerCase())).length === 0 ? (
                                 <div className="p-8 text-center text-gray-400">
                                     <p className="text-sm">No users found.</p>
                                 </div>
                             ) : (
-                                usersList.map(u => (
+                                usersList.filter(u => u.name?.toLowerCase().includes(searchUserQuery.toLowerCase()) || u.email?.toLowerCase().includes(searchUserQuery.toLowerCase())).map(u => (
                                     <button
                                         key={u.id}
                                         onClick={() => handleStartNewChat(u.id)}

@@ -29,12 +29,12 @@ router.patch('/my-chat/read', markChatRead);
 router.get('/branch/:branchId', getBranchChat);
 
 // ---------- Admin endpoints ----------
-router.get('/admin/chats', requireRole(['admin', 'manager']), getAdminChats);
-router.get('/admin/branches', requireRole(['admin', 'manager']), getAdminBranchChats);
-router.post('/admin/chats/start', requireRole(['admin', 'manager']), startAdminChat);
-router.get('/admin/chats/:id', requireRole(['admin', 'manager']), getAdminChatById);
-router.post('/admin/chats/:id/archive', requireRole(['admin', 'manager']), archiveChat);
-router.post('/admin/chats/:id/restore', requireRole(['admin', 'manager']), restoreChat);
+router.get('/admin/chats', requireRole(['admin', 'manager', 'branch']), getAdminChats);
+router.get('/admin/branches', requireRole(['admin', 'manager', 'branch']), getAdminBranchChats);
+router.post('/admin/chats/start', requireRole(['admin', 'manager', 'branch']), startAdminChat);
+router.get('/admin/chats/:id', requireRole(['admin', 'manager', 'branch']), getAdminChatById);
+router.post('/admin/chats/:id/archive', requireRole(['admin', 'manager', 'branch']), archiveChat);
+router.post('/admin/chats/:id/restore', requireRole(['admin', 'manager', 'branch']), restoreChat);
 
 // ---------- AI Chatbot Proxy endpoints ----------
 // Routes through Node.js so JWT auth is handled centrally
