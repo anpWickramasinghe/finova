@@ -11,6 +11,7 @@ import Attendance from './pages/attendance';
 import LeaveManagementPage from './pages/leaves';
 import UserManagement from './pages/user-management';
 import Chat from './pages/chat';
+import FinancialReports from './pages/financial-reports';
 
 const PrivateRoute = ({ children }: { children: React.ReactElement }) => {
   const auth = useContext(AuthContext);
@@ -38,6 +39,7 @@ function App() {
             <Route path="/leaves" element={<LeaveManagementPage />} />
             <Route path="/user-management" element={<UserManagement />} />
             <Route path="/support-chat" element={<Chat />} />
+            <Route path="/financial-reports" element={<FinancialReports />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Route>
         </Routes>
