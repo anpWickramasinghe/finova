@@ -57,14 +57,14 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     icon: 'Receipt',
                     roles: ['partner', 'staff', 'freelancer'],
                     tooltip: 'Manage financial transactions'
-                },
-                {
-                    label: 'Bank Reconciliation',
-                    path: '/bank-reconciliation',
-                    icon: 'Building2',
-                    roles: ['partner', 'staff', 'freelancer'],
-                    tooltip: 'Reconcile bank statements'
                 }
+                // {
+                //     label: 'Bank Reconciliation',
+                //     path: '/bank-reconciliation',
+                //     icon: 'Building2',
+                //     roles: ['partner', 'staff', 'freelancer'],
+                //     tooltip: 'Reconcile bank statements'
+                // }
             ]
         },
         {
@@ -78,13 +78,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     roles: ['partner', 'staff', 'freelancer'],
                     tooltip: 'Generate financial statements'
                 },
-                {
-                    label: 'Tax Compliance Center',
-                    path: '/tax-compliance-center',
-                    icon: 'Calculator',
-                    roles: ['partner', 'staff'],
-                    tooltip: 'Tax filing and compliance'
-                }
+                // {
+                //     label: 'Tax Compliance Center',
+                //     path: '/tax-compliance-center',
+                //     icon: 'Calculator',
+                //     roles: ['partner', 'staff'],
+                //     tooltip: 'Tax filing and compliance'
+                // }
             ]
         },
         {
@@ -112,13 +112,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     roles: ['partner'],
                     tooltip: 'Manage system users'
                 },
-                {
-                    label: 'Client Portal',
-                    path: '/client-portal',
-                    icon: 'Globe',
-                    roles: ['partner', 'staff', 'client'],
-                    tooltip: 'Client access and communication'
-                },
+                // {
+                //     label: 'Client Portal',
+                //     path: '/client-portal',
+                //     icon: 'Globe',
+                //     roles: ['partner', 'staff', 'client'],
+                //     tooltip: 'Client access and communication'
+                // },
                 {
                     label: 'Leave Management',
                     path: '/leaves',
