@@ -286,7 +286,7 @@ const TransactionsManagement = () => {
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">Total Debits</p>
                   <p className="text-2xl font-bold font-mono text-green-600">
-                    ${totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    LKR{" "}{totalDebit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
@@ -302,7 +302,7 @@ const TransactionsManagement = () => {
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">Total Credits</p>
                   <p className="text-2xl font-bold font-mono text-red-600">
-                    ${totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    LKR{" "}{totalCredit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
@@ -318,7 +318,7 @@ const TransactionsManagement = () => {
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">Net Balance</p>
                   <p className={`text-2xl font-bold font-mono ${netBalance >= 0 ? 'text-emerald-600' : 'text-orange-600'}`}>
-                    {netBalance >= 0 ? '' : '-'}${Math.abs(netBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    LKR{" "}{netBalance >= 0 ? '' : '-'}{Math.abs(netBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>

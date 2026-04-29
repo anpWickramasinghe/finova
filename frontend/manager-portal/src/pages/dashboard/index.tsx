@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,11 +10,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { useAuth } from '@/context/AuthContext';
-import { transactionService, type Transaction, type ReportsSummary } from '@/services/transactionService';
-import { leaveService, type LeaveRequest } from '@/services/leaveService';
-import { getAttendance, type AttendanceRecord } from '@/services/attendanceService';
+} from "@/components/ui/table";
+import { useAuth } from "@/context/AuthContext";
+import {
+  transactionService,
+  type Transaction,
+  type ReportsSummary,
+} from "@/services/transactionService";
+import { leaveService, type LeaveRequest } from "@/services/leaveService";
+import {
+  getAttendance,
+  type AttendanceRecord,
+} from "@/services/attendanceService";
 import {
   Loader2,
   Receipt,
@@ -30,38 +37,38 @@ import {
   LayoutDashboard,
   AlertCircle,
   Banknote,
-} from 'lucide-react';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+} from "lucide-react";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: 'bg-slate-100 text-slate-600 border-slate-200',
-  pending_approval: 'bg-amber-50 text-amber-700 border-amber-200',
-  approved: 'bg-blue-50 text-blue-700 border-blue-200',
-  posted: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  reconciled: 'bg-teal-50 text-teal-700 border-teal-200',
-  rejected: 'bg-red-50 text-red-700 border-red-200',
+  draft: "bg-slate-100 text-slate-600 border-slate-200",
+  pending_approval: "bg-amber-50 text-amber-700 border-amber-200",
+  approved: "bg-blue-50 text-blue-700 border-blue-200",
+  posted: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  reconciled: "bg-teal-50 text-teal-700 border-teal-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
 };
 
 const LEAVE_STATUS_COLORS: Record<string, string> = {
-  Pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  Approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  Rejected: 'bg-red-50 text-red-700 border-red-200',
+  Pending: "bg-amber-50 text-amber-700 border-amber-200",
+  Approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  Rejected: "bg-red-50 text-red-700 border-red-200",
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  journal: 'bg-cyan-50 text-cyan-700 border-cyan-200',
-  payment: 'bg-orange-50 text-orange-700 border-orange-200',
-  receipt: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  transfer: 'bg-purple-50 text-purple-700 border-purple-200',
+  journal: "bg-cyan-50 text-cyan-700 border-cyan-200",
+  payment: "bg-orange-50 text-orange-700 border-orange-200",
+  receipt: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  transfer: "bg-purple-50 text-purple-700 border-purple-200",
 };
 
 function getGreeting() {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 // ─── Stat card ───────────────────────────────────────────────────────────────
@@ -75,13 +82,24 @@ interface StatCardProps {
   valueColor?: string;
 }
 
-const StatCard = ({ label, value, sub, icon, iconBg, valueColor }: StatCardProps) => (
+const StatCard = ({
+  label,
+  value,
+  sub,
+  icon,
+  iconBg,
+  valueColor,
+}: StatCardProps) => (
   <Card>
     <CardContent className="p-4 flex items-center gap-4">
       <div className={`p-2.5 rounded-xl shrink-0 ${iconBg}`}>{icon}</div>
       <div className="min-w-0">
-        <p className="text-xs text-muted-foreground font-medium truncate">{label}</p>
-        <p className={`text-2xl font-bold leading-tight ${valueColor ?? ''}`}>{value}</p>
+        <p className="text-xs text-muted-foreground font-medium truncate">
+          {label}
+        </p>
+        <p className={`text-2xl font-bold leading-tight ${valueColor ?? ""}`}>
+          {value}
+        </p>
         {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
       </div>
     </CardContent>
@@ -99,53 +117,62 @@ const Dashboard = () => {
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const today = new Date();
-    const start = format(startOfMonth(today), 'yyyy-MM-dd');
-    const end = format(endOfMonth(today), 'yyyy-MM-dd');
+    const start = format(startOfMonth(today), "yyyy-MM-dd");
+    const end = format(endOfMonth(today), "yyyy-MM-dd");
 
     Promise.allSettled([
       transactionService.getTransactions(),
       transactionService.getReportsSummary(),
       leaveService.getLeaveRequests(),
       getAttendance(start, end),
-    ]).then(([txnRes, summaryRes, leavesRes, attendanceRes]) => {
-      if (txnRes.status === 'fulfilled') setTransactions(txnRes.value);
-      if (summaryRes.status === 'fulfilled') setSummary(summaryRes.value);
-      if (leavesRes.status === 'fulfilled') setLeaves(leavesRes.value);
-      if (attendanceRes.status === 'fulfilled') setAttendance(attendanceRes.value);
-      setLoading(false);
-    }).catch(() => {
-      setError('Failed to load dashboard data.');
-      setLoading(false);
-    });
+    ])
+      .then(([txnRes, summaryRes, leavesRes, attendanceRes]) => {
+        if (txnRes.status === "fulfilled") setTransactions(txnRes.value);
+        if (summaryRes.status === "fulfilled") setSummary(summaryRes.value);
+        if (leavesRes.status === "fulfilled") setLeaves(leavesRes.value);
+        if (attendanceRes.status === "fulfilled")
+          setAttendance(attendanceRes.value);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Failed to load dashboard data.");
+        setLoading(false);
+      });
   }, []);
 
   // ── Derived stats ──
-  const pendingTxns = transactions.filter(t => t.status === 'pending_approval');
-  const postedTxns = transactions.filter(t => t.status === 'posted');
-  const totalVolume = transactions.reduce((s, t) => s + parseFloat(t.totalAmount || '0'), 0);
+  const pendingTxns = transactions.filter(
+    (t) => t.status === "pending_approval",
+  );
+  const postedTxns = transactions.filter((t) => t.status === "posted");
+  const totalVolume = transactions.reduce(
+    (s, t) => s + parseFloat(t.totalAmount || "0"),
+    0,
+  );
   const totalReceipts = transactions
-    .filter(t => t.type === 'receipt')
-    .reduce((s, t) => s + parseFloat(t.totalAmount || '0'), 0);
+    .filter((t) => t.type === "receipt")
+    .reduce((s, t) => s + parseFloat(t.totalAmount || "0"), 0);
   const totalPayments = transactions
-    .filter(t => t.type === 'payment')
-    .reduce((s, t) => s + parseFloat(t.totalAmount || '0'), 0);
+    .filter((t) => t.type === "payment")
+    .reduce((s, t) => s + parseFloat(t.totalAmount || "0"), 0);
 
-  const pendingLeaves = leaves.filter(l => l.status === 'Pending');
-  const approvedLeaves = leaves.filter(l => l.status === 'Approved');
+  const pendingLeaves = leaves.filter((l) => l.status === "Pending");
+  const approvedLeaves = leaves.filter((l) => l.status === "Approved");
 
   const presentToday = attendance.filter(
-    a =>
-      a.recordDate === format(new Date(), 'yyyy-MM-dd') &&
-      a.checkInTime
+    (a) => a.recordDate === format(new Date(), "yyyy-MM-dd") && a.checkInTime,
   ).length;
 
   // Recent 5 transactions (newest first)
   const recentTxns = [...transactions]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
     .slice(0, 5);
 
   // Pending leave requests to action
@@ -165,7 +192,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
       <div className="p-6 space-y-7 max-w-[1400px]">
-
         {/* ── Header ── */}
         <div className="flex items-start justify-between">
           <div>
@@ -174,10 +200,12 @@ const Dashboard = () => {
               <span>Manager Portal</span>
             </div>
             <h1 className="text-3xl font-bold tracking-tight">
-              {getGreeting()}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
+              {getGreeting()}
+              {user?.name ? `, ${user.name.split(" ")[0]}` : ""}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Here's what's happening at your branch — {format(new Date(), 'EEEE, MMMM d, yyyy')}
+              Here's what's happening at your branch —{" "}
+              {format(new Date(), "EEEE, MMMM d, yyyy")}
             </p>
           </div>
           <Button asChild size="sm" variant="outline">
@@ -206,7 +234,7 @@ const Dashboard = () => {
           />
           <StatCard
             label="Total Volume (Month)"
-            value={`$${totalVolume.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+            value={`LKR ${totalVolume.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
             sub={`${postedTxns.length} posted to ledger`}
             icon={<Banknote className="h-5 w-5 text-emerald-600" />}
             iconBg="bg-emerald-100 dark:bg-emerald-900/30"
@@ -222,7 +250,7 @@ const Dashboard = () => {
           <StatCard
             label="Staff Present Today"
             value={presentToday}
-            sub={`${attendance.filter(a => a.recordDate === format(new Date(), 'yyyy-MM-dd')).length} records today`}
+            sub={`${attendance.filter((a) => a.recordDate === format(new Date(), "yyyy-MM-dd")).length} records today`}
             icon={<Users className="h-5 w-5 text-purple-600" />}
             iconBg="bg-purple-100 dark:bg-purple-900/30"
           />
@@ -234,32 +262,49 @@ const Dashboard = () => {
             <CardContent className="p-5 flex-1">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-sm">Cash Flow Summary</h2>
-                <span className="text-xs text-muted-foreground">This month</span>
+                <span className="text-xs text-muted-foreground">
+                  This month
+                </span>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-emerald-600" />
-                    <span className="text-sm font-medium">Receipts (Inflow)</span>
+                    <span className="text-sm font-medium">
+                      Receipts (Inflow)
+                    </span>
                   </div>
                   <span className="font-mono font-bold text-emerald-700">
-                    +${totalReceipts.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    +LKR $
+                    {totalReceipts.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100">
                   <div className="flex items-center gap-2">
                     <TrendingDown className="h-4 w-4 text-red-500" />
-                    <span className="text-sm font-medium">Payments (Outflow)</span>
+                    <span className="text-sm font-medium">
+                      Payments (Outflow)
+                    </span>
                   </div>
                   <span className="font-mono font-bold text-red-600">
-                    -${totalPayments.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    -LKR $
+                    {totalPayments.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40 border">
                   <span className="text-sm font-semibold">Net</span>
-                  <span className={`font-mono font-bold ${totalReceipts - totalPayments >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-                    {totalReceipts - totalPayments >= 0 ? '+' : '-'}$
-                    {Math.abs(totalReceipts - totalPayments).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <span
+                    className={`font-mono font-bold ${totalReceipts - totalPayments >= 0 ? "text-emerald-700" : "text-red-600"}`}
+                  >
+                    {totalReceipts - totalPayments >= 0 ? "+" : "-"}LKR{" "}
+                    {Math.abs(totalReceipts - totalPayments).toLocaleString(
+                      undefined,
+                      { minimumFractionDigits: 2 },
+                    )}
                   </span>
                 </div>
               </div>
@@ -271,26 +316,54 @@ const Dashboard = () => {
             <CardContent className="p-5 flex-1">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-sm">Transaction Status</h2>
-                <Link to="/transactions-management" className="text-xs text-primary hover:underline flex items-center gap-1">
+                <Link
+                  to="/transactions-management"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
                   View all <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
               <div className="space-y-2">
                 {[
-                  { key: 'draft', label: 'Draft', icon: <BookOpen className="h-3.5 w-3.5" /> },
-                  { key: 'pending_approval', label: 'Pending Approval', icon: <Clock className="h-3.5 w-3.5" /> },
-                  { key: 'approved', label: 'Approved', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
-                  { key: 'posted', label: 'Posted', icon: <BookOpen className="h-3.5 w-3.5" /> },
-                  { key: 'rejected', label: 'Rejected', icon: <XCircle className="h-3.5 w-3.5" /> },
+                  {
+                    key: "draft",
+                    label: "Draft",
+                    icon: <BookOpen className="h-3.5 w-3.5" />,
+                  },
+                  {
+                    key: "pending_approval",
+                    label: "Pending Approval",
+                    icon: <Clock className="h-3.5 w-3.5" />,
+                  },
+                  {
+                    key: "approved",
+                    label: "Approved",
+                    icon: <CheckCircle2 className="h-3.5 w-3.5" />,
+                  },
+                  {
+                    key: "posted",
+                    label: "Posted",
+                    icon: <BookOpen className="h-3.5 w-3.5" />,
+                  },
+                  {
+                    key: "rejected",
+                    label: "Rejected",
+                    icon: <XCircle className="h-3.5 w-3.5" />,
+                  },
                 ].map(({ key, label, icon }) => {
-                  const count = summary?.statusCounts?.[key] ?? transactions.filter(t => t.status === key).length;
+                  const count =
+                    summary?.statusCounts?.[key] ??
+                    transactions.filter((t) => t.status === key).length;
                   const total = transactions.length || 1;
                   const pct = Math.round((count / total) * 100);
                   return (
                     <div key={key} className="flex items-center gap-3">
                       <div className="flex items-center gap-1.5 w-36 shrink-0">
-                        <span className={`${STATUS_COLORS[key]} rounded px-1.5 py-0.5 text-xs flex items-center gap-1 border`}>
-                          {icon}{label}
+                        <span
+                          className={`${STATUS_COLORS[key]} rounded px-1.5 py-0.5 text-xs flex items-center gap-1 border`}
+                        >
+                          {icon}
+                          {label}
                         </span>
                       </div>
                       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
@@ -299,7 +372,9 @@ const Dashboard = () => {
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <span className="text-xs font-mono w-6 text-right text-muted-foreground">{count}</span>
+                      <span className="text-xs font-mono w-6 text-right text-muted-foreground">
+                        {count}
+                      </span>
                     </div>
                   );
                 })}
@@ -310,13 +385,15 @@ const Dashboard = () => {
 
         {/* ── Recent Transactions + Leave Queue ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
           {/* Recent Transactions — 2/3 width */}
           <Card className="lg:col-span-2">
             <CardContent className="p-0">
               <div className="flex items-center justify-between px-5 pt-5 pb-3">
                 <h2 className="font-semibold text-sm">Recent Transactions</h2>
-                <Link to="/transactions-management" className="text-xs text-primary hover:underline flex items-center gap-1">
+                <Link
+                  to="/transactions-management"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
                   View all <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -336,35 +413,54 @@ const Dashboard = () => {
                       <TableHead className="text-xs">Description</TableHead>
                       <TableHead className="text-xs">Type</TableHead>
                       <TableHead className="text-xs">Status</TableHead>
-                      <TableHead className="text-right text-xs pr-5">Amount</TableHead>
+                      <TableHead className="text-right text-xs pr-5">
+                        Amount
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentTxns.map(txn => (
-                      <TableRow key={txn.id} className="hover:bg-muted/30 transition-colors">
+                    {recentTxns.map((txn) => (
+                      <TableRow
+                        key={txn.id}
+                        className="hover:bg-muted/30 transition-colors"
+                      >
                         <TableCell className="font-mono text-xs text-muted-foreground pl-5">
                           {txn.transactionNumber}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col">
-                            <span className="text-sm font-medium line-clamp-1">{txn.description}</span>
+                            <span className="text-sm font-medium line-clamp-1">
+                              {txn.description}
+                            </span>
                             <span className="text-xs text-muted-foreground">
-                              {format(new Date(txn.date), 'MMM dd, yyyy')}
+                              {format(new Date(txn.date), "MMM dd, yyyy")}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={`capitalize text-xs ${TYPE_COLORS[txn.type] || ''}`}>
+                          <Badge
+                            variant="outline"
+                            className={`capitalize text-xs ${TYPE_COLORS[txn.type] || ""}`}
+                          >
                             {txn.type}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={`capitalize text-xs ${STATUS_COLORS[txn.status] || STATUS_COLORS.draft}`}>
-                            {txn.status === 'pending_approval' ? 'Pending' : txn.status}
+                          <Badge
+                            variant="outline"
+                            className={`capitalize text-xs ${STATUS_COLORS[txn.status] || STATUS_COLORS.draft}`}
+                          >
+                            {txn.status === "pending_approval"
+                              ? "Pending"
+                              : txn.status}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm font-medium pr-5">
-                          ${parseFloat(txn.totalAmount || '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          LKR{" "}
+                          {parseFloat(txn.totalAmount || "0").toLocaleString(
+                            undefined,
+                            { minimumFractionDigits: 2 },
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -379,7 +475,10 @@ const Dashboard = () => {
             <CardContent className="p-0 flex-1 flex flex-col">
               <div className="flex items-center justify-between px-5 pt-5 pb-3">
                 <h2 className="font-semibold text-sm">Leave Requests</h2>
-                <Link to="/leaves" className="text-xs text-primary hover:underline flex items-center gap-1">
+                <Link
+                  to="/leaves"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
                   View all <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -390,22 +489,28 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div className="divide-y px-1">
-                  {pendingLeaveQueue.map(leave => (
-                    <div key={leave.id} className="px-4 py-3 flex items-start justify-between gap-2">
+                  {pendingLeaveQueue.map((leave) => (
+                    <div
+                      key={leave.id}
+                      className="px-4 py-3 flex items-start justify-between gap-2"
+                    >
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">
-                          {leave.userName || `Employee #${leave.userId.slice(0, 6)}`}
+                          {leave.userName ||
+                            `Employee #${leave.userId.slice(0, 6)}`}
                         </p>
-                        <p className="text-xs text-muted-foreground capitalize">{leave.type} leave</p>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {leave.type} leave
+                        </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {format(new Date(leave.startDate), 'MMM d')}
-                          {' – '}
-                          {format(new Date(leave.endDate), 'MMM d, yyyy')}
+                          {format(new Date(leave.startDate), "MMM d")}
+                          {" – "}
+                          {format(new Date(leave.endDate), "MMM d, yyyy")}
                         </p>
                       </div>
                       <Badge
                         variant="outline"
-                        className={`text-xs shrink-0 ${LEAVE_STATUS_COLORS[leave.status] || ''}`}
+                        className={`text-xs shrink-0 ${LEAVE_STATUS_COLORS[leave.status] || ""}`}
                       >
                         {leave.status}
                       </Badge>
@@ -415,9 +520,15 @@ const Dashboard = () => {
               )}
               {pendingLeaves.length > 0 && (
                 <div className="px-5 py-3 border-t mt-auto">
-                  <Button asChild size="sm" className="w-full" variant="outline">
+                  <Button
+                    asChild
+                    size="sm"
+                    className="w-full"
+                    variant="outline"
+                  >
                     <Link to="/leaves">
-                      Review {pendingLeaves.length} pending request{pendingLeaves.length !== 1 ? 's' : ''}
+                      Review {pendingLeaves.length} pending request
+                      {pendingLeaves.length !== 1 ? "s" : ""}
                     </Link>
                   </Button>
                 </div>
@@ -428,55 +539,62 @@ const Dashboard = () => {
 
         {/* ── Quick Actions ── */}
         <div>
-          <h2 className="text-sm font-semibold text-muted-foreground mb-3">Quick Actions</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground mb-3">
+            Quick Actions
+          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               {
-                label: 'New Transaction',
-                description: 'Record a payment or receipt',
+                label: "New Transaction",
+                description: "Record a payment or receipt",
                 icon: <Receipt className="h-5 w-5 text-blue-600" />,
-                bg: 'bg-blue-50 dark:bg-blue-900/10',
-                to: '/transactions-management',
+                bg: "bg-blue-50 dark:bg-blue-900/10",
+                to: "/transactions-management",
               },
               {
-                label: 'Transaction Reports',
-                description: 'View ledger & trial balance',
+                label: "Transaction Reports",
+                description: "View ledger & trial balance",
                 icon: <BookOpen className="h-5 w-5 text-emerald-600" />,
-                bg: 'bg-emerald-50 dark:bg-emerald-900/10',
-                to: '/transactions-management/reports',
+                bg: "bg-emerald-50 dark:bg-emerald-900/10",
+                to: "/transactions-management/reports",
               },
               {
-                label: 'Leave Management',
-                description: 'Approve or reject requests',
+                label: "Leave Management",
+                description: "Approve or reject requests",
                 icon: <CalendarClock className="h-5 w-5 text-amber-600" />,
-                bg: 'bg-amber-50 dark:bg-amber-900/10',
-                to: '/leaves',
+                bg: "bg-amber-50 dark:bg-amber-900/10",
+                to: "/leaves",
               },
               {
-                label: 'Attendance',
-                description: 'Track staff attendance',
+                label: "Attendance",
+                description: "Track staff attendance",
                 icon: <Users className="h-5 w-5 text-purple-600" />,
-                bg: 'bg-purple-50 dark:bg-purple-900/10',
-                to: '/attendance',
+                bg: "bg-purple-50 dark:bg-purple-900/10",
+                to: "/attendance",
               },
-            ].map(item => (
+            ].map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 className="rounded-xl border p-4 hover:bg-muted/40 transition-colors group flex flex-col gap-3"
               >
-                <div className={`w-10 h-10 rounded-lg ${item.bg} flex items-center justify-center`}>
+                <div
+                  className={`w-10 h-10 rounded-lg ${item.bg} flex items-center justify-center`}
+                >
                   {item.icon}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold group-hover:text-primary transition-colors">{item.label}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+                  <p className="text-sm font-semibold group-hover:text-primary transition-colors">
+                    {item.label}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {item.description}
+                  </p>
                 </div>
               </Link>
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );
