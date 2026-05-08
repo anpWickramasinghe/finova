@@ -10,6 +10,8 @@ import { useRouter } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { Calendar, ChevronRight } from 'lucide-react-native';
+import QuickActionsGrid from '@/components/home/QuickActionsGrid';
+import TodayAttendanceWidget from '@/components/home/TodayAttendanceWidget';
 
 export default function HomeScreen() {
     const primary = useColor('primary');
@@ -52,18 +54,8 @@ export default function HomeScreen() {
                     </View>
                 </Card> */}
 
-                <TouchableOpacity onPress={() => router.push('/leaves')}>
-                    <Card style={{ flexDirection: 'row', alignItems: 'center', padding: 16, gap: 16 }}>
-                        <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: primary + '20', alignItems: 'center', justifyContent: 'center' }}>
-                            <Icon name={Calendar} size={24} color={primary} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Text variant="heading" style={{ fontSize: 18 }}>Leaves</Text>
-                            <Text variant="caption" style={{ opacity: 0.7 }}>Request and track your leave status</Text>
-                        </View>
-                        <Icon name={ChevronRight} size={20} color={useColor('mutedForeground')} />
-                    </Card>
-                </TouchableOpacity>
+                <TodayAttendanceWidget />
+                <QuickActionsGrid />
 
                 <WorkHoursChart />
             </ScrollView>
