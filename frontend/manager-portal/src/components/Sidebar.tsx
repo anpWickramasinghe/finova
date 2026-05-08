@@ -72,11 +72,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
             label: 'Reports & Compliance',
             items: [
                 {
-                    label: 'Financial Reports',
-                    path: '/financial-reports',
+                    label: 'Reports',
+                    path: '/reports',
                     icon: 'FileText',
                     roles: ['partner', 'staff', 'freelancer'],
-                    tooltip: 'Generate financial statements'
+                    tooltip: 'Generate reports'
                 },
                 // {
                 //     label: 'Tax Compliance Center',
