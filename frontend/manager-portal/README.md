@@ -1,73 +1,53 @@
-# React + TypeScript + Vite
+# Finova Manager Portal - Implemented Features
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This document outlines the features and functionalities implemented within the Finova Manager Portal and how they map to the backend architecture. Unlike the Admin Portal which provides company-wide oversight and configuration, the Manager Portal focuses on branch-level operations, empowering branch managers to oversee their team's daily activities, accounting, and HR processes.
 
-Currently, two official plugins are available:
+## Core Modules & Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 1. Dashboard & Analytics
+A centralized hub for branch managers to monitor their specific branch's performance and pending operational tasks.
+- **Branch KPIs:** Metrics related to branch revenue, active employees, and daily operations.
+- **Activity Feed & Task List:** Quick access to pending approvals (leaves, overtime, transactions) specific to the manager's branch.
 
-## React Compiler
+### 2. User & Team Management
+Tools for branch managers to handle their direct reports.
+- **Employee Directory:** View profiles, contact details, and roles of employees assigned to their branch.
+- **Performance & Status:** Monitor active/inactive status and basic employment details.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 3. Attendance Management
+Day-to-day tracking of branch staff attendance.
+- **Daily Logs:** Review check-in and check-out times for branch employees.
+- **Work Hours Tracking:** Monitor total hours worked and discrepancies against scheduled shifts.
 
-## Expanding the ESLint configuration
+### 4. Leaves Approvals
+Workflow management for employee time-off.
+- **Request Management:** Review, approve, or reject leave requests submitted by branch employees.
+- **Leave History:** Track historical leave data to ensure adequate branch staffing.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 5. Accounting & Transactions
+Localized financial management for the branch.
+- **Transactions:** Record and track branch-specific income, expenses, and daily transactions.
+- **Maker-Checker Workflow:** Managers often act as the "Maker" (submitting branch expenses) or the "Checker" (approving minor staff expenses before they go to Admin).
+- **Branch Ledger:** View localized ledger entries tied to the Chart of Accounts for their specific branch.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 6. Reports Center
+Branch-level operational and financial reporting.
+- **Attendance & Overtime Reports:** Generate reports on team punctuality and overtime costs.
+- **Financial Reports:** Branch-specific transaction summaries and localized cash flow.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 7. Real-time Communication (Chat)
+Integrated messaging to facilitate quick resolution of issues.
+- **Branch Room:** A dedicated group chat for all members of the branch to communicate seamlessly.
+- **Support Chat:** Direct line to IT or upper management (Admin Portal) for localized support.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Backend Infrastructure Integration
+The Manager Portal relies on the same **Drizzle ORM / PostgreSQL** backend as the Admin Portal, but requests are strictly scoped using `branchId` filters to ensure managers only access data relevant to their assigned branch.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Key Controllers Utilized:
+- `attendanceController.ts` (Scoped to branch employees)
+- `leaveController.ts` (Approval workflows)
+- `transactionController.ts` (Branch-level double-entry accounting)
+- `chatController.ts` (Branch chat rooms)
+- `branchController.ts` (Fetching branch specific metrics)
