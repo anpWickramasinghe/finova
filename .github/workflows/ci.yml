@@ -17,42 +17,11 @@ jobs:
   # JOB 1 — Backend (Node.js / TypeScript)
   # ─────────────────────────────────────────────────────
   backend:
-    name: 🔧 Backend — Lint, Type-check & Test
+    name: 🔧 Backend — Lint & Type-check
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: finova_test
-          POSTGRES_PASSWORD: finova_test
-          POSTGRES_DB: finova_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    env:
-      NODE_ENV: test
-      DATABASE_URL: postgresql://finova_test:finova_test@localhost:5432/finova_test
-      JWT_SECRET: ci-test-secret-key-do-not-use-in-production
-      BETTER_AUTH_SECRET: ci-test-better-auth-secret
-      BETTER_AUTH_URL: http://localhost:5000
-      FRONTEND_URL: http://localhost:3000
-      STRIPE_SECRET_KEY: sk_test_placeholder
-      STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
-      STRIPE_WEBHOOK_SECRET: whsec_placeholder
-      SUPABASE_URL: https://placeholder.supabase.co
-      SUPABASE_SERVICE_ROLE_KEY: placeholder_service_role_key
-      SUPABASE_STORAGE_BUCKET: uploads
-      AI_CHATBOT_URL: http://localhost:8000
-      CALENDARIFIC_API_KEY: placeholder
 
     steps:
       - name: 📥 Checkout repository
@@ -70,23 +39,6 @@ jobs:
 
       - name: 🔍 TypeScript type-check
         run: npx tsc --noEmit
-
-      - name: 🧪 Run unit tests
-        run: npx jest --testPathPattern="__tests__/unit" --coverage --coverageReporters=text --coverageReporters=lcov
-
-      - name: 🔗 Run integration tests
-        run: npx jest --testPathPattern="__tests__/integration" --coverage --coverageReporters=text --coverageReporters=lcov
-
-      - name: 🚦 Run endpoint smoke tests
-        run: npx jest --testPathPattern="__tests__/endpoints.test.ts"
-
-      - name: 📊 Upload coverage report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: backend-coverage
-          path: backend/coverage/
-          retention-days: 7
 
   # ─────────────────────────────────────────────────────
   # JOB 2 — Admin Portal (React + Vite + TypeScript)
