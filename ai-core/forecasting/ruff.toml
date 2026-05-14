@@ -1,0 +1,9 @@
+# Ruff linter configuration for ai-core/forecasting
+line-length = 100
+
+[lint]
+select = ["E", "F", "W", "I", "UP"]
+ignore  = ["E501"]   # Line length handled by formatter
+
+[lint.isort]
+known-first-party = ["agent", "db", "server", "tools"]
