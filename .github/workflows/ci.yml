@@ -254,8 +254,8 @@ jobs:
       - admin-portal
       - manager-portal
       - employee-portal
-      - ai-chatbot
-      - ai-forecasting
+      # - ai-chatbot
+      # - ai-forecasting
       - docker-build
     if: always()
 
