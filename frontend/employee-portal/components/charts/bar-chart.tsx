@@ -5,6 +5,7 @@ import Animated, {
   useAnimatedProps,
   useSharedValue,
   withTiming,
+  SharedValue,
 } from 'react-native-reanimated';
 import Svg, { G, Rect, Text as SvgText } from 'react-native-svg';
 
@@ -32,6 +33,77 @@ type Props = {
   config?: ChartConfig;
   style?: ViewStyle;
 };
+
+// Extracted sub-component so hooks aren't called inside a .map() callback
+type AnimatedBarProps = {
+  x: number;
+  barWidth: number;
+  barHeight: number;
+  height: number;
+  padding: number;
+  fill: string;
+  animationProgress: SharedValue<number>;
+  label: string;
+  value: number;
+  showLabels: boolean;
+  mutedColor: string;
+  labelY: number;
+};
+
+function AnimatedBarItem({
+  x,
+  barWidth,
+  barHeight,
+  height,
+  padding,
+  fill,
+  animationProgress,
+  label,
+  value,
+  showLabels,
+  mutedColor,
+  labelY,
+}: AnimatedBarProps) {
+  const barAnimatedProps = useAnimatedProps(() => ({
+    height: animationProgress.value * barHeight,
+    y: height - padding - animationProgress.value * barHeight,
+  }));
+
+  return (
+    <G>
+      <AnimatedRect
+        x={x}
+        width={barWidth}
+        fill={fill}
+        rx={4}
+        animatedProps={barAnimatedProps}
+      />
+      {showLabels && (
+        <>
+          <SvgText
+            x={x + barWidth / 2}
+            y={height - 5}
+            textAnchor='middle'
+            fontSize={12}
+            fill={mutedColor}
+          >
+            {label}
+          </SvgText>
+          <SvgText
+            x={x + barWidth / 2}
+            y={labelY}
+            textAnchor='middle'
+            fontSize={11}
+            fill={mutedColor}
+            fontWeight='600'
+          >
+            {value}
+          </SvgText>
+        </>
+      )}
+    </G>
+  );
+}
 
 export const BarChart = ({ data, config = {}, style }: Props) => {
   const [containerWidth, setContainerWidth] = useState(300);
@@ -65,7 +137,7 @@ export const BarChart = ({ data, config = {}, style }: Props) => {
     } else {
       animationProgress.value = 1;
     }
-  }, [data, animated, duration]);
+  }, [data, animated, duration, animationProgress]);
 
   if (!data.length) return null;
 
@@ -83,45 +155,22 @@ export const BarChart = ({ data, config = {}, style }: Props) => {
           const x = padding + index * (barWidth + barSpacing) + barSpacing / 2;
           const y = height - padding - barHeight;
 
-          const barAnimatedProps = useAnimatedProps(() => ({
-            height: animationProgress.value * barHeight,
-            y: height - padding - animationProgress.value * barHeight,
-          }));
-
           return (
-            <G key={`bar-${index}`}>
-              <AnimatedRect
-                x={x}
-                width={barWidth}
-                fill={item.color || primaryColor}
-                rx={4}
-                animatedProps={barAnimatedProps}
-              />
-
-              {showLabels && (
-                <>
-                  <SvgText
-                    x={x + barWidth / 2}
-                    y={height - 5}
-                    textAnchor='middle'
-                    fontSize={12}
-                    fill={mutedColor}
-                  >
-                    {item.label}
-                  </SvgText>
-                  <SvgText
-                    x={x + barWidth / 2}
-                    y={y - 5}
-                    textAnchor='middle'
-                    fontSize={11}
-                    fill={mutedColor}
-                    fontWeight='600'
-                  >
-                    {item.value}
-                  </SvgText>
-                </>
-              )}
-            </G>
+            <AnimatedBarItem
+              key={`bar-${index}`}
+              x={x}
+              barWidth={barWidth}
+              barHeight={barHeight}
+              height={height}
+              padding={padding}
+              fill={item.color || primaryColor}
+              animationProgress={animationProgress}
+              label={item.label}
+              value={item.value}
+              showLabels={showLabels}
+              mutedColor={mutedColor}
+              labelY={y - 5}
+            />
           );
         })}
       </Svg>

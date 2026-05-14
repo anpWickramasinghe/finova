@@ -93,7 +93,7 @@ export default function ManagerChatDashboard() {
             try {
                 const parsedUser = JSON.parse(userStr);
                 return parsedUser.token ? { Authorization: `Bearer ${parsedUser.token}` } : {};
-            } catch (e) {
+            } catch (_e) {
                 return {};
             }
         }

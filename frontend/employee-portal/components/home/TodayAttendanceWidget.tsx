@@ -19,7 +19,7 @@ export default function TodayAttendanceWidget() {
         <Card style={{ padding: 20 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <View>
-                    <Text variant="title">Today's Status</Text>
+                    <Text variant="title">Today&apos;s Status</Text>
                     <Text variant="caption" style={{ color: mutedForeground, marginTop: 4 }}>
                         {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
                     </Text>
@@ -49,7 +49,7 @@ export default function TodayAttendanceWidget() {
             ) : (
                 <View style={{ gap: 16 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'center', backgroundColor: '#f3f4f6', padding: 12, borderRadius: 8 }}>
-                        <Text variant="body" style={{ color: mutedForeground }}>You haven't checked in yet.</Text>
+                        <Text variant="body" style={{ color: mutedForeground }}>You haven&apos;t checked in yet.</Text>
                     </View>
                     <Button variant="default" style={{ width: '100%', flexDirection: 'row', gap: 8 }}>
                         <Icon name={LogIn} size={20} color="#fff" />

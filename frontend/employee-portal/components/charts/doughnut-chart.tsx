@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedProps,
   useSharedValue,
   withTiming,
+  SharedValue,
 } from 'react-native-reanimated';
 import Svg, { G, Path, Text as SvgText } from 'react-native-svg';
 
@@ -28,10 +29,57 @@ interface ChartDataPoint {
 }
 
 type Props = {
-  data: ChartDataPoint[];
+  data: ChartDataPoint[]
   config?: ChartConfig;
   style?: ViewStyle;
 };
+
+// Extracted sub-component so hooks aren't called inside a .map() callback
+type AnimatedSliceProps = {
+  pathData: string;
+  fill: string;
+  animationProgress: SharedValue<number>;
+  showLabels: boolean;
+  labelX: number;
+  labelY: number;
+  percentage: number;
+};
+
+function AnimatedSlice({
+  pathData,
+  fill,
+  animationProgress,
+  showLabels,
+  labelX,
+  labelY,
+  percentage,
+}: AnimatedSliceProps) {
+  const sliceAnimatedProps = useAnimatedProps(() => ({
+    opacity: animationProgress.value,
+  }));
+
+  return (
+    <G>
+      <AnimatedPath
+        d={pathData}
+        fill={fill}
+        animatedProps={sliceAnimatedProps}
+      />
+      {showLabels && (
+        <SvgText
+          x={labelX}
+          y={labelY}
+          textAnchor='middle'
+          fontSize={12}
+          fill='#FFFFFF'
+          fontWeight='600'
+        >
+          {percentage}%
+        </SvgText>
+      )}
+    </G>
+  );
+}
 
 export const DoughnutChart = ({ data, config = {}, style }: Props) => {
   const [containerWidth, setContainerWidth] = useState(300);
@@ -46,7 +94,15 @@ export const DoughnutChart = ({ data, config = {}, style }: Props) => {
 
   const chartWidth = containerWidth || config.width || 300;
 
+  // All color hooks must be called unconditionally at the top level
   const primaryColor = useColor('primary');
+  const blueColor = useColor('blue');
+  const greenColor = useColor('green');
+  const orangeColor = useColor('orange');
+  const purpleColor = useColor('purple');
+  const pinkColor = useColor('pink');
+
+  const colors = [primaryColor, blueColor, greenColor, orangeColor, purpleColor, pinkColor];
 
   const animationProgress = useSharedValue(0);
 
@@ -63,7 +119,7 @@ export const DoughnutChart = ({ data, config = {}, style }: Props) => {
     } else {
       animationProgress.value = 1;
     }
-  }, [data, animated, duration]);
+  }, [data, animated, duration, animationProgress]);
 
   if (!data.length) return null;
 
@@ -74,15 +130,6 @@ export const DoughnutChart = ({ data, config = {}, style }: Props) => {
   const centerY = height / 2;
 
   let currentAngle = -Math.PI / 2;
-
-  const colors = [
-    primaryColor,
-    useColor('blue'),
-    useColor('green'),
-    useColor('orange'),
-    useColor('purple'),
-    useColor('pink'),
-  ];
 
   return (
     <View style={[{ width: '100%' }, style]} onLayout={handleLayout}>
@@ -122,31 +169,17 @@ export const DoughnutChart = ({ data, config = {}, style }: Props) => {
 
           currentAngle = endAngle;
 
-          const sliceAnimatedProps = useAnimatedProps(() => ({
-            opacity: animationProgress.value,
-          }));
-
           return (
-            <G key={`slice-${index}`}>
-              <AnimatedPath
-                d={pathData}
-                fill={item.color || colors[index % colors.length]}
-                animatedProps={sliceAnimatedProps}
-              />
-
-              {showLabels && (
-                <SvgText
-                  x={labelX}
-                  y={labelY}
-                  textAnchor='middle'
-                  fontSize={12}
-                  fill='#FFFFFF'
-                  fontWeight='600'
-                >
-                  {Math.round((item.value / total) * 100)}%
-                </SvgText>
-              )}
-            </G>
+            <AnimatedSlice
+              key={`slice-${index}`}
+              pathData={pathData}
+              fill={item.color || colors[index % colors.length]}
+              animationProgress={animationProgress}
+              showLabels={showLabels}
+              labelX={labelX}
+              labelY={labelY}
+              percentage={Math.round((item.value / total) * 100)}
+            />
           );
         })}
       </Svg>

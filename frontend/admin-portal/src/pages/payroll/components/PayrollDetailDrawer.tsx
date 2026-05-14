@@ -39,7 +39,7 @@ export default function PayrollDetailDrawer({ payrollId, open, onClose, onStatus
             try {
                 const res = await axios.get(`${API_URL}/payroll/${payrollId}`, { headers: getAuthHeader() });
                 setData(res.data);
-            } catch (err) {
+            } catch (_err) {
                 toast.error('Failed to load payslip details');
             } finally {
                 setIsLoading(false);

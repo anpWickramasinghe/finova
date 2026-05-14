@@ -5,10 +5,14 @@ dotenv.config();
 
 async function test() {
   const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    console.error("DATABASE_URL is not set");
+    process.exit(1);
+  }
   console.log("URL:", dbUrl);
   const dbName = dbUrl.split("/").pop()?.split("?")[0];
   console.log("DB Name:", dbName);
-  
+
   const postgresUrl = dbUrl.replace(`/${dbName}`, "/postgres");
   console.log("Postgres URL:", postgresUrl);
 
@@ -21,7 +25,7 @@ async function test() {
       `SELECT 1 FROM pg_database WHERE datname = $1`,
       [dbName]
     );
-    console.log("Exists:", res.rowCount > 0);
+    console.log("Exists:", (res.rowCount ?? 0) > 0);
   } catch (e) {
     console.error("Error:", e);
   } finally {

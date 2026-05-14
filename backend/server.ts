@@ -21,10 +21,10 @@ import { setupChatSocket } from "./sockets/chatSockets.js";
 
 dotenv.config();
 
-const app = express();
+export const app = express();
 const PORT = process.env.PORT || 5000;
 
-const httpServer = http.createServer(app);
+export const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: "*",
@@ -59,7 +59,9 @@ app.get("/", (req, res) => {
   res.send("Finova API is running");
 });
 
-// Start Server
-httpServer.listen(PORT, () => {
-  console.log(`Server & Socket.io running on port ${PORT}`);
-});
+// Start Server (not in test environment)
+if (process.env.NODE_ENV !== 'test') {
+  httpServer.listen(PORT, () => {
+    console.log(`Server & Socket.io running on port ${PORT}`);
+  });
+}
