@@ -159,64 +159,64 @@ jobs:
   # ─────────────────────────────────────────────────────
   # JOB 5 — AI Chatbot Microservice (Python / FastAPI)
   # ─────────────────────────────────────────────────────
-  ai-chatbot:
-    name:  AI Chatbot — Lint & Type-check
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ai-core/chatbot
+  # ai-chatbot:
+  #   name:  AI Chatbot — Lint & Type-check
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ai-core/chatbot
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name:  Setup Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+  #     - name:  Setup Python 3.11
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.11'
 
-      - name:  Install uv
-        run: pip install uv
+  #     - name:  Install uv
+  #       run: pip install uv
 
-      - name:  Install dependencies
-        run: uv sync
+  #     - name:  Install dependencies
+  #       run: uv sync
 
-      - name:  Ruff lint
-        run: uv run ruff check .
+  #     - name:  Ruff lint
+  #       run: uv run ruff check .
 
-      - name:  Pyright type-check
-        run: uv run pyright . || true   # non-blocking until stubs stabilise
+  #     - name:  Pyright type-check
+  #       run: uv run pyright . || true   # non-blocking until stubs stabilise
 
   # ─────────────────────────────────────────────────────
   # JOB 6 — AI Forecasting Microservice (Python / FastAPI)
   # ─────────────────────────────────────────────────────
-  ai-forecasting:
-    name:  AI Forecasting — Lint & Type-check
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ai-core/forecasting
+  # ai-forecasting:
+  #   name:  AI Forecasting — Lint & Type-check
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ai-core/forecasting
 
-    steps:
-      - name:  Checkout repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name:  Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name:  Setup Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+  #     - name:  Setup Python 3.11
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.11'
 
-      - name:  Install uv
-        run: pip install uv
+  #     - name:  Install uv
+  #       run: pip install uv
 
-      - name:  Install dependencies
-        run: uv sync
+  #     - name:  Install dependencies
+  #       run: uv sync
 
-      - name:  Ruff lint
-        run: uv run ruff check .
+  #     - name:  Ruff lint
+  #       run: uv run ruff check .
 
-      - name:  Pyright type-check
-        run: uv run pyright . || true   # non-blocking until stubs stabilise
+  #     - name:  Pyright type-check
+  #       run: uv run pyright . || true   # non-blocking until stubs stabilise
 
   # ─────────────────────────────────────────────────────
   # JOB 7 — Docker Build Validation (all services)

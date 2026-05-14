@@ -45,3 +45,25 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+  ai-chatbot:
+    build:
+      context: ./ai-core/chatbot
+      dockerfile: Dockerfile
+    container_name: finova-ai-chatbot
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./ai-core/chatbot/.env
+    restart: unless-stopped
+
+  ai-forecasting:
+    build:
+      context: ./ai-core/forecasting
+      dockerfile: Dockerfile
+    container_name: finova-ai-forecasting
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./ai-core/forecasting/.env
+    restart: unless-stopped
