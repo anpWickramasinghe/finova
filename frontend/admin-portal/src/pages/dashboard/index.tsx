@@ -24,7 +24,7 @@ const Dashboard = () => {
     {
       id: 1,
       title: "Cash Flow",
-      value: "$124,580",
+      value: "LKR 344,580",
       change: "+12.5%",
       trend: "up",
       icon: "TrendingUp",
@@ -34,7 +34,7 @@ const Dashboard = () => {
     {
       id: 2,
       title: "Outstanding Invoices",
-      value: "$45,230",
+      value: "LKR 45,230",
       change: "-8.2%",
       trend: "down",
       icon: "FileText",
@@ -44,7 +44,7 @@ const Dashboard = () => {
     {
       id: 3,
       title: "Monthly Revenue",
-      value: "$89,450",
+      value: "LKR 489,450",
       change: "+15.8%",
       trend: "up",
       icon: "DollarSign",
