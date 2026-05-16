@@ -259,7 +259,7 @@ export default function HrReports() {
                                     <p className="text-sm font-medium text-text-secondary">Total Employees</p>
                                     <Users className="w-5 h-5 text-blue-500" />
                                 </div>
-                                <p className="mt-2 text-3xl font-semibold text-primary-900">{totalEmployees}</p>
+                                <p className="mt-2 text-2xl font-semibold text-primary-900">{totalEmployees}</p>
                             </CardContent>
                         </Card>
                         <Card className="bg-white border-none shadow-sm ring-1 ring-primary/5">
@@ -268,7 +268,7 @@ export default function HrReports() {
                                     <p className="text-sm font-medium text-text-secondary">Avg Attendance</p>
                                     <CheckSquare className="w-5 h-5 text-green-500" />
                                 </div>
-                                <p className="mt-2 text-3xl font-semibold text-green-600">{avgAttendanceRate}%</p>
+                                <p className="mt-2 text-2xl font-semibold text-green-600">{avgAttendanceRate}%</p>
                             </CardContent>
                         </Card>
                         <Card className="bg-white border-none shadow-sm ring-1 ring-primary/5">
@@ -277,7 +277,7 @@ export default function HrReports() {
                                     <p className="text-sm font-medium text-text-secondary">Total Leaves Taken</p>
                                     <Calendar className="w-5 h-5 text-red-500" />
                                 </div>
-                                <p className="mt-2 text-3xl font-semibold text-red-500">{totalLeavesTaken}</p>
+                                <p className="mt-2 text-2xl font-semibold text-red-500">{totalLeavesTaken}</p>
                             </CardContent>
                         </Card>
                         <Card className="bg-white border-none shadow-sm ring-1 ring-primary/5">
@@ -286,7 +286,7 @@ export default function HrReports() {
                                     <p className="text-sm font-medium text-text-secondary">Pending Requests</p>
                                     <Clock className="w-5 h-5 text-amber-500" />
                                 </div>
-                                <p className="mt-2 text-3xl font-semibold text-amber-500">{pendingRequests}</p>
+                                <p className="mt-2 text-2xl font-semibold text-amber-500">{pendingRequests}</p>
                             </CardContent>
                         </Card>
                     </div>

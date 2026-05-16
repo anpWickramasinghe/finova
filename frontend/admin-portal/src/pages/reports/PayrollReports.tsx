@@ -30,13 +30,13 @@ const getAuthHeader = () => {
 };
 
 const STATUS_PIE_COLORS: Record<string, string> = {
-    'Approved': '#3b82f6', // Blue-500
-    'Paid': '#10b981',     // Emerald-500
-    'Pending Approval': '#f59e0b', // Amber-500
-    'Draft': '#64748b',    // Slate-500
-    'Rejected': '#ef4444'  // Red-500
+    'Approved': 'hsl(var(--primary))',
+    'Paid': 'hsl(var(--chart-2))',
+    'Pending Approval': 'hsl(var(--chart-4))',
+    'Draft': 'hsl(var(--muted-foreground))',
+    'Rejected': 'hsl(var(--destructive))'
 };
-const DEFAULT_COLOR = '#94a3b8'; // Slate-400
+const DEFAULT_COLOR = 'hsl(var(--muted-foreground))';
 
 export default function PayrollReports() {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -154,8 +154,8 @@ export default function PayrollReports() {
                 <div className="p-6 mx-auto max-w-7xl animate-fade-in space-y-6">
                     <div className="flex flex-col justify-between mb-8 md:flex-row md:items-center">
                         <div>
-                            <h1 className="mb-1 text-3xl font-bold font-heading text-text-primary">Payroll Reports</h1>
-                            <p className="text-text-secondary">Generate and view payroll summaries and exports.</p>
+                            <h1 className="mb-1 text-3xl font-bold font-heading text-foreground">Payroll Reports</h1>
+                            <p className="text-muted-foreground">Generate and view payroll summaries and exports.</p>
                         </div>
                         <div className="flex gap-3 mt-4 md:mt-0">
                             <Button variant="outline" onClick={handleExportCSV} className="bg-white border-primary text-primary hover:bg-primary/5">
@@ -219,37 +219,37 @@ export default function PayrollReports() {
                         <Card className="bg-white border-none shadow-sm ring-1 ring-primary/5">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium text-text-secondary">Total Employees</p>
-                                    <Users className="w-5 h-5 text-blue-500" />
+                                    <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
+                                    <Users className="w-5 h-5 text-primary" />
                                 </div>
-                                <p className="mt-2 text-3xl font-semibold text-primary-900">{totalEmployees}</p>
+                                <p className="mt-2 text-2xl font-semibold text-primary">{totalEmployees}</p>
                             </CardContent>
                         </Card>
                         <Card className="bg-white border-none shadow-sm ring-1 ring-primary/5">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium text-text-secondary">Total Earnings</p>
-                                    <TrendingUp className="w-5 h-5 text-green-500" />
+                                    <p className="text-sm font-medium text-muted-foreground">Total Earnings</p>
+                                    <TrendingUp className="w-5 h-5 text-chart-2" />
                                 </div>
-                                <p className="mt-2 text-3xl font-semibold text-green-600">LKR {totalEarnings.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                                <p className="mt-2 text-2xl font-semibold text-chart-2">LKR {totalEarnings.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                             </CardContent>
                         </Card>
                         <Card className="bg-white border-none shadow-sm ring-1 ring-primary/5">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium text-text-secondary">Total Deductions</p>
-                                    <TrendingDown className="w-5 h-5 text-red-500" />
+                                    <p className="text-sm font-medium text-muted-foreground">Total Deductions</p>
+                                    <TrendingDown className="w-5 h-5 text-destructive" />
                                 </div>
-                                <p className="mt-2 text-3xl font-semibold text-red-500">LKR {totalDeductions.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                                <p className="mt-2 text-2xl font-semibold text-destructive">LKR {totalDeductions.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                             </CardContent>
                         </Card>
                         <Card className="bg-white border-none shadow-sm ring-1 ring-primary/5">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm font-medium text-text-secondary">Net Payable</p>
-                                    <Banknote className="w-5 h-5 text-primary-900" />
+                                    <p className="text-sm font-medium text-muted-foreground">Net Payable</p>
+                                    <Banknote className="w-5 h-5 text-primary" />
                                 </div>
-                                <p className="mt-2 text-3xl font-semibold text-primary-900">LKR {netPayable.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                                <p className="mt-2 text-2xl font-semibold text-primary">LKR {netPayable.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -265,9 +265,9 @@ export default function PayrollReports() {
                                         <YAxis tickFormatter={(val) => `LKR ${val.toLocaleString()}`} />
                                         <RechartsTooltip formatter={(value: any) => `LKR ${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`} />
                                         <Legend />
-                                        <Bar dataKey="Earnings" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={50} />
-                                        <Bar dataKey="Deductions" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={50} />
-                                        <Bar dataKey="Net" fill="#0369a1" radius={[4, 4, 0, 0]} barSize={50} />
+                                        <Bar dataKey="Earnings" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} barSize={50} />
+                                        <Bar dataKey="Deductions" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} barSize={50} />
+                                        <Bar dataKey="Net" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={50} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -309,7 +309,7 @@ export default function PayrollReports() {
                         <div className="p-4 border-b border-border bg-background/50 flex justify-between items-center">
                             <div className="flex items-center">
                                 <FileText className="w-5 h-5 mr-2 text-primary" />
-                                <h3 className="font-semibold text-text-primary">Payroll Datatable</h3>
+                                <h3 className="font-semibold text-foreground">Payroll Datatable</h3>
                             </div>
                         </div>
                         <Table>
@@ -330,22 +330,22 @@ export default function PayrollReports() {
                                     </TableRow>
                                 ) : filteredRecords.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="h-24 text-center text-text-secondary">No payroll records found.</TableCell>
+                                        <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No payroll records found.</TableCell>
                                     </TableRow>
                                 ) : (
                                     filteredRecords.map((record) => (
                                         <TableRow key={record.id}>
-                                            <TableCell className="font-medium text-text-primary">{record.userName || record.userId}</TableCell>
+                                            <TableCell className="font-medium text-foreground">{record.userName || record.userId}</TableCell>
                                             <TableCell>{record.month}/{record.year}</TableCell>
-                                            <TableCell className="text-right text-green-600 font-medium">+{parseFloat(record.totalEarnings || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
-                                            <TableCell className="text-right text-red-500 font-medium">-{parseFloat(record.totalDeductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
-                                            <TableCell className="text-right font-bold text-primary-900">LKR {parseFloat(record.netSalary || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
+                                            <TableCell className="text-right text-chart-2 font-medium">+{parseFloat(record.totalEarnings || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
+                                            <TableCell className="text-right text-destructive font-medium">-{parseFloat(record.totalDeductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
+                                            <TableCell className="text-right font-bold text-primary">LKR {parseFloat(record.netSalary || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
                                             <TableCell>
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${record.status === 'Draft' ? 'bg-slate-100 text-slate-600 border-slate-200' :
-                                                    record.status === 'Pending Approval' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                                        record.status === 'Approved' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                            record.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                                'bg-red-50 text-red-700 border-red-200'
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${record.status === 'Draft' ? 'bg-muted text-muted-foreground border-border' :
+                                                    record.status === 'Pending Approval' ? 'bg-chart-4/10 text-chart-4 border-chart-4/20' :
+                                                        record.status === 'Approved' ? 'bg-primary/10 text-primary border-primary/20' :
+                                                            record.status === 'Paid' ? 'bg-chart-2/10 text-chart-2 border-chart-2/20' :
+                                                                'bg-destructive/10 text-destructive border-destructive/20'
                                                     }`}>
                                                     {record.status}
                                                 </span>
