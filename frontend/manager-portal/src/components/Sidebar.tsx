@@ -112,13 +112,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                     roles: ['partner'],
                     tooltip: 'Manage system users'
                 },
-                // {
-                //     label: 'Client Portal',
-                //     path: '/client-portal',
-                //     icon: 'Globe',
-                //     roles: ['partner', 'staff', 'client'],
-                //     tooltip: 'Client access and communication'
-                // },
                 {
                     label: 'Leave Management',
                     path: '/leaves',
@@ -162,7 +155,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
                                     asChild
                                 >
                                     <Link to={item.path}>
-                                        {Icon && <Icon className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-2")} />}
+                                        {Icon && <Icon className={cn("h-5 w-5", collapsed ? "mr-0" : "mr-1")} />}
                                         {!collapsed && <span className=''> {item.label}</span>}
                                     </Link>
                                 </Button>
