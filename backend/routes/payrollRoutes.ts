@@ -8,6 +8,8 @@ import {
   getPayrollById,
   updatePayrollStatus,
   deletePayroll,
+  getMyPayrollRecords,
+  getMyPayrollById,
 } from "../controllers/payrollController.js";
 import {
   getSalaryComponents,
@@ -23,6 +25,10 @@ import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 router.use(requireAuth);
+
+// --- EMPLOYEE-SPECIFIC RECORDS ---
+router.get("/my/records", getMyPayrollRecords);
+router.get("/my/records/:id", getMyPayrollById);
 
 // --- SALARY COMPONENTS CONFIGURATION ---
 router.get(

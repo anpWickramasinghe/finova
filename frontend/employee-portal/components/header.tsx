@@ -17,7 +17,7 @@ interface HeaderProps {
 
 export default function Header({
     userName = 'Nethmina !',
-    greeting = 'Good Morning',
+    greeting,
     title,
     onNotificationPress,
     onMenuPress,
@@ -27,6 +27,32 @@ export default function Header({
 
     const primary = useColor('primary');
     const insets = useSafeAreaInsets();
+
+    const [currentTime, setCurrentTime] = React.useState('');
+
+    React.useEffect(() => {
+        const updateTime = () => {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            setCurrentTime(`${hours}:${minutes} ${ampm}`);
+        };
+
+        updateTime();
+        const intervalId = setInterval(updateTime, 60000); // update every minute
+        return () => clearInterval(intervalId);
+    }, []);
+
+    // Dynamically calculate the greeting based on the current time of day if not explicitly passed
+    const currentGreeting = greeting || (() => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good Morning';
+        if (hour < 17) return 'Good Afternoon';
+        return 'Good Evening';
+    })();
 
     return (
         <View
@@ -50,7 +76,12 @@ export default function Header({
                             <Text style={styles.title}>{title}</Text>
                         ) : (
                             <View>
-                                <Text style={styles.greeting}>{greeting}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                    <Text style={styles.greeting}>{currentGreeting}</Text>
+                                    {currentTime ? (
+                                        <Text style={[styles.greeting, { opacity: 0.75, fontWeight: '500' }]}>• {currentTime}</Text>
+                                    ) : null}
+                                </View>
                                 <Text style={styles.userName}>{userName}</Text>
                             </View>
                         )}

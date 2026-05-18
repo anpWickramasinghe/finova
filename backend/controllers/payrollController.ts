@@ -681,3 +681,93 @@ export const deletePayroll = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getMyPayrollRecords = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const records = await db
+      .select({
+        id: payroll.id,
+        userId: payroll.userId,
+        userName: user.name,
+        month: payroll.month,
+        year: payroll.year,
+        salaryType: payroll.salaryType,
+        workedDays: payroll.workedDays,
+        totalWorkHours: payroll.totalWorkHours,
+        totalOvertimeHours: payroll.totalOvertimeHours,
+        baseSalary: payroll.baseSalary,
+        totalEarnings: payroll.totalEarnings,
+        totalDeductions: payroll.totalDeductions,
+        netSalary: payroll.netSalary,
+        status: payroll.status,
+        paymentMethod: payroll.paymentMethod,
+        paymentReference: payroll.paymentReference,
+        generatedAt: payroll.generatedAt,
+      })
+      .from(payroll)
+      .leftJoin(user, eq(payroll.userId, user.id))
+      .where(eq(payroll.userId, userId));
+
+    res.status(200).json(records);
+  } catch (error: any) {
+    console.error("Error fetching my payroll:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getMyPayrollById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const records = await db
+      .select({
+        id: payroll.id,
+        userId: payroll.userId,
+        userName: user.name,
+        month: payroll.month,
+        year: payroll.year,
+        salaryType: payroll.salaryType,
+        workedDays: payroll.workedDays,
+        totalWorkHours: payroll.totalWorkHours,
+        totalOvertimeHours: payroll.totalOvertimeHours,
+        baseSalary: payroll.baseSalary,
+        totalEarnings: payroll.totalEarnings,
+        totalDeductions: payroll.totalDeductions,
+        netSalary: payroll.netSalary,
+        status: payroll.status,
+        paymentMethod: payroll.paymentMethod,
+        paymentReference: payroll.paymentReference,
+        generatedAt: payroll.generatedAt,
+      })
+      .from(payroll)
+      .leftJoin(user, eq(payroll.userId, user.id))
+      .where(and(eq(payroll.id, id), eq(payroll.userId, userId)))
+      .limit(1);
+
+    if (records.length === 0) {
+      return res.status(404).json({ message: "Payroll record not found" });
+    }
+
+    const items = await db
+      .select()
+      .from(payroll_item)
+      .where(eq(payroll_item.payrollId, id));
+
+    res.status(200).json({
+      ...records[0],
+      items,
+    });
+  } catch (error: any) {
+    console.error("Error fetching my payroll by ID:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

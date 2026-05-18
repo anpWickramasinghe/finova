@@ -157,7 +157,7 @@ export default function ChatScreen() {
                     data={[
                         { id: 'support', title: 'Support Team', subtitle: 'Our team is here to help with your queries', icon: 'person.fill', mode: 'support', unread: chatMode === 'support' ? unreadCount : 0, time: 'Now' },
                         { id: 'branch', title: 'Branch General', subtitle: 'Talk to your branch manager and staff', icon: 'building.2.fill', mode: 'branch', unread: chatMode === 'branch' ? unreadCount : 0, time: '1h' },
-                        { id: 'ai', title: 'AI Assistant', subtitle: 'Instant answers to your company questions', icon: 'sparkles', mode: 'support', unread: 0, time: '24/7' },
+                        
                     ]}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => renderInboxItem(item.title, item.subtitle, item.icon, item.mode as any, item.unread, item.time)}
