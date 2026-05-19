@@ -170,10 +170,10 @@ const BranchDetailPanel: React.FC<BranchDetailPanelProps> = ({
                                         </Button>
                                     </div>
                                 </div>
-                                <div>
+                                {/* <div>
                                     <p className="text-muted-foreground">Revenue</p>
                                     <p className="font-medium">${branch.revenue.toLocaleString()}</p>
-                                </div>
+                                </div> */}
                                 <div>
                                     <p className="text-muted-foreground">Last Audit</p>
                                     <p className="font-medium">{new Date(branch.lastAudit).toLocaleDateString()}</p>

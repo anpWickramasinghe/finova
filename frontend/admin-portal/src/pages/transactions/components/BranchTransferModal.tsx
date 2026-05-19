@@ -112,7 +112,7 @@ export function BranchTransferModal({ open, onOpenChange, branches, onSuccess }:
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="amount">Amount (USD) *</Label>
+            <Label htmlFor="amount">Amount *</Label>
             <Input
               id="amount"
               type="number"

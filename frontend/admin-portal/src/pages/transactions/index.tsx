@@ -545,10 +545,10 @@ const TransactionsManagement = () => {
               <div className="p-4 rounded-lg border bg-muted/30 text-center">
                 <p className="text-xs text-muted-foreground font-medium mb-1">Total Amount</p>
                 <p className="text-2xl font-bold font-mono">
-                  ${parseFloat(selected.totalAmount || '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  LKR {parseFloat(selected.totalAmount || '0').toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </p>
                 {selected.requiresAdminApproval && (
-                  <p className="text-xs text-amber-600 mt-1 font-medium">⚠ Requires admin approval (≥ $10,000)</p>
+                  <p className="text-xs text-amber-600 mt-1 font-medium">⚠ Requires admin approval (≥ LKR 10,000)</p>
                 )}
               </div>
 
@@ -574,10 +574,10 @@ const TransactionsManagement = () => {
                               {line.accountCode ? `${line.accountCode} - ${line.accountName}` : line.accountId}
                             </td>
                             <td className="p-2 text-right font-mono text-green-600">
-                              {parseFloat(line.debit || '0') > 0 ? `$${parseFloat(line.debit).toFixed(2)}` : '—'}
+                              {parseFloat(line.debit || '0') > 0 ? `${parseFloat(line.debit).toFixed(2)}` : '—'}
                             </td>
                             <td className="p-2 text-right font-mono text-red-600">
-                              {parseFloat(line.credit || '0') > 0 ? `$${parseFloat(line.credit).toFixed(2)}` : '—'}
+                              {parseFloat(line.credit || '0') > 0 ? `${parseFloat(line.credit).toFixed(2)}` : '—'}
                             </td>
                           </tr>
                         ))}
