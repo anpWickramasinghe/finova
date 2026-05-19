@@ -669,14 +669,19 @@ export const getLedgerEntries = async (req: AuthRequest, res: Response) => {
 export const getReportsSummary = async (req: AuthRequest, res: Response) => {
     try {
         const branchId = req.user?.branchId;
+        const userRole = req.user?.role?.toLowerCase();
+        const isAdmin = userRole === 'admin';
         const { startDate, endDate } = req.query;
 
-        const conditions: any[] = [];
-        if (branchId) conditions.push(eq(transaction.branchId, branchId));
+        // ---- Transaction-level filters ----
+        const txnConditions: any[] = [];
+        if (!isAdmin && branchId) txnConditions.push(eq(transaction.branchId, branchId));
         if (startDate && endDate) {
-            conditions.push(sql`${transaction.date} >= ${new Date(startDate as string)}`);
-            conditions.push(sql`${transaction.date} <= ${new Date(endDate as string)}`);
+            txnConditions.push(sql`${transaction.date} >= ${new Date(startDate as string)}`);
+            txnConditions.push(sql`${transaction.date} <= ${new Date(endDate as string)}`);
         }
+        // Exclude rejected transactions
+        txnConditions.push(sql`${transaction.status} != 'rejected'`);
 
         const allTxns = await db.select({
             status: transaction.status,
@@ -685,7 +690,7 @@ export const getReportsSummary = async (req: AuthRequest, res: Response) => {
             date: transaction.date,
         })
             .from(transaction)
-            .where(conditions.length > 0 ? and(...conditions) : undefined);
+            .where(txnConditions.length > 0 ? and(...txnConditions) : undefined);
 
         // Status breakdown
         const statusCounts: Record<string, number> = {};
@@ -699,23 +704,20 @@ export const getReportsSummary = async (req: AuthRequest, res: Response) => {
             typeTotals[t.type] = (typeTotals[t.type] || 0) + parseFloat(t.totalAmount || '0');
         });
 
-        // Debit vs Credit from ledger
+        // ---- Trial Balance: prefer ledger_entry for posted txns, fall back to journal_line ----
         const ledgerConditions: any[] = [];
-        if (branchId) ledgerConditions.push(eq(ledger_entry.branchId, branchId));
+        if (!isAdmin && branchId) ledgerConditions.push(eq(ledger_entry.branchId, branchId));
         if (startDate && endDate) {
             ledgerConditions.push(sql`${ledger_entry.date} >= ${new Date(startDate as string)}`);
             ledgerConditions.push(sql`${ledger_entry.date} <= ${new Date(endDate as string)}`);
         }
 
-        const ledgerAgg = await db.select({
-            totalDebit: sql<string>`COALESCE(SUM(${ledger_entry.debit}), 0)`,
-            totalCredit: sql<string>`COALESCE(SUM(${ledger_entry.credit}), 0)`,
-        })
-            .from(ledger_entry)
-            .where(ledgerConditions.length > 0 ? and(...ledgerConditions) : undefined);
+        let trialBalance: any[] = [];
+        let ledgerTotalDebit = '0';
+        let ledgerTotalCredit = '0';
 
-        // Trial balance by account
-        const trialBalance = await db.select({
+        // Try ledger_entry first (authoritative — posted/reconciled transactions)
+        const ledgerRows = await db.select({
             accountId: ledger_entry.accountId,
             accountCode: chart_of_accounts.code,
             accountName: chart_of_accounts.name,
@@ -726,15 +728,60 @@ export const getReportsSummary = async (req: AuthRequest, res: Response) => {
             .from(ledger_entry)
             .innerJoin(chart_of_accounts, eq(ledger_entry.accountId, chart_of_accounts.id))
             .where(ledgerConditions.length > 0 ? and(...ledgerConditions) : undefined)
-            .groupBy(ledger_entry.accountId, chart_of_accounts.code, chart_of_accounts.name, chart_of_accounts.type);
+            .groupBy(ledger_entry.accountId, chart_of_accounts.code, chart_of_accounts.name, chart_of_accounts.type)
+            .orderBy(asc(chart_of_accounts.code));
+
+        if (ledgerRows.length > 0) {
+            // Posted transactions exist — use ledger_entry
+            trialBalance = ledgerRows;
+            const ledgerAgg = await db.select({
+                totalDebit: sql<string>`COALESCE(SUM(${ledger_entry.debit}), 0)`,
+                totalCredit: sql<string>`COALESCE(SUM(${ledger_entry.credit}), 0)`,
+            })
+                .from(ledger_entry)
+                .where(ledgerConditions.length > 0 ? and(...ledgerConditions) : undefined);
+            ledgerTotalDebit = ledgerAgg[0]?.totalDebit || '0';
+            ledgerTotalCredit = ledgerAgg[0]?.totalCredit || '0';
+        } else {
+            // No posted ledger data — fall back to journal_line for all non-rejected transactions
+            const jlConditions: any[] = [
+                sql`${transaction.status} != 'rejected'`,
+            ];
+            if (!isAdmin && branchId) jlConditions.push(eq(transaction.branchId, branchId));
+            if (startDate && endDate) {
+                jlConditions.push(sql`${transaction.date} >= ${new Date(startDate as string)}`);
+                jlConditions.push(sql`${transaction.date} <= ${new Date(endDate as string)}`);
+            }
+
+            const jlRows = await db.select({
+                accountId: journal_line.accountId,
+                accountCode: chart_of_accounts.code,
+                accountName: chart_of_accounts.name,
+                accountType: chart_of_accounts.type,
+                totalDebit: sql<string>`COALESCE(SUM(CAST(${journal_line.debit} AS NUMERIC)), 0)`,
+                totalCredit: sql<string>`COALESCE(SUM(CAST(${journal_line.credit} AS NUMERIC)), 0)`,
+            })
+                .from(journal_line)
+                .innerJoin(transaction, eq(journal_line.transactionId, transaction.id))
+                .innerJoin(chart_of_accounts, eq(journal_line.accountId, chart_of_accounts.id))
+                .where(and(...jlConditions))
+                .groupBy(journal_line.accountId, chart_of_accounts.code, chart_of_accounts.name, chart_of_accounts.type)
+                .orderBy(asc(chart_of_accounts.code));
+
+            trialBalance = jlRows;
+            const sumD = jlRows.reduce((s, r) => s + parseFloat(r.totalDebit), 0);
+            const sumC = jlRows.reduce((s, r) => s + parseFloat(r.totalCredit), 0);
+            ledgerTotalDebit = sumD.toFixed(2);
+            ledgerTotalCredit = sumC.toFixed(2);
+        }
 
         res.status(200).json({
             totalTransactions: allTxns.length,
             statusCounts,
             typeTotals,
             ledgerTotals: {
-                totalDebit: ledgerAgg[0]?.totalDebit || '0',
-                totalCredit: ledgerAgg[0]?.totalCredit || '0',
+                totalDebit: ledgerTotalDebit,
+                totalCredit: ledgerTotalCredit,
             },
             trialBalance,
         });
@@ -750,20 +797,68 @@ export const getReportsSummary = async (req: AuthRequest, res: Response) => {
 export const getProfitAndLossReport = async (req: AuthRequest, res: Response) => {
     try {
         const branchId = req.user?.branchId;
+        const userRole = req.user?.role?.toLowerCase();
+        const isAdmin = userRole === 'admin';
         const { startDate, endDate } = req.query;
 
-        const ledgerConditions: any[] = [];
-        if (branchId) ledgerConditions.push(eq(ledger_entry.branchId, branchId));
-        if (startDate && endDate) {
-            ledgerConditions.push(sql`${ledger_entry.date} >= ${new Date(startDate as string)}`);
-            ledgerConditions.push(sql`${ledger_entry.date} <= ${new Date(endDate as string)}`);
-        }
+        const start = startDate ? new Date(startDate as string) : undefined;
+        const end = endDate ? new Date(endDate as string) : undefined;
 
-        // Filter only for revenue and expense
-        ledgerConditions.push(inArray(chart_of_accounts.type, ['revenue', 'expense']));
+        // ---- Helper: build account-level P&L from a list of {accountId, accountCode, accountName, accountType, debit, credit, date, entryId} ----
+        const buildPnL = (entries: any[]) => {
+            const accountMap = new Map<string, any>();
+            let totalRevenue = 0;
+            let totalExpenses = 0;
 
-        const entries = await db.select({
-            id: ledger_entry.id,
+            for (const entry of entries) {
+                if (!accountMap.has(entry.accountId)) {
+                    accountMap.set(entry.accountId, {
+                        accountId: entry.accountId,
+                        accountCode: entry.accountCode,
+                        accountName: entry.accountName,
+                        accountType: entry.accountType,
+                        entries: [],
+                        totalDebit: 0,
+                        totalCredit: 0,
+                        netBalance: 0,
+                    });
+                }
+                const acc = accountMap.get(entry.accountId);
+                acc.entries.push(entry);
+                acc.totalDebit += parseFloat(entry.debit || '0');
+                acc.totalCredit += parseFloat(entry.credit || '0');
+            }
+
+            const revenues: any[] = [];
+            const expenses: any[] = [];
+
+            for (const acc of accountMap.values()) {
+                if (acc.accountType === 'revenue') {
+                    acc.netBalance = acc.totalCredit - acc.totalDebit;
+                    totalRevenue += acc.netBalance;
+                    revenues.push(acc);
+                } else if (acc.accountType === 'expense') {
+                    acc.netBalance = acc.totalDebit - acc.totalCredit;
+                    totalExpenses += acc.netBalance;
+                    expenses.push(acc);
+                }
+            }
+
+            revenues.sort((a, b) => a.accountCode.localeCompare(b.accountCode));
+            expenses.sort((a, b) => a.accountCode.localeCompare(b.accountCode));
+            return { revenues, expenses, totalRevenue, totalExpenses };
+        };
+
+        // ---- 1. Try ledger_entry first (posted/reconciled transactions) ----
+        const ledgerConditions: any[] = [
+            inArray(chart_of_accounts.type, ['revenue', 'expense']),
+        ];
+        if (!isAdmin && branchId) ledgerConditions.push(eq(ledger_entry.branchId, branchId));
+        if (start) ledgerConditions.push(sql`${ledger_entry.date} >= ${start}`);
+        if (end) ledgerConditions.push(sql`${ledger_entry.date} <= ${end}`);
+
+        const ledgerEntries = await db.select({
+            entryId: ledger_entry.id,
             transactionId: ledger_entry.transactionId,
             accountId: ledger_entry.accountId,
             accountCode: chart_of_accounts.code,
@@ -776,57 +871,58 @@ export const getProfitAndLossReport = async (req: AuthRequest, res: Response) =>
         })
             .from(ledger_entry)
             .innerJoin(chart_of_accounts, eq(ledger_entry.accountId, chart_of_accounts.id))
-            .where(ledgerConditions.length > 0 ? and(...ledgerConditions) : undefined)
+            .where(and(...ledgerConditions))
             .orderBy(asc(ledger_entry.date));
 
-        const accountMap = new Map<string, any>();
-        let totalRevenue = 0;
-        let totalExpenses = 0;
-
-        for (const entry of entries) {
-            if (!accountMap.has(entry.accountId)) {
-                accountMap.set(entry.accountId, {
-                    accountId: entry.accountId,
-                    accountCode: entry.accountCode,
-                    accountName: entry.accountName,
-                    accountType: entry.accountType,
-                    entries: [],
-                    totalDebit: 0,
-                    totalCredit: 0,
-                    netBalance: 0,
-                });
-            }
-
-            const acc = accountMap.get(entry.accountId);
-            acc.entries.push(entry);
-            acc.totalDebit += parseFloat(entry.debit || '0');
-            acc.totalCredit += parseFloat(entry.credit || '0');
+        if (ledgerEntries.length > 0) {
+            // Use authoritative posted ledger data
+            const { revenues, expenses, totalRevenue, totalExpenses } = buildPnL(ledgerEntries);
+            return res.status(200).json({
+                revenues,
+                expenses,
+                totalRevenue,
+                totalExpenses,
+                netIncome: totalRevenue - totalExpenses,
+                source: 'ledger',
+            });
         }
 
-        const revenues: any[] = [];
-        const expenses: any[] = [];
+        // ---- 2. Fall back to journal_line for non-rejected transactions ----
+        //    This covers draft, pending_approval, approved transactions that haven't been posted yet.
+        const jlConditions: any[] = [
+            inArray(chart_of_accounts.type, ['revenue', 'expense']),
+            sql`${transaction.status} != 'rejected'`,
+        ];
+        if (!isAdmin && branchId) jlConditions.push(eq(transaction.branchId, branchId));
+        if (start) jlConditions.push(sql`${transaction.date} >= ${start}`);
+        if (end) jlConditions.push(sql`${transaction.date} <= ${end}`);
 
-        for (const acc of accountMap.values()) {
-            if (acc.accountType === 'revenue') {
-                acc.netBalance = acc.totalCredit - acc.totalDebit;
-                totalRevenue += acc.netBalance;
-                revenues.push(acc);
-            } else if (acc.accountType === 'expense') {
-                acc.netBalance = acc.totalDebit - acc.totalCredit;
-                totalExpenses += acc.netBalance;
-                expenses.push(acc);
-            }
-        }
+        const journalEntries = await db.select({
+            entryId: journal_line.id,
+            transactionId: journal_line.transactionId,
+            accountId: journal_line.accountId,
+            accountCode: chart_of_accounts.code,
+            accountName: chart_of_accounts.name,
+            accountType: chart_of_accounts.type,
+            date: transaction.date,
+            debit: journal_line.debit,
+            credit: journal_line.credit,
+            postedAt: transaction.approvedAt,
+        })
+            .from(journal_line)
+            .innerJoin(transaction, eq(journal_line.transactionId, transaction.id))
+            .innerJoin(chart_of_accounts, eq(journal_line.accountId, chart_of_accounts.id))
+            .where(and(...jlConditions))
+            .orderBy(asc(transaction.date));
 
-        revenues.sort((a, b) => a.accountCode.localeCompare(b.accountCode));
-        expenses.sort((a, b) => a.accountCode.localeCompare(b.accountCode));
-
-        res.status(200).json({
+        const { revenues, expenses, totalRevenue, totalExpenses } = buildPnL(journalEntries);
+        return res.status(200).json({
             revenues,
             expenses,
             totalRevenue,
             totalExpenses,
-            netIncome: totalRevenue - totalExpenses
+            netIncome: totalRevenue - totalExpenses,
+            source: 'journal',   // informational — indicates data is pre-posting
         });
 
     } catch (error) {

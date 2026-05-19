@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { transactionService, type ReportsSummary, type ProfitAndLossReport } from '@/services/transactionService';
 import { forecastingService, type ForecastPrediction } from '@/services/forecastingService';
+import { exportFinancialCSV, exportFinancialPDF } from './reportExports';
 
 const FinancialReports = () => {
     const [report, setReport] = useState<ReportsSummary | null>(null);
@@ -79,23 +80,11 @@ const FinancialReports = () => {
     };
 
     const exportCSV = () => {
-        if (!report?.trialBalance) return;
-        const headers = ['Account Code', 'Account Name', 'Type', 'Total Debit', 'Total Credit', 'Net Balance'];
-        const rows = report.trialBalance.map(row => [
-            row.accountCode,
-            `"${row.accountName}"`, // Quote to handle commas in names
-            row.accountType,
-            row.totalDebit,
-            row.totalCredit,
-            (parseFloat(row.totalDebit) - parseFloat(row.totalCredit)).toFixed(2),
-        ]);
-        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `financial-report-${new Date().toISOString().slice(0, 10)}.csv`;
-        a.click();
+        exportFinancialCSV(report, pnlReport, startDate, endDate);
+    };
+
+    const exportPDF = () => {
+        exportFinancialPDF(report, pnlReport, startDate, endDate);
     };
 
     if (loading) {
@@ -165,7 +154,7 @@ const FinancialReports = () => {
                             <Button variant="outline" onClick={exportCSV}>
                                 <FileSpreadsheet className="w-4 h-4 mr-2" /> Export CSV
                             </Button>
-                            <Button variant="outline">
+                            <Button variant="outline" onClick={exportPDF}>
                                 <Download className="w-4 h-4 mr-2" /> Export PDF
                             </Button>
                         </div>
@@ -298,7 +287,7 @@ const FinancialReports = () => {
                                                         }}
                                                     >
                                                         <span>{e.accountCode} - {e.accountName} <span className="text-xs text-muted-foreground ml-2">({e.entries?.length || 0} entries)</span></span>
-                                                        <span className="font-mono">${Number(e.netBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                        <span className="font-mono">LKR {Number(e.netBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                     </div>
                                                 ))}
                                                 <div className="flex justify-between items-center font-bold text-sm pt-2">
@@ -360,12 +349,12 @@ const FinancialReports = () => {
                                             {assets.map(a => (
                                                 <div key={a.accountCode} className="flex justify-between items-center text-sm py-1 border-b border-dashed border-muted">
                                                     <span>{a.accountCode} - {a.accountName}</span>
-                                                    <span className="font-mono">${(parseFloat(a.totalDebit) - parseFloat(a.totalCredit)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                    <span className="font-mono">LKR {(parseFloat(a.totalDebit) - parseFloat(a.totalCredit)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                 </div>
                                             ))}
                                             <div className="flex justify-between items-center font-bold text-sm pt-2">
                                                 <span>Total Assets</span>
-                                                <span className="font-mono text-blue-600">${totalAssets.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                <span className="font-mono">LKR {totalAssets.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -378,7 +367,7 @@ const FinancialReports = () => {
                                                 {liabilities.map(l => (
                                                     <div key={l.accountCode} className="flex justify-between items-center text-sm py-1 border-b border-dashed border-muted">
                                                         <span>{l.accountCode} - {l.accountName}</span>
-                                                        <span className="font-mono">${(parseFloat(l.totalCredit) - parseFloat(l.totalDebit)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                                        <span className="font-mono">LKR {(parseFloat(l.totalCredit) - parseFloat(l.totalDebit)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                                     </div>
                                                 ))}
                                                 <div className="flex justify-between items-center font-bold text-sm pt-2">
@@ -452,13 +441,13 @@ const FinancialReports = () => {
                                                                 <Badge variant="outline" className="text-xs capitalize">{row.accountType}</Badge>
                                                             </TableCell>
                                                             <TableCell className="font-mono text-right">
-                                                                ${parseFloat(row.totalDebit).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                                LKR {parseFloat(row.totalDebit).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                                             </TableCell>
                                                             <TableCell className="font-mono text-right">
-                                                                ${parseFloat(row.totalCredit).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                                LKR {parseFloat(row.totalCredit).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                                             </TableCell>
                                                             <TableCell className={`text-right font-mono font-bold ${net > 0 ? 'text-blue-600' : net < 0 ? 'text-orange-600' : 'text-muted-foreground'}`}>
-                                                                {net > 0 ? '+' : net < 0 ? '-' : ''}${Math.abs(net).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                                {net > 0 ? '+' : net < 0 ? '-' : ''}LKR {Math.abs(net).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                                             </TableCell>
                                                         </TableRow>
                                                     );

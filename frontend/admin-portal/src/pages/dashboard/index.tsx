@@ -29,7 +29,7 @@ const formatChange = (pct: number) => {
 
 const Dashboard = () => {
     const { user } = useAuth();
-    const [userRole] = useState('staff');
+    // const [userRole] = useState('staff');
 
     const displayUser = {
         name: user?.name || user?.email?.split('@')[0] || "User",
