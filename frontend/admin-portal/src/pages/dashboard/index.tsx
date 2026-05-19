@@ -4,6 +4,7 @@ import { Calendar, Download, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useAuth } from '@/context/AuthContext';
 
 // Components
 import KPICard from '../../components/dashboard/KPICard';
@@ -11,12 +12,13 @@ import RecentActivity from '../../components/dashboard/RecentActivity';
 import PendingTasks from '../../components/dashboard/PendingTasks';
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [userRole] = useState('staff');
 
-  const mockUser = {
-    name: "Sarah Johnson",
-    email: "sarah.johnson@accountingpro.com",
-    role: "Senior Accountant",
+  const displayUser = {
+    name: user?.name || user?.email?.split('@')[0] || "User",
+    email: user?.email || "",
+    role: user?.role || "Staff",
     avatar: "https://randomuser.me/api/portraits/women/32.jpg"
   };
 
@@ -112,7 +114,7 @@ const Dashboard = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back, {mockUser.name}. Here's your financial overview for today.
+            Welcome back, {displayUser.name}. Here's your financial overview for today.
           </p>
         </div>
         <div className="flex items-center gap-2">

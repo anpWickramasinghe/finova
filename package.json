@@ -8,7 +8,9 @@
     "setup": "cd backend && npm install && cd ../frontend/admin-portal && npm install && cd ../manager-portal && npm install",
     "admin": "cd frontend/admin-portal && npm run dev -- --port 5175",
     "manager": "cd frontend/manager-portal && npm run dev -- --port 5176",
-    "start": "concurrently \"npm run server\" \"npm run admin\" \"npm run manager\" \"npm run employee\"",
+    "chatbot": "cd ai-core/chatbot && uv run python server.py",
+    "forecasting": "cd ai-core/forecasting && uv run python server.py",
+    "start": "concurrently \"npm run server\" \"npm run admin\" \"npm run manager\" \"npm run employee\" \"npm run chatbot\" \"npm run forecasting\"",
     "prepare": "husky"
   },
   "repositoryfrontend/admin-portal/.gitignore": {
