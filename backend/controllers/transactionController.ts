@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
-import { transaction, journal_line, ledger_entry, reconciliation, chart_of_accounts, user, branch } from '../db/schema.js';
+import { transaction, journal_line, ledger_entry, reconciliation, chart_of_accounts, user, branch, payroll } from '../db/schema.js';
 import { eq, and, sql, desc, asc, between, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -848,6 +848,291 @@ export const getAccounts = async (req: AuthRequest, res: Response) => {
         res.status(200).json(accounts);
     } catch (error) {
         console.error('Error fetching accounts:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// ==========================================
+// DASHBOARD ANALYTICS (Revenue Trends, Expense Breakdown, Cash Flow)
+// Admin sees all branches; other roles scoped to their branchId
+// ==========================================
+export const getDashboardAnalytics = async (req: AuthRequest, res: Response) => {
+    try {
+        const userRole = req.user?.role?.toLowerCase();
+        const isAdmin = userRole === 'admin';
+        const userBranchId = req.user?.branchId || (req.user?.role === 'branch' ? req.user?.id : null);
+
+        const now = new Date();
+        // Current month range
+        const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const thisMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        // Previous month range
+        const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+        // Last 6 months start
+        const sixMonthsAgoStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+        // ---- Branch scope condition ----
+        const branchCondition = (!isAdmin && userBranchId)
+            ? eq(ledger_entry.branchId, userBranchId)
+            : undefined;
+
+        // ==========================================
+        // 1. REVENUE TRENDS — Monthly rollup for last 6 months
+        //    Group ledger entries by month for revenue+expense account types
+        // ==========================================
+        const trendConditions: any[] = [
+            inArray(chart_of_accounts.type, ['revenue', 'expense']),
+            sql`${ledger_entry.date} >= ${sixMonthsAgoStart}`,
+            sql`${ledger_entry.date} <= ${thisMonthEnd}`,
+        ];
+        if (branchCondition) trendConditions.push(branchCondition);
+
+        const trendRows = await db.select({
+            accountType: chart_of_accounts.type,
+            month: sql<string>`TO_CHAR(${ledger_entry.date}, 'Mon YY')`,
+            monthStart: sql<string>`DATE_TRUNC('month', ${ledger_entry.date})`,
+            totalDebit: sql<string>`COALESCE(SUM(${ledger_entry.debit}), 0)`,
+            totalCredit: sql<string>`COALESCE(SUM(${ledger_entry.credit}), 0)`,
+        })
+            .from(ledger_entry)
+            .innerJoin(chart_of_accounts, eq(ledger_entry.accountId, chart_of_accounts.id))
+            .where(and(...trendConditions))
+            .groupBy(
+                chart_of_accounts.type,
+                sql`TO_CHAR(${ledger_entry.date}, 'Mon YY')`,
+                sql`DATE_TRUNC('month', ${ledger_entry.date})`,
+            )
+            .orderBy(asc(sql`DATE_TRUNC('month', ${ledger_entry.date})`));
+
+        // Build 6-month map with keys in order
+        const monthKeys: { key: string; label: string }[] = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+            monthKeys.push({ key: label, label });
+        }
+
+        const revenueMap = new Map<string, { revenue: number; expenses: number }>();
+        monthKeys.forEach(({ key }) => revenueMap.set(key, { revenue: 0, expenses: 0 }));
+
+        for (const row of trendRows) {
+            // Match the month label from the DB result
+            const d = new Date(row.monthStart);
+            const key = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+            if (revenueMap.has(key)) {
+                const v = revenueMap.get(key)!;
+                const debit = parseFloat(row.totalDebit);
+                const credit = parseFloat(row.totalCredit);
+                if (row.accountType === 'revenue') {
+                    // Revenue accounts: net = credit - debit (credit increases revenue)
+                    v.revenue += credit - debit;
+                } else if (row.accountType === 'expense') {
+                    // Expense accounts: net = debit - credit (debit increases expense)
+                    v.expenses += debit - credit;
+                }
+            }
+        }
+
+        const revenueTrends = Array.from(revenueMap.entries()).map(([month, v]) => ({
+            month,
+            revenue: Math.max(0, Math.round(v.revenue)),
+            expenses: Math.max(0, Math.round(v.expenses)),
+            profit: Math.round(v.revenue - v.expenses),
+        }));
+
+        // ==========================================
+        // 2. EXPENSE BREAKDOWN — Current month by expense account
+        //    Falls back to last 6 months if current month has no ledger data.
+        //    Also merges payroll netSalary as a synthetic expense category.
+        // ==========================================
+        const CHART_COLORS = ['#6366f1', '#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'];
+
+        const buildExpenseConditions = (start: Date, end: Date) => {
+            const conds: any[] = [
+                eq(chart_of_accounts.type, 'expense'),
+                sql`${ledger_entry.date} >= ${start}`,
+                sql`${ledger_entry.date} <= ${end}`,
+            ];
+            if (branchCondition) conds.push(branchCondition);
+            return conds;
+        };
+
+        // Try current month first
+        let expenseRows = await db.select({
+            accountId: ledger_entry.accountId,
+            accountName: chart_of_accounts.name,
+            totalDebit: sql<string>`COALESCE(SUM(${ledger_entry.debit}), 0)`,
+            totalCredit: sql<string>`COALESCE(SUM(${ledger_entry.credit}), 0)`,
+        })
+            .from(ledger_entry)
+            .innerJoin(chart_of_accounts, eq(ledger_entry.accountId, chart_of_accounts.id))
+            .where(and(...buildExpenseConditions(thisMonthStart, thisMonthEnd)))
+            .groupBy(ledger_entry.accountId, chart_of_accounts.name)
+            .orderBy(desc(sql`COALESCE(SUM(${ledger_entry.debit}), 0) - COALESCE(SUM(${ledger_entry.credit}), 0)`));
+
+        // Fall back to last 6 months if current month is empty
+        if (expenseRows.length === 0) {
+            expenseRows = await db.select({
+                accountId: ledger_entry.accountId,
+                accountName: chart_of_accounts.name,
+                totalDebit: sql<string>`COALESCE(SUM(${ledger_entry.debit}), 0)`,
+                totalCredit: sql<string>`COALESCE(SUM(${ledger_entry.credit}), 0)`,
+            })
+                .from(ledger_entry)
+                .innerJoin(chart_of_accounts, eq(ledger_entry.accountId, chart_of_accounts.id))
+                .where(and(...buildExpenseConditions(sixMonthsAgoStart, thisMonthEnd)))
+                .groupBy(ledger_entry.accountId, chart_of_accounts.name)
+                .orderBy(desc(sql`COALESCE(SUM(${ledger_entry.debit}), 0) - COALESCE(SUM(${ledger_entry.credit}), 0)`));
+        }
+
+        const ledgerExpenses = expenseRows
+            .map(row => ({
+                category: row.accountName,
+                amount: Math.max(0, Math.round(parseFloat(row.totalDebit) - parseFloat(row.totalCredit))),
+            }))
+            .filter(e => e.amount > 0)
+            .slice(0, 6);
+
+        // Add payroll as a synthetic expense category from the payroll table
+        const payrollConditions: any[] = [
+            sql`${payroll.status} IN ('Paid', 'Processed', 'Approved')`,
+            sql`${payroll.generatedAt} >= ${sixMonthsAgoStart}`,
+            sql`${payroll.generatedAt} <= ${thisMonthEnd}`,
+        ];
+        const payrollAgg = await db.select({
+            total: sql<string>`COALESCE(SUM(CAST(${payroll.netSalary} AS NUMERIC)), 0)`,
+        }).from(payroll).where(and(...payrollConditions));
+
+        const payrollTotal = Math.round(parseFloat(payrollAgg[0]?.total || '0'));
+        // Only add payroll if not already covered by a ledger account named similarly
+        const hasPayrollAccount = ledgerExpenses.some(e =>
+            e.category.toLowerCase().includes('salary') ||
+            e.category.toLowerCase().includes('payroll') ||
+            e.category.toLowerCase().includes('wages')
+        );
+        if (payrollTotal > 0 && !hasPayrollAccount) {
+            ledgerExpenses.push({ category: 'Salary & Payroll', amount: payrollTotal });
+        }
+
+        const expenseBreakdown = ledgerExpenses
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 7)
+            .map((e, idx) => ({ ...e, color: CHART_COLORS[idx % CHART_COLORS.length] }));
+
+        // ==========================================
+        // 3. CASH FLOW — Daily inflow/outflow from ledger (all accounts, last 30 days)
+        // ==========================================
+        const thirtyDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
+        const cashFlowConditions: any[] = [
+            sql`${ledger_entry.date} >= ${thirtyDaysAgo}`,
+            sql`${ledger_entry.date} <= ${thisMonthEnd}`,
+        ];
+        if (branchCondition) cashFlowConditions.push(branchCondition);
+
+        const cashFlowRows = await db.select({
+            day: sql<string>`TO_CHAR(${ledger_entry.date}, 'Mon DD')`,
+            dayStart: sql<string>`DATE_TRUNC('day', ${ledger_entry.date})`,
+            totalDebit: sql<string>`COALESCE(SUM(${ledger_entry.debit}), 0)`,
+            totalCredit: sql<string>`COALESCE(SUM(${ledger_entry.credit}), 0)`,
+        })
+            .from(ledger_entry)
+            .where(and(...cashFlowConditions))
+            .groupBy(
+                sql`TO_CHAR(${ledger_entry.date}, 'Mon DD')`,
+                sql`DATE_TRUNC('day', ${ledger_entry.date})`,
+            )
+            .orderBy(asc(sql`DATE_TRUNC('day', ${ledger_entry.date})`));
+
+        const cashFlow = cashFlowRows.map(row => ({
+            date: row.day,
+            inflow: Math.round(parseFloat(row.totalDebit)),
+            outflow: Math.round(parseFloat(row.totalCredit)),
+        }));
+
+        // ==========================================
+        // 4. KPI DATA — Current month P&L totals + pending transactions
+        // ==========================================
+        const kpiPnLConditions: any[] = [
+            inArray(chart_of_accounts.type, ['revenue', 'expense']),
+            sql`${ledger_entry.date} >= ${thisMonthStart}`,
+            sql`${ledger_entry.date} <= ${thisMonthEnd}`,
+        ];
+        if (branchCondition) kpiPnLConditions.push(branchCondition);
+
+        const kpiRows = await db.select({
+            accountType: chart_of_accounts.type,
+            totalDebit: sql<string>`COALESCE(SUM(${ledger_entry.debit}), 0)`,
+            totalCredit: sql<string>`COALESCE(SUM(${ledger_entry.credit}), 0)`,
+        })
+            .from(ledger_entry)
+            .innerJoin(chart_of_accounts, eq(ledger_entry.accountId, chart_of_accounts.id))
+            .where(and(...kpiPnLConditions))
+            .groupBy(chart_of_accounts.type);
+
+        let currentRevenue = 0;
+        let currentExpenses = 0;
+        for (const row of kpiRows) {
+            if (row.accountType === 'revenue') currentRevenue = parseFloat(row.totalCredit) - parseFloat(row.totalDebit);
+            if (row.accountType === 'expense') currentExpenses = parseFloat(row.totalDebit) - parseFloat(row.totalCredit);
+        }
+
+        // Previous month KPI
+        const prevKpiConditions: any[] = [
+            inArray(chart_of_accounts.type, ['revenue', 'expense']),
+            sql`${ledger_entry.date} >= ${prevMonthStart}`,
+            sql`${ledger_entry.date} <= ${prevMonthEnd}`,
+        ];
+        if (branchCondition) prevKpiConditions.push(branchCondition);
+
+        const prevKpiRows = await db.select({
+            accountType: chart_of_accounts.type,
+            totalDebit: sql<string>`COALESCE(SUM(${ledger_entry.debit}), 0)`,
+            totalCredit: sql<string>`COALESCE(SUM(${ledger_entry.credit}), 0)`,
+        })
+            .from(ledger_entry)
+            .innerJoin(chart_of_accounts, eq(ledger_entry.accountId, chart_of_accounts.id))
+            .where(and(...prevKpiConditions))
+            .groupBy(chart_of_accounts.type);
+
+        let prevRevenue = 0;
+        let prevExpenses = 0;
+        for (const row of prevKpiRows) {
+            if (row.accountType === 'revenue') prevRevenue = parseFloat(row.totalCredit) - parseFloat(row.totalDebit);
+            if (row.accountType === 'expense') prevExpenses = parseFloat(row.totalDebit) - parseFloat(row.totalCredit);
+        }
+
+        // Pending transactions
+        const pendingConditions: any[] = [eq(transaction.status, 'pending_approval')];
+        if (!isAdmin && userBranchId) pendingConditions.push(eq(transaction.branchId, userBranchId));
+
+        const pendingTxns = await db.select({
+            totalAmount: transaction.totalAmount,
+        }).from(transaction).where(and(...pendingConditions));
+
+        const outstandingInvoices = pendingTxns.reduce((sum, t) => sum + parseFloat(t.totalAmount || '0'), 0);
+
+        const cashFlowVal = currentRevenue - currentExpenses;
+        const prevCashFlow = prevRevenue - prevExpenses;
+        const monthlyRevenueChange = prevRevenue > 0 ? ((currentRevenue - prevRevenue) / prevRevenue) * 100 : 0;
+        const cashFlowChange = prevCashFlow > 0 ? ((cashFlowVal - prevCashFlow) / prevCashFlow) * 100 : 0;
+
+        res.status(200).json({
+            kpis: {
+                cashFlow: Math.round(cashFlowVal),
+                cashFlowChange: parseFloat(cashFlowChange.toFixed(1)),
+                outstandingInvoices: Math.round(outstandingInvoices),
+                outstandingCount: pendingTxns.length,
+                monthlyRevenue: Math.round(currentRevenue),
+                monthlyRevenueChange: parseFloat(monthlyRevenueChange.toFixed(1)),
+                totalExpenses: Math.round(currentExpenses),
+            },
+            revenueTrends,
+            expenseBreakdown,
+            cashFlow,
+        });
+    } catch (error) {
+        console.error('Error fetching dashboard analytics:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

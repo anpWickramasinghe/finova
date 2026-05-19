@@ -14,6 +14,7 @@ import {
     getReportsSummary,
     getProfitAndLossReport,
     getAccounts,
+    getDashboardAnalytics,
 } from '../controllers/transactionController.js';
 import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
 
@@ -25,6 +26,9 @@ router.use(requireRole(['admin', 'manager', 'branch']));
 
 // Chart of Accounts
 router.get('/accounts', getAccounts);
+
+// Dashboard Analytics (admin-aware aggregation)
+router.get('/dashboard/analytics', getDashboardAnalytics);
 
 // Transaction CRUD
 router.get('/', getTransactions);
