@@ -15,13 +15,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend,
-    ResponsiveContainer, PieChart, Pie, Cell
+    ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
 import {
     Download, FileSpreadsheet, TrendingUp, TrendingDown,
-    DollarSign, BarChart3, Loader2, AlertTriangle, CheckCircle, Calculator
+    DollarSign, BarChart3, Loader2, AlertTriangle, CheckCircle, Calculator, Brain, Sparkles
 } from 'lucide-react';
 import { transactionService, type ReportsSummary, type ProfitAndLossReport } from '@/services/transactionService';
+import { forecastingService, type ForecastPrediction } from '@/services/forecastingService';
 
 const FinancialReports = () => {
     const [report, setReport] = useState<ReportsSummary | null>(null);
@@ -36,9 +37,30 @@ const FinancialReports = () => {
         new Date().toISOString().split('T')[0]
     );
 
+    // Cash Flow Forecasting state
+    const [forecastData, setForecastData] = useState<ForecastPrediction[]>([]);
+    const [forecastDays, setForecastDays] = useState<number>(30);
+    const [forecastLoading, setForecastLoading] = useState<boolean>(false);
+    const [forecastError, setForecastError] = useState<string | null>(null);
+
     useEffect(() => {
         loadReport();
+        loadForecast(forecastDays);
     }, [startDate, endDate]);
+
+    const loadForecast = async (days: number) => {
+        setForecastLoading(true);
+        setForecastError(null);
+        try {
+            const data = await forecastingService.getPredictions(days);
+            setForecastData(data);
+        } catch (err: any) {
+            console.error('Failed to load cash flow forecast:', err);
+            setForecastError(err.message || 'Failed to connect to forecasting microservice');
+        } finally {
+            setForecastLoading(false);
+        }
+    };
 
     const loadReport = async () => {
         setLoading(true);
@@ -220,11 +242,15 @@ const FinancialReports = () => {
 
                 {/* Tabs */}
                 <Tabs defaultValue="pl" className="w-full">
-                    <TabsList className="mb-4">
+                    <TabsList className="mb-4 flex flex-wrap gap-1">
                         <TabsTrigger value="pl">Profit & Loss</TabsTrigger>
                         <TabsTrigger value="bs">Balance Sheet</TabsTrigger>
                         <TabsTrigger value="trial-balance">Trial Balance</TabsTrigger>
                         <TabsTrigger value="status-summary">Transaction Summary</TabsTrigger>
+                        <TabsTrigger value="forecast" className="flex items-center gap-1.5 transition-all duration-300">
+                            <Brain className="w-3.5 h-3.5 text-indigo-500 animate-pulse" />
+                            <span>AI Cash Flow Forecast</span>
+                        </TabsTrigger>
                     </TabsList>
 
                     {/* Profit & Loss */}
@@ -548,6 +574,271 @@ const FinancialReports = () => {
                                     </div>
                                 </CardContent>
                             </Card>
+                        </div>
+                    </TabsContent>
+
+                    {/* AI Cash Flow Forecast */}
+                    <TabsContent value="forecast">
+                        <div className="space-y-6">
+                            {/* Forecast Header Control Panel */}
+                            <Card className="overflow-hidden border-indigo-100 dark:border-indigo-950/40">
+                                <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/5 to-transparent p-6">
+                                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                        <div className="space-y-1">
+                                          
+                                            <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                                                Cash Flow Forecasting & Analytics
+                                            </CardTitle>
+                                           
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-sm font-medium text-muted-foreground">Forecast Horizon:</span>
+                                            <div className="flex bg-muted p-1 rounded-lg border">
+                                                {[15, 30, 60].map((days) => (
+                                                    <Button
+                                                        key={days}
+                                                        size="sm"
+                                                        variant={forecastDays === days ? 'default' : 'ghost'}
+                                                        className={`h-8 px-3 rounded-md text-xs font-semibold ${forecastDays === days ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm' : ''}`}
+                                                        onClick={() => {
+                                                            setForecastDays(days);
+                                                            loadForecast(days);
+                                                        }}
+                                                    >
+                                                        {days} Days
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {forecastError ? (
+                                <Card className="border-red-100 bg-red-50/50 dark:bg-red-950/10 dark:border-red-900/30 p-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="p-3 bg-red-100 dark:bg-red-900/40 rounded-full text-red-600">
+                                            <AlertTriangle className="w-6 h-6" />
+                                        </div>
+                                        <div className="space-y-1 flex-1">
+                                            <h4 className="font-bold text-red-800 dark:text-red-400">Forecasting Microservice Offline</h4>
+                                            <p className="text-sm text-red-700/80 dark:text-red-400/70">
+                                                Nova could not connect to the ML model backend (http://localhost:8001). Please ensure your forecasting service is running:
+                                            </p>
+                                            <pre className="mt-3 p-3 bg-slate-900 text-slate-200 font-mono text-xs rounded-md border border-slate-800 overflow-x-auto select-all">
+                                                cd ai-core/forecasting && uv run python server.py
+                                            </pre>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="mt-4 border-red-200 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                                                onClick={() => loadForecast(forecastDays)}
+                                            >
+                                                Retry Connection
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ) : forecastLoading ? (
+                                <Card className="p-12 flex flex-col items-center justify-center space-y-4">
+                                    <div className="relative">
+                                        <Brain className="w-12 h-12 text-indigo-600 animate-pulse" />
+                                        <Sparkles className="w-6 h-6 text-indigo-400 absolute -top-2 -right-2 animate-bounce" />
+                                    </div>
+                                    <div className="text-center space-y-1">
+                                        <h4 className="font-semibold">Training ML Predictor...</h4>
+                                        <p className="text-xs text-muted-foreground max-w-md">
+                                            Extracting historical asset ledger balances, engineering weekend / month-end calendar features, and computing random forest regressors.
+                                        </p>
+                                    </div>
+                                    <Loader2 className="w-6 h-6 animate-spin text-indigo-500 mt-2" />
+                                </Card>
+                            ) : (
+                                <>
+                                    {/* Forecast KPI cards */}
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                        <Card>
+                                            <CardContent className="p-5 space-y-1.5">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Projected Inflow Cash</span>
+                                                    <div className="p-1.5 bg-green-100 rounded-md dark:bg-green-950/40">
+                                                        <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="font-mono text-2xl font-black text-green-600 dark:text-green-400">
+                                                        LKR {forecastData
+                                                            .filter(d => d.predicted_flow > 0)
+                                                            .reduce((acc, curr) => acc + curr.predicted_flow, 0)
+                                                            .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Sum of all days with positive cash accumulation.
+                                                    </p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card>
+                                            <CardContent className="p-5 space-y-1.5">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Projected Outflow Cash</span>
+                                                    <div className="p-1.5 bg-orange-100 rounded-md dark:bg-orange-950/40">
+                                                        <TrendingDown className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="font-mono text-2xl font-black text-orange-600 dark:text-orange-400">
+                                                        LKR {Math.abs(forecastData
+                                                            .filter(d => d.predicted_flow < 0)
+                                                            .reduce((acc, curr) => acc + curr.predicted_flow, 0))
+                                                            .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Sum of all days with negative cash dispersion.
+                                                    </p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card className="relative overflow-hidden border-indigo-200 dark:border-indigo-900/60 shadow-indigo-100/10 dark:shadow-none">
+                                            <CardContent className="p-5 space-y-1.5">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-semibold text-indigo-800 dark:text-indigo-300 uppercase tracking-wider">Net Cash Flow Delta</span>
+                                                    <div className="p-1.5 bg-indigo-100 rounded-md dark:bg-indigo-950/40">
+                                                        <DollarSign className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    {(() => {
+                                                        const netDelta = forecastData.reduce((acc, curr) => acc + curr.predicted_flow, 0);
+                                                        return (
+                                                            <>
+                                                                <p className={`font-mono text-2xl font-black ${netDelta >= 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                                                                    {netDelta >= 0 ? '+' : ''}LKR {netDelta.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    Predicted cash balance shift over next {forecastDays} days.
+                                                                </p>
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+
+                                    {/* Cash Flow Forecast Graph */}
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <Card className="w-full">
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-lg font-bold flex items-center gap-1.5">
+                                                    <TrendingUp className="w-4 h-4 text-indigo-500" />
+                                                    Cash Flow Prediction Timeline
+                                                </CardTitle>
+                                                <CardDescription>
+                                                    Visual projection of daily net balance changes. Hover over the peaks to inspect predictions.
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent className="pt-4 h-[350px] min-h-[300px]">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <AreaChart
+                                                        data={forecastData}
+                                                        margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                                                    >
+                                                        <defs>
+                                                            <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
+                                                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0}/>
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} vertical={false} />
+                                                        <XAxis 
+                                                            dataKey="date" 
+                                                            tickLine={false} 
+                                                            axisLine={false} 
+                                                            tickMargin={10} 
+                                                            tickFormatter={(str) => {
+                                                                try {
+                                                                    const date = new Date(str);
+                                                                    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                                                                } catch {
+                                                                    return str;
+                                                                }
+                                                            }}
+                                                        />
+                                                        <YAxis 
+                                                            tickLine={false} 
+                                                            axisLine={false} 
+                                                            tickFormatter={(val) => `LKR ${Number(val).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                                                        />
+                                                        <RechartsTooltip 
+                                                            formatter={(value) => [`LKR ${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 'Predicted Net Flow']}
+                                                            labelFormatter={(label) => {
+                                                                try {
+                                                                    const date = new Date(label);
+                                                                    return date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                                                                } catch {
+                                                                    return label;
+                                                                }
+                                                            }}
+                                                            contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                                        />
+                                                        <Area 
+                                                            type="monotone" 
+                                                            dataKey="predicted_flow" 
+                                                            stroke="#6366f1" 
+                                                            strokeWidth={3} 
+                                                            fillOpacity={1} 
+                                                            fill="url(#colorForecast)" 
+                                                        />
+                                                    </AreaChart>
+                                                </ResponsiveContainer>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+
+                                    {/* Granular Table list */}
+                                    <Card>
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-lg font-bold">Predictive Ledger Table</CardTitle>
+                                            <CardDescription>
+                                                Granular day-by-day cash forecast for the next {forecastDays} days.
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="border rounded-md max-h-[300px] overflow-y-auto">
+                                                <Table>
+                                                    <TableHeader className="sticky top-0 bg-background z-10">
+                                                        <TableRow>
+                                                            <TableHead>Forecast Date</TableHead>
+                                                            <TableHead>Expected Direction</TableHead>
+                                                            <TableHead className="text-right">Predicted Net Delta</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {forecastData.map((row, i) => (
+                                                            <TableRow key={i}>
+                                                                <TableCell className="font-medium">
+                                                                    {new Date(row.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <Badge variant="outline" className={`capitalize text-xs font-semibold ${row.type === 'inflow' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-900/30' : 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-900/30'}`}>
+                                                                        {row.type}
+                                                                    </Badge>
+                                                                </TableCell>
+                                                                <TableCell className={`font-mono font-bold text-right ${row.predicted_flow >= 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                                                                    {row.predicted_flow >= 0 ? '+' : ''}LKR {row.predicted_flow.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </>
+                            )}
                         </div>
                     </TabsContent>
                 </Tabs>
