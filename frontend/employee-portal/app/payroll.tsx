@@ -156,7 +156,7 @@ export default function PayrollScreen() {
                     <View style={styles.cardRow}>
                         <View>
                             <Text style={styles.cardLabel}>YTD Net Salary</Text>
-                            <Text style={styles.cardValue}>${ytdNet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+                            <Text style={styles.cardValue}> LKR {ytdNet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
                         </View>
                         <View style={styles.badgeContainer}>
                             <TrendingUp size={20} color="#10b981" />
@@ -229,7 +229,7 @@ export default function PayrollScreen() {
                                     </View>
                                     <View style={styles.netBlock}>
                                         <Text style={styles.netLabel}>Net Salary</Text>
-                                        <Text style={styles.netValue}>${parseFloat(item.netSalary).toFixed(2)}</Text>
+                                        <Text style={styles.netValue}>LKR{parseFloat(item.netSalary).toFixed(2)}</Text>
                                     </View>
                                     <ChevronRight size={20} color={textMuted} style={{ marginLeft: 8 }} />
                                 </View>
@@ -268,7 +268,7 @@ export default function PayrollScreen() {
                                 {/* Official Summary Banner */}
                                 <View style={styles.receiptBanner}>
                                     <Text style={styles.bannerSubtitle}>NET AMOUNT PAID</Text>
-                                    <Text style={styles.bannerValue}>${parseFloat(selectedRecord.netSalary).toFixed(2)}</Text>
+                                    <Text style={styles.bannerValue}> LKR {parseFloat(selectedRecord.netSalary).toFixed(2)}</Text>
                                     <View style={[styles.statusBadge, { alignSelf: 'center', marginTop: 10, backgroundColor: getStatusColor(selectedRecord.status).bg }]}>
                                         <Text style={[styles.statusText, { color: getStatusColor(selectedRecord.status).text }]}>
                                             {selectedRecord.status}
@@ -317,18 +317,18 @@ export default function PayrollScreen() {
                                         <>
                                             <View style={styles.detailRow}>
                                                 <Text style={styles.detailName}>Basic Salary</Text>
-                                                <Text style={[styles.detailValue, { color: '#10b981' }]}>+${parseFloat(selectedRecord.baseSalary).toFixed(2)}</Text>
+                                                <Text style={[styles.detailValue, { color: '#10b981' }]}> LKR {parseFloat(selectedRecord.baseSalary).toFixed(2)}</Text>
                                             </View>
                                             {parseFloat(selectedRecord.totalEarnings) > parseFloat(selectedRecord.baseSalary) && (
                                                 <View style={styles.detailRow}>
                                                     <Text style={styles.detailName}>Overtime & Allowances</Text>
-                                                    <Text style={[styles.detailValue, { color: '#10b981' }]}>+${(parseFloat(selectedRecord.totalEarnings) - parseFloat(selectedRecord.baseSalary)).toFixed(2)}</Text>
+                                                    <Text style={[styles.detailValue, { color: '#10b981' }]}> LKR {(parseFloat(selectedRecord.totalEarnings) - parseFloat(selectedRecord.baseSalary)).toFixed(2)}</Text>
                                                 </View>
                                             )}
                                             {parseFloat(selectedRecord.totalDeductions) > 0 && (
                                                 <View style={styles.detailRow}>
                                                     <Text style={styles.detailName}>EPF & Statutory Deductions</Text>
-                                                    <Text style={[styles.detailValue, { color: '#ef4444' }]}>-${parseFloat(selectedRecord.totalDeductions).toFixed(2)}</Text>
+                                                    <Text style={[styles.detailValue, { color: '#ef4444' }]}>-LKR{parseFloat(selectedRecord.totalDeductions).toFixed(2)}</Text>
                                                 </View>
                                             )}
                                         </>
