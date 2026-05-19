@@ -32,6 +32,8 @@ import {
     DollarSign,
     CheckCircle2
 } from 'lucide-react-native';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 
 export default function PayrollScreen() {
     const [records, setRecords] = useState<any[]>([]);
@@ -122,10 +124,288 @@ export default function PayrollScreen() {
     const handleShare = async (record: any) => {
         try {
             await Share.share({
-                message: `Finova Payslip - ${getMonthName(record.month)} ${record.year}\nNet Salary Paid: $${parseFloat(record.netSalary).toFixed(2)}\nRef: ${record.paymentReference || 'N/A'}`,
+                message: `Finova Payslip - ${getMonthName(record.month)} ${record.year}\nNet Salary Paid: LKR ${parseFloat(record.netSalary).toFixed(2)}\nRef: ${record.paymentReference || 'N/A'}`,
             });
         } catch (error) {
             console.error(error);
+        }
+    };
+
+    const handleDownloadPDF = async (record: any) => {
+        try {
+            const month = getMonthName(record.month);
+            const year = record.year;
+            const netSalary = parseFloat(record.netSalary).toFixed(2);
+            const status = record.status;
+            const workedDays = record.workedDays;
+            const workHours = parseFloat(record.totalWorkHours).toFixed(2);
+            const overtimeHours = parseFloat(record.totalOvertimeHours).toFixed(2);
+            const totalEarnings = parseFloat(record.totalEarnings).toFixed(2);
+            const totalDeductions = parseFloat(record.totalDeductions).toFixed(2);
+            const paymentMethod = record.paymentMethod || 'Bank Wire Payout';
+            const paymentReference = record.paymentReference || `PAY-${record.id.substring(0, 8)}`;
+
+            let breakdownHtml = '';
+            if (record.items && record.items.length > 0) {
+                // Filter out Employer EPF and Employer ETF
+                const filteredItems = record.items.filter((item: any) => {
+                    const name = item.componentName.toLowerCase();
+                    return !name.includes('employer epf') && !name.includes('employer etf');
+                });
+                breakdownHtml = filteredItems.map((item: any) => {
+                    const isDeduction = item.type.includes('Deduction');
+                    return `
+                        <div class="row">
+                            <span class="name">${item.componentName}</span>
+                            <span class="value ${isDeduction ? 'deductions' : 'earnings'}">
+                                ${isDeduction ? '-' : '+'}LKR ${parseFloat(item.amount).toFixed(2)}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                breakdownHtml = `
+                    <div class="row">
+                        <span class="name">Basic Salary</span>
+                        <span class="value earnings">+LKR ${parseFloat(record.baseSalary).toFixed(2)}</span>
+                    </div>
+                `;
+                if (parseFloat(record.totalEarnings) > parseFloat(record.baseSalary)) {
+                    breakdownHtml += `
+                        <div class="row">
+                            <span class="name">Overtime & Allowances</span>
+                            <span class="value earnings">+LKR ${(parseFloat(record.totalEarnings) - parseFloat(record.baseSalary)).toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+                if (parseFloat(record.totalDeductions) > 0) {
+                    breakdownHtml += `
+                        <div class="row">
+                            <span class="name">EPF & Statutory Deductions</span>
+                            <span class="value deductions">-LKR ${parseFloat(record.totalDeductions).toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Payslip Receipt</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333333;
+            margin: 0;
+            padding: 40px;
+            background-color: #ffffff;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #6366f1;
+            letter-spacing: 0.5px;
+        }
+        .title {
+            text-align: right;
+        }
+        .title h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #1e293b;
+        }
+        .title p {
+            margin: 5px 0 0 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+        .banner {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border-radius: 12px;
+            padding: 24px;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .banner-subtitle {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            margin: 0 0 8px 0;
+        }
+        .banner-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 24px 0 12px 0;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 6px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .row:last-child {
+            border-bottom: none;
+        }
+        .name {
+            color: #64748b;
+        }
+        .value {
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .earnings {
+            color: #10b981;
+        }
+        .deductions {
+            color: #ef4444;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .net-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            font-size: 16px;
+            font-weight: 700;
+            border-top: 2px solid #e2e8f0;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">FINOVA</div>
+        <div class="title">
+            <h1>Payslip Receipt</h1>
+            <p>${month} ${year}</p>
+        </div>
+    </div>
+
+    <div class="banner">
+        <p class="banner-subtitle">NET AMOUNT PAID</p>
+        <p class="banner-value">LKR ${netSalary}</p>
+        <span class="status-badge">${status}</span>
+    </div>
+
+    <div class="section-title">Attendance Summary</div>
+    <div class="table">
+        <div class="row">
+            <span class="name">Worked Days</span>
+            <span class="value">${workedDays} Days</span>
+        </div>
+        <div class="row">
+            <span class="name">Standard Work Hours</span>
+            <span class="value">${workHours}h</span>
+        </div>
+        <div class="row">
+            <span class="name">Approved Overtime</span>
+            <span class="value">${overtimeHours}h</span>
+        </div>
+    </div>
+
+    <div class="section-title">Salary Breakdown</div>
+    <div class="table">
+        ${breakdownHtml}
+        <div class="summary-row" style="border-top: 1px solid #e2e8f0; margin-top: 8px;">
+            <span class="name" style="font-weight: 600;">Gross Earnings</span>
+            <span class="value">LKR ${totalEarnings}</span>
+        </div>
+        <div class="summary-row">
+            <span class="name" style="font-weight: 600;">Total Deductions</span>
+            <span class="value deductions">-LKR ${totalDeductions}</span>
+        </div>
+        <div class="net-row">
+            <span>Net Paid</span>
+            <span class="earnings">LKR ${netSalary}</span>
+        </div>
+    </div>
+
+    <div class="section-title">Payout Audit Trail</div>
+    <div class="table">
+        <div class="row">
+            <span class="name">Payout Method</span>
+            <span class="value">${paymentMethod}</span>
+        </div>
+        <div class="row">
+            <span class="name">Reference ID</span>
+            <span class="value" style="font-family: monospace;">${paymentReference}</span>
+        </div>
+        <div class="row">
+            <span class="name">Secure Stamp</span>
+            <span class="value" style="color: #10b981;">VERIFIED SECURE</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        This is a system generated document and requires no physical signature.<br>
+        &copy; ${year} Finova Inc. All rights reserved.
+    </div>
+</body>
+</html>
+            `;
+
+            const { uri } = await Print.printToFileAsync({ html });
+            
+            if (Platform.OS === 'ios') {
+                await Sharing.shareAsync(uri);
+            } else {
+                await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Download Payslip PDF', UTI: 'com.adobe.pdf' });
+            }
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Could not generate PDF payslip. Please try again.');
         }
     };
 
@@ -302,17 +582,22 @@ export default function PayrollScreen() {
                                             <Text style={{ textAlign: 'center', marginTop: 8, fontSize: 12, color: textMuted }}>Fetching component details...</Text>
                                         </View>
                                     ) : selectedRecord.items && selectedRecord.items.length > 0 ? (
-                                        selectedRecord.items.map((item: any) => {
-                                            const isDeduction = item.type.includes('Deduction');
-                                            return (
-                                                <View key={item.id} style={styles.detailRow}>
-                                                    <Text style={styles.detailName}>{item.componentName}</Text>
-                                                    <Text style={[styles.detailValue, { color: isDeduction ? '#ef4444' : '#10b981' }]}>
-                                                        {isDeduction ? '-' : '+'}${parseFloat(item.amount).toFixed(2)}
-                                                    </Text>
-                                                </View>
-                                            );
-                                        })
+                                        selectedRecord.items
+                                            .filter((item: any) => {
+                                                const name = item.componentName.toLowerCase();
+                                                return !name.includes('employer epf') && !name.includes('employer etf');
+                                            })
+                                            .map((item: any) => {
+                                                const isDeduction = item.type.includes('Deduction');
+                                                return (
+                                                    <View key={item.id} style={styles.detailRow}>
+                                                        <Text style={styles.detailName}>{item.componentName}</Text>
+                                                        <Text style={[styles.detailValue, { color: isDeduction ? '#ef4444' : '#10b981' }]}>
+                                                            {isDeduction ? '-' : '+'}${parseFloat(item.amount).toFixed(2)}
+                                                        </Text>
+                                                    </View>
+                                                );
+                                            })
                                     ) : (
                                         <>
                                             <View style={styles.detailRow}>
@@ -345,7 +630,7 @@ export default function PayrollScreen() {
                                     </View>
                                     <View style={styles.netRow}>
                                         <Text style={styles.netReceiptLabel}>Net Paid</Text>
-                                        <Text style={styles.netReceiptValue}>${parseFloat(selectedRecord.netSalary).toFixed(2)}</Text>
+                                        <Text style={styles.netReceiptValue}>LKR {parseFloat(selectedRecord.netSalary).toFixed(2)}</Text>
                                     </View>
                                 </View>
 
@@ -390,7 +675,7 @@ export default function PayrollScreen() {
                                         variant="default"
                                         style={{ flex: 1 }}
                                         icon={Download}
-                                        onPress={() => alert('PDF Payslip is generating... and downloading in your background.')}
+                                        onPress={() => handleDownloadPDF(selectedRecord)}
                                     >
                                         Download PDF
                                     </Button>
