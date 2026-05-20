@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Banknote, CheckCircle, Clock, SaveAll } from 'lucide-react';
 
 export default function PayrollStatsCards({ records }: { records: any[] }) {

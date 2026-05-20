@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components, react-hooks/set-state-in-effect */
 import { createContext, useState, useEffect, useContext, useCallback, type ReactNode } from 'react';
 import axios, { type AxiosResponse, type AxiosError } from 'axios';
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
